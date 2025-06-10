@@ -1,34 +1,69 @@
-import React from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-const companyInfoPage = () => {
+const CompanyInfoPage = () => {
+  const [editable, setEditable] = useState(false);
+
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <TextInput
-        style={style.input}
-        placeholder="Company name"
-        editable={false}
-      />
-      <TextInput style={style.input} placeholder="Mail" editable={false} />
-      <TextInput style={style.input} placeholder="Address" editable={false} />
-      <TextInput
-        style={style.input}
-        placeholder="Phone number"
-        editable={false}
-      />
-      <TextInput style={style.input} placeholder="Website" editable={false} />
+    <View style={styles.screen}>
+      <View style={styles.inputRow}>
+        <TextInput
+          style={[styles.input, editable && styles.inputEditable]}
+          placeholder="Company name"
+          editable={editable}
+        />
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => setEditable(!editable)}
+        >
+          {/* A edit emoji */}
+          <Text style={styles.editText}>✏️</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
-export default companyInfoPage;
+export default CompanyInfoPage;
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    backgroundColor: "#f5f5f5",
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+  },
   input: {
+    flex: 1,
     borderWidth: 1,
-    borderColor: "black",
+    borderColor: "#ccc",
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: "#e9e9e9",
+  },
+  inputEditable: {
+    backgroundColor: "#ffffff",
+    borderColor: "#007BFF",
+  },
+  editButton: {
+    marginLeft: 10,
     padding: 10,
-    margin: 15,
-    width: 250,
+    backgroundColor: "#007BFF",
+    borderRadius: 8,
+  },
+  editText: {
+    color: "white",
+    fontSize: 16,
   },
 });
