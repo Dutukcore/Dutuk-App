@@ -5,12 +5,30 @@ const Index = () => {
     <View style={profileSettingsMenuStyle.container}>
       <Text style={profileSettingsMenuStyle.title}>Profile Settings</Text>
       <View style={profileSettingsMenuStyle.optionsView}>
-        <RouteAssist path={"/profile/profileSettings/companysBasicInfo"} text={"Company's Basic Information"} />
-        <RouteAssist path={"/profile/profileSettings/documentVerification"} text={"Document Verification"} />
-        <RouteAssist path={"/profile/profileSettings/changePasswordOtp"} text={"Change Password"} />
-        <RouteAssist path={"/profile/profileSettings/changeUsername"} text={"Chaange Username"} />
-        <RouteAssist path={"/profile/profileSettings/history_and_highlights"} text={"History & Highlights"} />
-        <RouteAssist path={"/profile/profileSettings/helpcenter"} text={"Help Center"} />
+        <RouteAssist
+          path={"/profile/companyBasicInfo/companyInfoPage"}
+          text={"Company's Basic Information"}
+        />
+        <RouteAssist
+          path={"/profile/profileSettings/documentVerification"}
+          text={"Document Verification"}
+        />
+        <RouteAssist
+          path={"/profile/profileSettings/changePasswordOtp"}
+          text={"Change Password"}
+        />
+        <RouteAssist
+          path={"/profile/profileSettings/changeUsername"}
+          text={"Chaange Username"}
+        />
+        <RouteAssist
+          path={"/profile/profileSettings/history_and_highlights"}
+          text={"History & Highlights"}
+        />
+        <RouteAssist
+          path={"/profile/profileSettings/helpcenter"}
+          text={"Help Center"}
+        />
         <RouteAssist path={"/profile/profileSettings/about"} text={"About"} />
         <RouteAssist path={"/profile/profileSettings/logout"} text={"Logout"} />
       </View>
