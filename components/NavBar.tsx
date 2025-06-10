@@ -24,11 +24,8 @@ const NavBar = () => {
         <Pressable onPress={handleNavBarVisibility}>
           <Text style={navBarStyle.innerNavButtonText}>=</Text>
         </Pressable>
-        <Pressable onPress={()=>router.push("/profile/helpcenter")}><Text style={navBarStyle.links}>Help Center</Text></Pressable>
-        <Pressable onPress={()=>router.push("/profile/about")}><Text style={navBarStyle.links}>About</Text></Pressable>
         <Pressable onPress={()=>router.push("/profile/legal")}><Text style={navBarStyle.links}>Legal</Text></Pressable>
         <Pressable onPress={()=>router.push("/profile/profileSettings")}><Text style={navBarStyle.links}>Profile Settings</Text></Pressable>
-        <Pressable onPress={()=>router.push("/profile/logout")}><Text style={navBarStyle.links}>Logout</Text></Pressable>
       </Animated.View>
     );
   } else {
