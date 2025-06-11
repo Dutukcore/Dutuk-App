@@ -1,5 +1,6 @@
 import AuthButton from "@/components/AuthButton";
 import EditableInputField from "@/components/EditableInputField";
+import useCompanyInfo from "@/hooks/useCompanyInfo";
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -17,11 +18,7 @@ const CompanyInfoPage = () => {
   const [website, setWebsite] = useState("");
 
   const handlePress = () => {
-    console.log(company);
-    console.log(mail);
-    console.log(phone);
-    console.log(address);
-    console.log(website);
+    useCompanyInfo({ company, mail, phone, address, website });
   };
 
   return (
