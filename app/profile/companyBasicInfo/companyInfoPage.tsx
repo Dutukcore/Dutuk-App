@@ -3,38 +3,38 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 const CompanyInfoPage = () => {
-  const [company, setCompany] = useState(false);
-  const [mail, setMail] = useState(false);
-  const [phone, setPhone] = useState(false);
-  const [address, setAddress] = useState(false);
-  const [website, setWebsite] = useState(false);
+  const [companyEditable, setCompanyEditable] = useState(false);
+  const [mailEditable, setMailEditable] = useState(false);
+  const [phoneEditable, setPhoneEditable] = useState(false);
+  const [addressEditable, setAddressEditable] = useState(false);
+  const [websiteEditable, setWebsiteEditable] = useState(false);
 
   return (
     <View style={styles.screen}>
       <Text style={styles.headerStyle}>Company Basic Info</Text>
       <EditableInputField
-        editable={company}
-        onToggleEdit={() => setCompany(!company)}
+        editable={companyEditable}
+        onToggleEdit={() => setCompanyEditable(!companyEditable)}
         placeholder="Company name"
       />
       <EditableInputField
-        editable={mail}
-        onToggleEdit={() => setMail(!mail)}
+        editable={mailEditable}
+        onToggleEdit={() => setMailEditable(!mailEditable)}
         placeholder="Mail"
       />
       <EditableInputField
-        editable={phone}
-        onToggleEdit={() => setPhone(!phone)}
+        editable={phoneEditable}
+        onToggleEdit={() => setPhoneEditable(!phoneEditable)}
         placeholder="Phone number"
       />
       <EditableInputField
-        editable={address}
-        onToggleEdit={() => setAddress(!address)}
+        editable={addressEditable}
+        onToggleEdit={() => setAddressEditable(!addressEditable)}
         placeholder="Address"
       />
       <EditableInputField
-        editable={website}
-        onToggleEdit={() => setWebsite(!website)}
+        editable={websiteEditable}
+        onToggleEdit={() => setWebsiteEditable(!websiteEditable)}
         placeholder="Website"
       />
     </View>
@@ -46,9 +46,9 @@ export default CompanyInfoPage;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     paddingHorizontal: 20,
-    backgroundColor: "#f5f5f5",
+    marginTop: 150,
   },
   headerStyle: {
     fontSize: 30,
