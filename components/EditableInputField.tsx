@@ -11,12 +11,14 @@ type EditableInputType = {
   placeholder: string;
   editable: boolean;
   onToggleEdit: () => void;
+  onTextChange: (text: string) => void;
 };
 
 const EditableInputField: React.FC<EditableInputType> = ({
   placeholder,
   editable,
   onToggleEdit,
+  onTextChange,
 }) => {
   return (
     <View style={styles.inputRow}>
@@ -24,6 +26,7 @@ const EditableInputField: React.FC<EditableInputType> = ({
         style={[styles.input, editable && styles.inputEditable]}
         placeholder={placeholder}
         editable={editable}
+        onChangeText={onTextChange}
       />
       <TouchableOpacity style={styles.editButton} onPress={onToggleEdit}>
         <Text style={styles.editText}>📝</Text>

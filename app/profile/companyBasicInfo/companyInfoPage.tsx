@@ -1,3 +1,4 @@
+import AuthButton from "@/components/AuthButton";
 import EditableInputField from "@/components/EditableInputField";
 import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -9,33 +10,58 @@ const CompanyInfoPage = () => {
   const [addressEditable, setAddressEditable] = useState(false);
   const [websiteEditable, setWebsiteEditable] = useState(false);
 
+  const [company, setCompany] = useState("");
+  const [mail, setMail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [website, setWebsite] = useState("");
+
+  const handlePress = () => {
+    console.log(company);
+    console.log(mail);
+    console.log(phone);
+    console.log(address);
+    console.log(website);
+  };
+
   return (
     <View style={styles.screen}>
       <Text style={styles.headerStyle}>Company Basic Info</Text>
       <EditableInputField
-        editable={companyEditable}
-        onToggleEdit={() => setCompanyEditable(!companyEditable)}
         placeholder="Company name"
+        editable={companyEditable}
+        onTextChange={setCompany}
+        onToggleEdit={() => setCompanyEditable(!companyEditable)}
       />
       <EditableInputField
-        editable={mailEditable}
-        onToggleEdit={() => setMailEditable(!mailEditable)}
         placeholder="Mail"
+        editable={mailEditable}
+        onTextChange={setMail}
+        onToggleEdit={() => setMailEditable(!mailEditable)}
       />
       <EditableInputField
-        editable={phoneEditable}
-        onToggleEdit={() => setPhoneEditable(!phoneEditable)}
         placeholder="Phone number"
+        editable={phoneEditable}
+        onTextChange={setPhone}
+        onToggleEdit={() => setPhoneEditable(!phoneEditable)}
       />
       <EditableInputField
-        editable={addressEditable}
-        onToggleEdit={() => setAddressEditable(!addressEditable)}
         placeholder="Address"
+        editable={addressEditable}
+        onTextChange={setAddress}
+        onToggleEdit={() => setAddressEditable(!addressEditable)}
       />
       <EditableInputField
-        editable={websiteEditable}
-        onToggleEdit={() => setWebsiteEditable(!websiteEditable)}
         placeholder="Website"
+        editable={websiteEditable}
+        onTextChange={setWebsite}
+        onToggleEdit={() => setWebsiteEditable(!websiteEditable)}
+      />
+      <AuthButton
+        buttonText="Save changes"
+        height={75}
+        width={150}
+        onPress={() => handlePress()}
       />
     </View>
   );
@@ -47,6 +73,7 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     justifyContent: "flex-start",
+    alignItems: "center",
     paddingHorizontal: 20,
     marginTop: 150,
   },
