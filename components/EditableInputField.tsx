@@ -10,6 +10,7 @@ import {
 type EditableInputType = {
   placeholder: string;
   editable: boolean;
+  value:string;
   onToggleEdit: () => void;
   onTextChange: (text: string) => void;
 };
@@ -17,6 +18,7 @@ type EditableInputType = {
 const EditableInputField: React.FC<EditableInputType> = ({
   placeholder,
   editable,
+  value,
   onToggleEdit,
   onTextChange,
 }) => {
@@ -25,6 +27,8 @@ const EditableInputField: React.FC<EditableInputType> = ({
       <TextInput
         style={[styles.input, editable && styles.inputEditable]}
         placeholder={placeholder}
+        value={value}
+        placeholderTextColor="gray"
         editable={editable}
         onChangeText={onTextChange}
       />
@@ -47,11 +51,13 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: "#ccc",
+    color:"black",
     padding: 12,
     borderRadius: 8,
     backgroundColor: "#e9e9e9",
   },
   inputEditable: {
+    color:"black",
     backgroundColor: "#ffffff",
     borderColor: "#007BFF",
   },
