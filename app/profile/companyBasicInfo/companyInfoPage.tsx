@@ -1,92 +1,65 @@
+import AuthButton from "@/components/AuthButton";
+import EditableInputField from "@/components/EditableInputField";
+import useCompanyInfo from "@/hooks/useCompanyInfo";
 import React, { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 const CompanyInfoPage = () => {
-  const [company, setCompany] = useState(false);
-  const [mail, setMail] = useState(false);
-  const [phone, setPhone] = useState(false);
-  const [address, setAddress] = useState(false);
-  const [website, setWebsite] = useState(false);
+  const [companyEditable, setCompanyEditable] = useState(false);
+  const [mailEditable, setMailEditable] = useState(false);
+  const [phoneEditable, setPhoneEditable] = useState(false);
+  const [addressEditable, setAddressEditable] = useState(false);
+  const [websiteEditable, setWebsiteEditable] = useState(false);
+
+  const [company, setCompany] = useState("");
+  const [mail, setMail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [website, setWebsite] = useState("");
+
+  const handlePress = () => {
+    useCompanyInfo({ company, mail, phone, address, website });
+  };
 
   return (
     <View style={styles.screen}>
       <Text style={styles.headerStyle}>Company Basic Info</Text>
-      <View style={styles.inputRow}>
-        <TextInput
-          style={[styles.input, company && styles.inputEditable]}
-          placeholder="Company name"
-          editable={company}
-        />
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => setCompany(!company)}
-        >
-          {/* A edit emoji */}
-          <Text style={styles.editText}>📝</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.inputRow}>
-        <TextInput
-          style={[styles.input, mail && styles.inputEditable]}
-          placeholder="Mail"
-          editable={mail}
-        />
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => setMail(!mail)}
-        >
-          {/* A edit emoji */}
-          <Text style={styles.editText}>📝</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.inputRow}>
-        <TextInput
-          style={[styles.input, address && styles.inputEditable]}
-          placeholder="Address"
-          editable={address}
-        />
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => setAddress(!address)}
-        >
-          {/* A edit emoji */}
-          <Text style={styles.editText}>📝</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.inputRow}>
-        <TextInput
-          style={[styles.input, phone && styles.inputEditable]}
-          placeholder="Phone Number"
-          editable={phone}
-        />
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => setPhone(!phone)}
-        >
-          {/* A edit emoji */}
-          <Text style={styles.editText}>📝</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.inputRow}>
-        <TextInput
-          style={[styles.input, website && styles.inputEditable]}
-          placeholder="Website"
-          editable={website}
-        />
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => setWebsite(!website)}
-        >
-          {/* A edit emoji */}
-          <Text style={styles.editText}>📝</Text>
-        </TouchableOpacity>
-      </View>
+      <EditableInputField
+        placeholder="Company name"
+        editable={companyEditable}
+        onTextChange={setCompany}
+        onToggleEdit={() => setCompanyEditable(!companyEditable)}
+      />
+      <EditableInputField
+        placeholder="Mail"
+        editable={mailEditable}
+        onTextChange={setMail}
+        onToggleEdit={() => setMailEditable(!mailEditable)}
+      />
+      <EditableInputField
+        placeholder="Phone number"
+        editable={phoneEditable}
+        onTextChange={setPhone}
+        onToggleEdit={() => setPhoneEditable(!phoneEditable)}
+      />
+      <EditableInputField
+        placeholder="Address"
+        editable={addressEditable}
+        onTextChange={setAddress}
+        onToggleEdit={() => setAddressEditable(!addressEditable)}
+      />
+      <EditableInputField
+        placeholder="Website"
+        editable={websiteEditable}
+        onTextChange={setWebsite}
+        onToggleEdit={() => setWebsiteEditable(!websiteEditable)}
+      />
+      <AuthButton
+        buttonText="Save changes"
+        height={75}
+        width={150}
+        onPress={() => handlePress()}
+      />
     </View>
   );
 };
@@ -96,36 +69,10 @@ export default CompanyInfoPage;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 20,
-    backgroundColor: "#f5f5f5",
-  },
-  inputRow: {
-    flexDirection: "row",
+    justifyContent: "flex-start",
     alignItems: "center",
-    marginBottom: 15,
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: "#e9e9e9",
-  },
-  inputEditable: {
-    backgroundColor: "#ffffff",
-    borderColor: "#007BFF",
-  },
-  editButton: {
-    marginLeft: 10,
-    padding: 10,
-    backgroundColor: "black",
-    borderRadius: 8,
-  },
-  editText: {
-    color: "white",
-    fontSize: 16,
+    paddingHorizontal: 20,
+    marginTop: 150,
   },
   headerStyle: {
     fontSize: 30,
