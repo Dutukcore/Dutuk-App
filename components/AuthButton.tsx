@@ -1,18 +1,18 @@
 import { router } from "expo-router";
-import React from "react";
+import React, { useRef } from "react";
 import {
+  Animated,
   DimensionValue,
-  Pressable,
   StyleProp,
   Text,
+  TouchableOpacity,
   View,
-  ViewStyle,
+  ViewStyle
 } from "react-native";
 import authButtonStyle from "../css/authButtonStyle";
 
 type ButtonColorType = "button" | "buttonSecondary";
 
-// TODO: Should make these into a separate utils for cleaner code
 export type ValidRoute = Parameters<typeof router.push>[0];
 
 type AuthButtonProps = {
@@ -34,6 +34,8 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   width,
   height,
 }) => {
+  const animatedScale = useRef(new Animated.Value(1)).current;
+
   const baseStyle = authButtonStyle[buttonColorType];
   const buttonStyle: StyleProp<ViewStyle> = {
     ...baseStyle,
@@ -41,24 +43,43 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     ...(height !== undefined && { height }),
   };
 
-  const handlePress = () => {
-    onPress?.();
+  const handlePressIn = () => {
+    Animated.spring(animatedScale, {
+      toValue: 0.85,
+      useNativeDriver: true,
+      friction: 5,
+      tension: 40,
+    }).start();
+  };
 
-    if (route) {
-      navigationType === "replace" ? router.replace(route) : router.push(route);
-    }
+  const handlePressOut = () => {
+    Animated.spring(animatedScale, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 5,
+      tension: 100,
+    }).start(() => {
+      onPress?.();
+
+      if (route) {
+        navigationType === "replace" ? router.replace(route) : router.push(route);
+      }
+    });
   };
 
   return (
     <View>
-      <Pressable
-        style={buttonStyle}
-        onPress={handlePress}
+      <TouchableOpacity
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={1} 
         accessibilityRole="button"
         accessibilityLabel={buttonText}
       >
-        <Text style={authButtonStyle.buttonText}>{buttonText}</Text>
-      </Pressable>
+        <Animated.View style={[buttonStyle, { transform: [{ scale: animatedScale }] }]}>
+          <Text style={authButtonStyle.buttonText}>{buttonText}</Text>
+        </Animated.View>
+      </TouchableOpacity>
     </View>
   );
 };
