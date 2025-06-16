@@ -1,5 +1,6 @@
 import RouteAssist from "@/components/RouteAssist";
-import { StyleSheet, Text, View } from "react-native";
+import logoutUser from "@/hooks/useLogoutUser";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 const Index = () => {
   return (
     <View style={profileSettingsMenuStyle.container}>
@@ -30,7 +31,9 @@ const Index = () => {
           text={"Help Center"}
         />
         <RouteAssist path={"/profile/profileSettings/about"} text={"About"} />
-        <RouteAssist path={"/profile/profileSettings/logout"} text={"Logout"} />
+        <Pressable style={profileSettingsMenuStyle.options} onPress={logoutUser}>
+                    <Text style={profileSettingsMenuStyle.optionText}>Logout</Text>
+                </Pressable>
       </View>
     </View>
   );
@@ -65,6 +68,9 @@ const profileSettingsMenuStyle = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  optionText:{
+      fontSize:16
+  }
 });
 
 export default Index;
