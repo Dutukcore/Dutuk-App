@@ -1,7 +1,7 @@
-import AuthButton from "@/components/AuthButton";
 import NavBar from "@/components/NavBar";
+import { router } from "expo-router";
 import React from "react";
-import { Text, View } from "react-native";
+import { Button, Text, View } from "react-native";
 
 const Home = () => {
   // const [email, setEmail] = useState<string | null>(null);
@@ -33,11 +33,7 @@ const Home = () => {
         {/* {email ?? "Loading..."} */}
         Home
       </Text>
-      <AuthButton
-          buttonText="Login"
-          buttonColorType="button"
-          onPress={()=>{}}
-        />
+      <Button title="Calendar" onPress={()=>router.push("/profile/calender/CalendarPage")} />
     </View>
     </View>
   );
