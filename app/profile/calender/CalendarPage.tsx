@@ -1,11 +1,48 @@
+import customStyle from "@/assets/customStyle";
 import markedDatesDummy from "@/dummy_data/markedDates";
-import { useState } from "react";
+import getStoredDates from "@/hooks/getStoredDates";
+import storeDates from "@/hooks/useStoreDates";
+import { useEffect, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 
 
 const CalendarPage = ()=>{
-    const [marked,setMarked] = useState<string>('2025-07-01');
+
+    type MarkedDateType = {
+  [date: string]: {
+    dots?: { key: string; color: string }[];
+    periods?: { startingDay?: boolean; endingDay?: boolean; color: string }[];
+    customStyles?: {
+      container?: {
+        borderRadius?: number;
+        borderWidth?: number;
+        borderColor?: string;
+        backgroundColor?: string;
+      };
+      text?: {
+        color?: string;
+      };
+    };
+  };
+};  
+    const getDates = async()=>{
+        let dates = await getStoredDates();
+        console.log(dates);
+        let correctDates: any[] | ((prevState: string[]) => string[]) =[];
+        dates?.forEach((obj)=>correctDates.push(obj.date));
+            setMarked(correctDates);
+    }
+
+    useEffect(()=>{
+        getDates();
+    },[])
+
+    const [marked,setMarked] = useState<string[]>(['2025-07-01']);
+    const markedDates:MarkedDateType = marked.reduce((acc,date)=>{
+        acc[date]={...customStyle};
+        return acc;
+    },{} as MarkedDateType)
     
     return(
         
@@ -13,7 +50,13 @@ const CalendarPage = ()=>{
         
             <Calendar 
 
-            markingType={"period"}
+            markingType={"custom"}
+
+            onDayPress={async (day)=>{
+                if(marked.includes(day.dateString)) setMarked(marked.filter((i)=> i!==day.dateString))
+                else setMarked([...marked,day.dateString]);
+               await storeDates(day.dateString);
+            }}
 
             style={style.calendar} 
 
@@ -30,8 +73,8 @@ const CalendarPage = ()=>{
             }
         }}        
 
-            markedDates={{[marked]:{selected: true, marked: true,color:"white",textColor:"black",selectedColor: 'blue',},
-                    ...markedDatesDummy.period
+            markedDates={{
+                ...markedDates,
         }}
             /> 
        

@@ -1,5 +1,6 @@
-
 const markedDatesDummy = {
+
+
     events:[{
         dates:['2025-07-02','2025-07-03','2025-07-04','2025-07-05'],
         message:"Birthay Event For Sarah",
