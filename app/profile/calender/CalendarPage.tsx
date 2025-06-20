@@ -34,9 +34,6 @@ const CalendarPage = ()=>{
             setMarked(correctDates);
     }
 
-    useEffect(()=>{
-        getDates();
-    },[])
 
     const [marked,setMarked] = useState<string[]>(['2025-07-01']);
     const markedDates:MarkedDateType = marked.reduce((acc,date)=>{
@@ -44,6 +41,9 @@ const CalendarPage = ()=>{
         return acc;
     },{} as MarkedDateType)
     
+    useEffect(()=>{
+        getDates();
+    },[marked])
     return(
         
         <View style={style.container}>

@@ -1,7 +1,25 @@
 import RouteAssist from "@/components/RouteAssist";
+import getProvider from "@/hooks/getProvider";
 import logoutUser from "@/hooks/useLogoutUser";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 const Index = () => {
+
+  const [isEmail,setEmail] = useState(false);
+
+  const useProvider = async()=>{
+    const provider = await getProvider();
+    if(provider==="email") {
+      setEmail(true);
+      console.log("GOT THE THING");
+     }
+  }
+
+  useEffect(()=>{
+    useProvider();
+  },[]);
+
+
   return (
     <View style={profileSettingsMenuStyle.container}>
       <Text style={profileSettingsMenuStyle.title}>Profile Settings</Text>
@@ -14,10 +32,14 @@ const Index = () => {
           path={"/profile/profileSettings/documentVerification"}
           text={"Document Verification"}
         />
+        {
+          isEmail &&
         <RouteAssist
           path={"/profile/profileSettings/changePasswordOtp"}
           text={"Change Password"}
         />
+
+}
         <RouteAssist
           path={"/profile/profileSettings/changeUsername"}
           text={"Change Username"}
