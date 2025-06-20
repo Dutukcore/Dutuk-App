@@ -1,4 +1,5 @@
 import NavBar from "@/components/NavBar";
+import RouteAssist from "@/components/RouteAssist";
 import { router } from "expo-router";
 import React from "react";
 import { Button, Text, View } from "react-native";
@@ -34,6 +35,7 @@ const Home = () => {
         Home
       </Text>
       <Button title="Calendar" onPress={()=>router.push("/profile/calender/CalendarPage")} />
+      <RouteAssist text="Events" path="/event" />
     </View>
     </View>
   );
