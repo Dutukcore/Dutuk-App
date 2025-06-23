@@ -24,7 +24,7 @@ const storeDates = async(date:string)=>{
       .eq("user_id", userId);
 
     if (fetchError && fetchError.code !== "PGRST116") {
-      console.error("Error fetching company info:", fetchError);
+      console.error("Error fetching Dates info:", fetchError);
       return;
     }
     const doesExist = existing?.some((item)=>item.date ===date && item.user_id ===userId)

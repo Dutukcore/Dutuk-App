@@ -1,9 +1,9 @@
 import customStyle from "@/assets/customStyle";
-import markedDatesDummy from "@/dummy_data/markedDates";
 import getStoredDates from "@/hooks/getStoredDates";
 import storeDates from "@/hooks/useStoreDates";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 
 
@@ -26,12 +26,15 @@ const CalendarPage = ()=>{
     };
   };
 };  
+    const [isAllowed,setAllowed] = useState(false);
+
     const getDates = async()=>{
         let dates = await getStoredDates();
         console.log(dates);
         let correctDates: any[] | ((prevState: string[]) => string[]) =[];
         dates?.forEach((obj)=>correctDates.push(obj.date));
             setMarked(correctDates);
+            setAllowed(true);
     }
 
 
@@ -43,7 +46,10 @@ const CalendarPage = ()=>{
     
     useEffect(()=>{
         getDates();
-    },[marked])
+    },[])
+
+    if(isAllowed){
+
     return(
         
         <View style={style.container}>
@@ -53,25 +59,45 @@ const CalendarPage = ()=>{
             markingType={"custom"}
 
             onDayPress={async (day)=>{
-                if(marked.includes(day.dateString)) setMarked(marked.filter((i)=> i!==day.dateString))
+                if(marked.includes(day.dateString)) {
+                    
+                      Alert.alert(
+                        'Confirmation',
+                        'Are you sure to remove the date',
+                [
+                    {
+                    text: 'Cancel',
+                    style: 'cancel',
+                    },
+                    {
+                    text:'Confirm',
+                    onPress:()=> setMarked(marked.filter((i)=> i!==day.dateString)),
+                    style:'default'
+                    }
+                ],
+                {
+                cancelable: true,
+    },
+  );
+
+                    
+                   
+                    
+                }
                 else setMarked([...marked,day.dateString]);
                await storeDates(day.dateString);
             }}
 
             style={style.calendar} 
 
-            onDayLongPress={day=>{
-                let found = false;
-                markedDatesDummy.events.forEach((event)=>{if(event.dates.includes(day.dateString)){
-                    Alert.alert("Event",event.message);
-                    found=true;
-                    return;
+            onDayLongPress={async(date)=>{
+                if(!marked.includes(date.dateString)){
+                    setMarked([...marked,date.dateString]);
+                    await storeDates(date.dateString);
                 }
-            })
-            if(!found){
-                Alert.alert("No event Found at the date");
-            }
-        }}        
+                router.push({pathname:"/profile/calender/CalendarRedirect",params:{date:date.dateString}})
+            }}
+              
 
             markedDates={{
                 ...markedDates,
@@ -81,6 +107,14 @@ const CalendarPage = ()=>{
 
         </View>
     )
+}
+    else{
+        return(
+             <View style={style.container}>
+                <Text>Loading</Text>
+             </View>
+        )
+    }
 }
 const style = StyleSheet.create({
     container:{
