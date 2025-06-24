@@ -1,17 +1,16 @@
-import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type EarningProp = {
-    associatedEventName: string;
-    associatedEventId: string;
-    eventDate: string; 
-    vendorServicesProvided: string;
-    totalAgreedUponPrice: number;
-    platformCommissionFees?: number; 
-    netEarningsForEvent: number;
-    paymentStatus: string; 
-    outstandingBalance: number;
-    invoiceReference?: string; 
+    associatedeventname: string;
+    associatedeventid: string;
+    eventdate: string; 
+    vendorservicesprovided: string;
+    totalagreeduponprice: number;
+    platformcommissionfees?: number; 
+    netearningsforevent: number;
+    paymentstatus: string; 
+    outstandingbalance: number;
+    invoicereference?: string; 
 };
 
 type EarningsProp = {
@@ -25,38 +24,38 @@ const DisplayEarnings = ({ earnings }: EarningsProp) => {
                 <Text style={styles.noEarningsText}>No past earnings to display.</Text>
             ) : (
                 earnings.map((earning, index) => {
-                    const displayDate = new Date(earning.eventDate);
+                    const displayDate = new Date(earning.eventdate);
                     let statusColor = styles.statusUnpaid; 
-                    if (earning.paymentStatus === "Fully Paid") {
+                    if (earning.paymentstatus === "Fully Paid") {
                         statusColor = styles.statusFullyPaid;
-                    } else if (earning.paymentStatus === "Partially Paid") {
+                    } else if (earning.paymentstatus === "Partially Paid") {
                         statusColor = styles.statusPartiallyPaid;
                     }
 
                     return (
-                        <View key={earning.associatedEventId || index} style={styles.card}>
-                            <Text style={styles.eventName}>{earning.associatedEventName}</Text>
+                        <View key={earning.associatedeventid || index} style={styles.card}>
+                            <Text style={styles.eventName}>{earning.associatedeventname}</Text>
                             <Text style={styles.serviceText}>
                                 <Text style={styles.label}>Service: </Text>
-                                <Text>{earning.vendorServicesProvided}</Text>
+                                <Text>{earning.vendorservicesprovided}</Text>
                             </Text>
 
                             <View style={styles.amountRow}>
                                 <Text style={styles.detailText}>
                                     <Text style={styles.label}>Gross: </Text>
-                                    <Text style={styles.grossAmount}>₹{earning.totalAgreedUponPrice.toFixed(2)}</Text>
+                                    <Text style={styles.grossAmount}>₹{earning.totalagreeduponprice.toFixed(2)}</Text>
                                 </Text>
-                                {earning.platformCommissionFees !== undefined && earning.platformCommissionFees > 0 && (
+                                {earning.platformcommissionfees !== undefined && earning.platformcommissionfees > 0 && (
                                     <Text style={styles.detailText}>
                                         <Text style={styles.label}>Fee: </Text>
-                                        <Text style={styles.commissionText}>- ₹{earning.platformCommissionFees.toFixed(2)}</Text>
+                                        <Text style={styles.commissionText}>- ₹{earning.platformcommissionfees.toFixed(2)}</Text>
                                     </Text>
                                 )}
                             </View>
 
                             <View style={styles.netEarningsRow}>
                                 <Text style={styles.netEarningsLabel}>Net Earnings:</Text>
-                                <Text style={styles.netEarningsAmount}>₹{earning.netEarningsForEvent.toFixed(2)}</Text>
+                                <Text style={styles.netEarningsAmount}>₹{earning.netearningsforevent.toFixed(2)}</Text>
                             </View>
 
                             <View style={styles.separator} />
@@ -65,21 +64,21 @@ const DisplayEarnings = ({ earnings }: EarningsProp) => {
                                 <Text style={styles.detailText}>
                                     <Text style={styles.label}>Payment Status: </Text>
                                     <Text style={[styles.statusText, statusColor]}>
-                                        {earning.paymentStatus}
+                                        {earning.paymentstatus}
                                     </Text>
                                 </Text>
-                                {earning.outstandingBalance > 0 && (
+                                {earning.outstandingbalance > 0 && (
                                     <Text style={styles.detailText}>
                                         <Text style={styles.label}>Due: </Text>
-                                        <Text style={styles.outstandingAmount}>₹{earning.outstandingBalance.toFixed(2)}</Text>
+                                        <Text style={styles.outstandingAmount}>₹{earning.outstandingbalance.toFixed(2)}</Text>
                                     </Text>
                                 )}
                             </View>
 
-                            {earning.invoiceReference && (
+                            {earning.invoicereference && (
                                 <Text style={styles.invoiceText}>
                                     <Text style={styles.label}>Invoice: </Text>
-                                    <Text>{earning.invoiceReference}</Text>
+                                    <Text>{earning.invoicereference}</Text>
                                 </Text>
                             )}
 

@@ -2,17 +2,17 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type ReviewProp = {
-    reviewId: string;
-    associatedEventName: string;
-    associatedEventId: string;
-    reviewerName: string;
-    rating: number; 
-    reviewText: string;
-    reviewDate: string; 
+    reviewid: string;
+    associatedeventname: string;
+    associatedeventid: string;
+    reviewername: string;
+    rating: number;
+    reviewtext: string;
+    reviewdate: string;
 };
 
 type ReviewsProp = {
-    reviews: ReviewProp[]; 
+    reviews: ReviewProp[];
 };
 
 const DisplayReviews = ({ reviews }: ReviewsProp) => {
@@ -22,11 +22,10 @@ const DisplayReviews = ({ reviews }: ReviewsProp) => {
                 <Text style={styles.noReviewsText}>No past reviews to display.</Text>
             ) : (
                 reviews.map((review, index) => (
-                    <View key={review.reviewId || index} style={styles.card}>
+                    <View key={review.reviewid || index} style={styles.card}>
+                        <Text style={styles.eventName}>{review.associatedeventname}</Text>
 
-                        <Text style={styles.eventName}>{review.associatedEventName}</Text>
-
-                        <Text style={styles.reviewerName}>Reviewed by: {review.reviewerName}</Text>
+                        <Text style={styles.reviewerName}>Reviewed by: {review.reviewername}</Text>
 
                         <View style={styles.ratingContainer}>
                             <Text style={styles.ratingText}>{`Rating: ${review.rating}`}</Text>
@@ -36,11 +35,12 @@ const DisplayReviews = ({ reviews }: ReviewsProp) => {
                         </View>
 
                         <View style={styles.separator} />
+
                         <Text style={styles.reviewTextHeader}>Review:</Text>
-                        <Text style={styles.reviewText}>{review.reviewText}</Text>
+                        <Text style={styles.reviewText}>{review.reviewtext}</Text>
 
                         <Text style={styles.reviewDate}>
-                            {`Reviewed on: ${review.reviewDate}`}
+                            {`Reviewed on: ${review.reviewdate}`}
                         </Text>
                     </View>
                 ))
@@ -48,6 +48,7 @@ const DisplayReviews = ({ reviews }: ReviewsProp) => {
         </ScrollView>
     );
 };
+
 
 
 const styles = StyleSheet.create({

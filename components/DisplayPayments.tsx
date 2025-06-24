@@ -2,16 +2,16 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type PaymentProp = {
-    paymentId: string;
-    associatedBookingId: string;
-    associatedEventName: string;
-    paymentDate: string; 
-    amountPaid: number;
-    paymentMethod: string;
-    paymentType: string;
+    paymentid: string;
+    associatedbookingid: string;
+    associatedeventname: string;
+    paymentdate: string;
+    amountpaid: number;
+    paymentmethod: string;
+    paymenttype: string;
     status: string;
-    payerName: string;
-    vendorNetReceipt?: number; 
+    payername: string;
+    vendornetreceipt?: number;
 };
 
 type PaymentsProp = {
@@ -25,23 +25,26 @@ const DisplayPayments = ({ payments }: PaymentsProp) => {
                 <Text style={styles.noPaymentsText}>No past payments to display.</Text>
             ) : (
                 payments.map((payment, index) => {
-                    const displayDate = new Date(payment.paymentDate);
+                    const displayDate = new Date(payment.paymentdate);
 
                     return (
-                        <View key={payment.paymentId || index} style={styles.card}>
-                            <Text style={styles.eventName}>{payment.associatedEventName}</Text>
+                        <View key={payment.paymentid || index} style={styles.card}>
+                            <Text style={styles.eventName}>{payment.associatedeventname}</Text>
+                            
                             <Text style={styles.detailText}>
                                 <Text style={styles.label}>Payer: </Text>
-                                <Text>{payment.payerName}</Text>
+                                {payment.payername}
                             </Text>
+
                             <Text style={styles.detailText}>
                                 <Text style={styles.label}>Amount: </Text>
-                                <Text style={styles.amountText}>₹{payment.amountPaid.toFixed(2)}</Text>
+                                <Text style={styles.amountText}>₹{payment.amountpaid.toFixed(2)}</Text>
                             </Text>
-                            {payment.vendorNetReceipt !== undefined && (
+
+                            {payment.vendornetreceipt !== undefined && (
                                 <Text style={styles.detailText}>
                                     <Text style={styles.label}>Net Received: </Text>
-                                    <Text style={styles.netReceiptText}>₹{payment.vendorNetReceipt.toFixed(2)}</Text>
+                                    <Text style={styles.netReceiptText}>₹{payment.vendornetreceipt.toFixed(2)}</Text>
                                 </Text>
                             )}
 
@@ -49,18 +52,24 @@ const DisplayPayments = ({ payments }: PaymentsProp) => {
 
                             <Text style={styles.detailText}>
                                 <Text style={styles.label}>Type: </Text>
-                                <Text>{payment.paymentType}</Text>
+                                {payment.paymenttype}
                             </Text>
+
                             <Text style={styles.detailText}>
                                 <Text style={styles.label}>Method: </Text>
-                                <Text>{payment.paymentMethod}</Text>
+                                {payment.paymentmethod}
                             </Text>
+
                             <Text style={styles.detailText}>
                                 <Text style={styles.label}>Status: </Text>
-                                <Text style={[styles.statusText, payment.status === 'Successful' ? styles.statusSuccess : styles.statusOther]}>
+                                <Text style={[
+                                    styles.statusText,
+                                    payment.status === 'Successful' ? styles.statusSuccess : styles.statusOther
+                                ]}>
                                     {payment.status}
                                 </Text>
                             </Text>
+
                             <Text style={styles.paymentDate}>
                                 {`Paid on: ${displayDate.toLocaleDateString('en-IN', {
                                     year: 'numeric',
