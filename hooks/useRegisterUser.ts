@@ -13,6 +13,7 @@ const registerUser = async (userEmail: any, password: string) => {
   } else {
     // Alert.alert("Registered successfully");
     console.log("From useRegistrationUser hook" + userEmail);
+
     router.push(`/auth/OtpPage?email=${encodeURIComponent(userEmail)}`);
   }
 };

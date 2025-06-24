@@ -2,6 +2,7 @@ import { supabase } from "@/utils/supabase";
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
+import setRole from "./setVendorAsRoleOnRegister";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -36,17 +37,16 @@ const googleLogin = async () => {
     const refresh_token = params.get("refresh_token");
 
     if (access_token && refresh_token) {
-      const {
-        data: sessionData,
-        error: sessionError,
-      } = await supabase.auth.setSession({
-        access_token,
-        refresh_token,
-      });
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.setSession({
+          access_token,
+          refresh_token,
+        });
 
       if (sessionError) {
         console.log(" setSession error:", sessionError);
       } else {
+        await setRole();
         console.log("Session obtained via token:", sessionData);
         router.replace("/(tabs)/home");
       }

@@ -1,6 +1,7 @@
 import { supabase } from "@/utils/supabase";
 import { router } from "expo-router";
 import { Alert } from "react-native";
+import setRole from "./setVendorAsRoleOnRegister";
 
 const loginUser = async (userEmail: string, userPassword: string) => {
   const { error } = await supabase.auth.signInWithPassword({
@@ -27,6 +28,7 @@ const loginUser = async (userEmail: string, userPassword: string) => {
     return;
   }
 
+  await setRole();
   Alert.alert("Login success!");
   router.replace("/(tabs)/home");
 };
