@@ -1,1 +1,1 @@
-Frontend for DUTUK app.
+Vendor side app for dutuk core.
