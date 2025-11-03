@@ -2,56 +2,67 @@ import { supabase } from "@/utils/supabase";
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import setRole from "./setVendorAsRoleOnRegister";
 
 WebBrowser.maybeCompleteAuthSession();
 
 const googleLogin = async () => {
-  const redirectUrl = Linking.createURL("auth/callback");
+  try {
+    const redirectUrl = Linking.createURL("auth/callback");
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: redirectUrl,
-      skipBrowserRedirect: true,
-    },
-  });
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: redirectUrl,
+      },
+    });
 
-  if (error) {
-    console.log("Login error:", error);
-    return;
-  }
-
-  const authUrl = data?.url;
-  if (!authUrl) return;
-
-  const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
-
-  if (result.type === "success" && result.url) {
-
-    const params = new URLSearchParams(result.url.split("#")[1]);
-
-    const access_token = params.get("access_token");
-    const refresh_token = params.get("refresh_token");
-
-    if (access_token && refresh_token) {
-      const { data: sessionData, error: sessionError } =
-        await supabase.auth.setSession({
-          access_token,
-          refresh_token,
-        });
-
-      if (sessionError) {
-        console.log(" setSession error:", sessionError);
-      } else {
-        await setRole();
-        router.replace("/(tabs)/home");
-      }
-    } else {
-      console.log("Tokens missing from redirect URL");
+    if (error) {
+      console.error("Login error:", error.message);
+      return;
     }
-  } else {
-    console.log("Auth session failed or cancelled.");
+
+    const authUrl = data?.url;
+    if (!authUrl) {
+      console.error("No auth URL returned from Supabase");
+      return;
+    }
+
+    const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
+
+    if (result.type !== "success" || !result.url) {
+      console.warn("Auth session cancelled or failed.");
+      return;
+    }
+
+    const url = new URL(result.url);
+    const code = url.searchParams.get("code");
+
+    if (!code) {
+      console.error("No auth code returned in redirect URL");
+      return;
+    }
+
+    // ✅ Handle both SDK versions dynamically
+    let sessionError;
+    try {
+     const response = await (supabase.auth.exchangeCodeForSession as any)(
+  supabase.auth.exchangeCodeForSession.length === 1 ? code : { code }
+);
+
+
+      sessionError = response.error;
+    } catch (err) {
+      sessionError = err;
+    }
+
+    if (sessionError) {
+      console.error("Session exchange error:", sessionError.message);
+      return;
+    }
+
+    router.replace("/(tabs)/home");
+  } catch (err) {
+    console.error("Unexpected login error:", err);
   }
 };
 
