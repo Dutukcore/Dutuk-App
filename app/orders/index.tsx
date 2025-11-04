@@ -1,16 +1,18 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    Pressable,
-    StyleSheet,
-    Text,
-    View
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import { Bell, Calendar, Clock, Edit, FileText, User } from 'react-native-feather';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomNavigation from '../../components/BottomNavigation';
 
 const OrdersScreen = () => {
+  const insets = useSafeAreaInsets();
   // Demo orders - set to empty array to show empty state
   const orders = [
     {
@@ -40,8 +42,8 @@ const OrdersScreen = () => {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header - Fixed */}
       <View style={styles.header}>
         {/* Left Icons Group */}
         <View style={styles.leftIconsGroup}>
@@ -82,29 +84,38 @@ const OrdersScreen = () => {
         </Pressable>
       </View>
       
-      {/* Orders Title */}
-      <View style={styles.titleContainer}>
-        <View style={styles.titleRow}>
-          <Text style={styles.headerTitle}>Orders</Text>
-          <FileText width={24} height={24} stroke="#000000" />
-        </View>
-      </View>
-
-      {orders.length === 0 ? (
-        /* Empty State - Only show when no orders */
-        <View style={styles.emptyStateContainer}>
-          <View style={styles.emptyStatePlaceholder}>
-            <FileText width={60} height={60} stroke="#CCCCCC" />
-            <Text style={styles.emptyStateTitle}>No Orders Yet</Text>
-            <Text style={styles.emptyStateSubtitle}>
-              Your orders will appear here once customers start booking your services
-            </Text>
+      {/* Scrollable Content */}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 120 + insets.bottom } // Account for bottom nav (80px) + safe area + extra space
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Orders Title */}
+        <View style={styles.titleContainer}>
+          <View style={styles.titleRow}>
+            <Text style={styles.headerTitle}>Orders</Text>
+            <FileText width={24} height={24} stroke="#000000" />
           </View>
         </View>
-      ) : (
-        /* Orders List */
-        <View style={styles.ordersContainer}>
-        <Pressable 
+
+        {orders.length === 0 ? (
+          /* Empty State - Only show when no orders */
+          <View style={styles.emptyStateContainer}>
+            <View style={styles.emptyStatePlaceholder}>
+              <FileText width={60} height={60} stroke="#CCCCCC" />
+              <Text style={styles.emptyStateTitle}>No Orders Yet</Text>
+              <Text style={styles.emptyStateSubtitle}>
+                Your orders will appear here once customers start booking your services
+              </Text>
+            </View>
+          </View>
+        ) : (
+          /* Orders List */
+          <View style={styles.ordersContainer}>
+          <Pressable 
           style={styles.orderCard}
           onPress={() => router.push({
             pathname: '/orders/customerApproval',
@@ -131,7 +142,7 @@ const OrdersScreen = () => {
           </View>
           
           <Text style={styles.eventTitle}>Birthday Party</Text>
-          <Text style={styles.customerName}>Bodhi Dharmar</Text>
+          <Text style={styles.customerName} numberOfLines={1} ellipsizeMode="tail">Bodhi Dharmar</Text>
           
           <View style={styles.cardFooter}>
             <View style={styles.dateContainer}>
@@ -169,7 +180,7 @@ const OrdersScreen = () => {
           </View>
           
           <Text style={styles.eventTitle}>Birthday Party</Text>
-          <Text style={styles.customerName}>Praveen Kumar</Text>
+          <Text style={styles.customerName} numberOfLines={1} ellipsizeMode="tail">Praveen Kumar</Text>
           
           <View style={styles.cardFooter}>
             <View style={styles.dateContainer}>
@@ -207,7 +218,7 @@ const OrdersScreen = () => {
           </View>
           
           <Text style={styles.eventTitle}>Marriage Function</Text>
-          <Text style={styles.customerName}>Mohan Raj</Text>
+          <Text style={styles.customerName} numberOfLines={1} ellipsizeMode="tail">Mohan Raj</Text>
           
           <View style={styles.cardFooter}>
             <View style={styles.dateContainer}>
@@ -221,10 +232,13 @@ const OrdersScreen = () => {
           </View>
         </Pressable>
         </View>
-      )}
+        )}
+      </ScrollView>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="orders" />
+      {/* Bottom Navigation - Fixed */}
+      <View style={styles.bottomNavContainer}>
+        <BottomNavigation activeTab="orders" />
+      </View>
     </SafeAreaView>
   );
 };
@@ -239,8 +253,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 30,
-    paddingTop: 30,
+    paddingTop: 10,
     paddingBottom: 15,
+    backgroundColor: '#F3F3F3',
+    zIndex: 10,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20, // Base padding, actual padding is added dynamically
+  },
+  bottomNavContainer: {
+    backgroundColor: '#F3F3F3',
+    paddingTop: 10,
   },
   leftIconsGroup: {
     flexDirection: 'row',
@@ -289,10 +315,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
   },
   emptyStateContainer: {
-    flex: 1,
+    minHeight: 400,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
+    paddingVertical: 40,
   },
   emptyStatePlaceholder: {
     alignItems: 'center',
@@ -320,7 +347,7 @@ const styles = StyleSheet.create({
   ordersContainer: {
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 140,
+    paddingBottom: 0,
   },
   sectionTitle: {
     fontSize: 20,
@@ -331,7 +358,7 @@ const styles = StyleSheet.create({
   },
   orderCard: {
     width: 353,
-    height: 163,
+    height: 180,
     backgroundColor: '#FFFFFF',
     borderRadius: 11.3448,
     padding: 20,
@@ -418,7 +445,8 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#666666',
     fontFamily: 'Inter',
-    flex: 1,
+    marginBottom: 8,
+    overflow: 'hidden',
   },
   cardFooter: {
     flexDirection: 'row',

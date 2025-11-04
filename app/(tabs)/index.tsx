@@ -1,17 +1,17 @@
 import React from 'react';
 import {
-    Pressable,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    View
+  Pressable,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import { Bell, Calendar, User } from 'react-native-feather';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomNavigation from '../../components/BottomNavigation';
 
 const HomeScreen = () => {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>

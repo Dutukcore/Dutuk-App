@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View
+    Pressable,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
 import { FileText, Home, User } from 'react-native-feather';
 
@@ -13,11 +13,19 @@ interface BottomNavigationProps {
 }
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
+  const handleHome = () => router.navigate('/(tabs)' as any);
+  const handleOrders = () => {
+    if (activeTab !== 'orders') router.push('/orders' as any);
+  };
+  const handleProfile = () => {
+    if (activeTab !== 'profile') router.push('/profilePages/profile' as any);
+  };
+
   return (
     <View style={styles.bottomNavbar}>
       <Pressable 
         style={styles.navItem} 
-        onPress={() => router.navigate('/(tabs)')}
+        onPress={handleHome}
       >
         <Home 
           width={24} 
@@ -34,11 +42,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
       
       <Pressable 
         style={styles.navItem} 
-        onPress={() => {
-          if (activeTab !== 'orders') {
-            router.push('/orders');
-          }
-        }}
+        onPress={handleOrders}
       >
         <FileText 
           width={24} 
@@ -55,11 +59,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
       
       <Pressable 
         style={styles.navItem} 
-        onPress={() => {
-          if (activeTab !== 'profile') {
-            router.push('/profilePages/profile');
-          }
-        }}
+        onPress={handleProfile}
       >
         <User 
           width={24} 

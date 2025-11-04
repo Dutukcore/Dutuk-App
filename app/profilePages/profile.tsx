@@ -3,15 +3,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import React from "react";
 import {
-    Pressable,
-    StyleSheet,
-    Text,
-    View
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
 import BottomNavigation from '../../components/BottomNavigation';
 
 const ProfileScreen = () => {
+  const insets = useSafeAreaInsets();
   const menuItems = [
     {
       icon: 'person-outline',
@@ -62,66 +65,78 @@ const ProfileScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header Background */}
-      <View style={styles.headerBackground}>
-        <Pressable style={styles.bannerPlaceholder} onPress={() => {
-          Toast.show({
-            type: 'info',
-            text1: 'Coming Soon',
-            text2: 'Image upload feature will be available soon'
-          });
-        }}>
-          <Ionicons name="image-outline" size={40} color="#CCCCCC" />
-          <Text style={styles.bannerPlaceholderText}>Add Cover Photo</Text>
-        </Pressable>
-      </View>
-
-      {/* Profile Section */}
-      <View style={styles.profileSection}>
-        {/* Profile Image */}
-        <Pressable style={styles.profileImageContainer} onPress={() => {
-          Toast.show({
-            type: 'info',
-            text1: 'Coming Soon',
-            text2: 'Profile image upload will be available soon'
-          });
-        }}>
-          <View style={styles.profileImagePlaceholder}>
-            <Ionicons name="person-outline" size={40} color="#CCCCCC" />
-          </View>
-        </Pressable>
-
-        {/* Company Info */}
-        <Text style={styles.companyName}>Your Company Name</Text>
-        <Text style={styles.companyTagline}>Add your company tagline here</Text>
-      </View>
-
-      {/* Menu Items */}
-      <View style={styles.menuContainer}>
-        {menuItems.map((item, index) => (
-          <Pressable key={index} style={styles.menuItem} onPress={item.onPress}>
-            <View style={styles.menuItemLeft}>
-              <Ionicons name={item.icon as any} size={22} color="#000000" />
-              <Text style={styles.menuItemText}>{item.title}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={17.59} color="#000000" />
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Scrollable Content */}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 120 + insets.bottom } // Account for bottom nav (80px) + safe area + extra space
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header Background */}
+        <View style={styles.headerBackground}>
+          <Pressable style={styles.bannerPlaceholder} onPress={() => {
+            Toast.show({
+              type: 'info',
+              text1: 'Coming Soon',
+              text2: 'Image upload feature will be available soon'
+            });
+          }}>
+            <Ionicons name="image-outline" size={40} color="#CCCCCC" />
+            <Text style={styles.bannerPlaceholderText}>Add Cover Photo</Text>
           </Pressable>
-        ))}
+        </View>
 
-        {/* Logout Item */}
-        <Pressable style={styles.menuItem} onPress={handleLogout}>
-          <View style={styles.menuItemLeft}>
-            <Ionicons name="log-out-outline" size={21} color="#FF3030" />
-            <Text style={[styles.menuItemText, { color: '#FF3030' }]}>Log out</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={17.59} color="#FF0000" />
-        </Pressable>
+        {/* Profile Section */}
+        <View style={styles.profileSection}>
+          {/* Profile Image */}
+          <Pressable style={styles.profileImageContainer} onPress={() => {
+            Toast.show({
+              type: 'info',
+              text1: 'Coming Soon',
+              text2: 'Profile image upload will be available soon'
+            });
+          }}>
+            <View style={styles.profileImagePlaceholder}>
+              <Ionicons name="person-outline" size={40} color="#CCCCCC" />
+            </View>
+          </Pressable>
+
+          {/* Company Info */}
+          <Text style={styles.companyName}>Your Company Name</Text>
+          <Text style={styles.companyTagline}>Add your company tagline here</Text>
+        </View>
+
+        {/* Menu Items */}
+        <View style={styles.menuContainer}>
+          {menuItems.map((item, index) => (
+            <Pressable key={index} style={styles.menuItem} onPress={item.onPress}>
+              <View style={styles.menuItemLeft}>
+                <Ionicons name={item.icon as any} size={22} color="#000000" />
+                <Text style={styles.menuItemText}>{item.title}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={17.59} color="#000000" />
+            </Pressable>
+          ))}
+
+          {/* Logout Item */}
+          <Pressable style={styles.menuItem} onPress={handleLogout}>
+            <View style={styles.menuItemLeft}>
+              <Ionicons name="log-out-outline" size={21} color="#FF3030" />
+              <Text style={[styles.menuItemText, { color: '#FF3030' }]}>Log out</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={17.59} color="#FF0000" />
+          </Pressable>
+        </View>
+      </ScrollView>
+
+      {/* Bottom Navigation - Fixed */}
+      <View style={styles.bottomNavContainer}>
+        <BottomNavigation activeTab="profile" />
       </View>
-
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="profile" />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -129,6 +144,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F3F3',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 120, // Extra padding to allow scrolling past bottom navigation (80px nav + 40px extra)
+  },
+  bottomNavContainer: {
+    backgroundColor: '#F3F3F3',
+    paddingTop: 10,
   },
   headerBackground: {
     height: 166,
@@ -188,7 +213,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 27,
     paddingVertical: 10,
-    marginBottom: 30,
+    marginBottom: 20,
   },
   menuItem: {
     flexDirection: 'row',
