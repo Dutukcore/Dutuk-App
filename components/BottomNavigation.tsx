@@ -13,12 +13,12 @@ interface BottomNavigationProps {
 }
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
-  const handleHome = () => router.navigate('/(tabs)' as any);
+  const handleHome = () => router.replace('/(tabs)' as any);
   const handleOrders = () => {
-    if (activeTab !== 'orders') router.push('/orders' as any);
+    if (activeTab !== 'orders') router.replace('/(tabs)/orders' as any);
   };
   const handleProfile = () => {
-    if (activeTab !== 'profile') router.push('/profilePages/profile' as any);
+    if (activeTab !== 'profile') router.replace('/(tabs)/profile' as any);
   };
 
   return (

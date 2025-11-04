@@ -1,7 +1,7 @@
 import { supabase } from "@/utils/supabase";
 import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
     Pressable,
     ScrollView,
@@ -15,19 +15,6 @@ import BottomNavigation from '../../components/BottomNavigation';
 
 const ProfileScreen = () => {
   const insets = useSafeAreaInsets();
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    const task = (async () => {
-      const { InteractionManager } = await import('react-native');
-      InteractionManager.runAfterInteractions(() => {
-        setIsReady(true);
-      });
-    })();
-    return () => {
-      // no-op cleanup
-    };
-  }, []);
   const menuItems = [
     {
       icon: 'person-outline',
@@ -88,9 +75,6 @@ const ProfileScreen = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {!isReady ? (
-          <View style={{ height: 120 }} />
-        ) : (
         <>
         {/* Header Background */}
         <View style={styles.headerBackground}>
@@ -148,7 +132,6 @@ const ProfileScreen = () => {
           </Pressable>
         </View>
         </>
-        )}
       </ScrollView>
 
       {/* Bottom Navigation - Fixed */}

@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
+    FlatList,
     Pressable,
-    ScrollView,
     StyleSheet,
     Text,
     View
@@ -13,21 +13,9 @@ import BottomNavigation from '../../components/BottomNavigation';
 
 const OrdersScreen = () => {
   const insets = useSafeAreaInsets();
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    const task = (async () => {
-      const { InteractionManager } = await import('react-native');
-      InteractionManager.runAfterInteractions(() => {
-        setIsReady(true);
-      });
-    })();
-    return () => {
-      // no-op cleanup
-    };
-  }, []);
-  // Demo orders - set to empty array to show empty state
-  const orders = [
+  // No artificial delays; render immediately
+  // Demo orders in state - set to [] to show empty state
+  const [orders] = useState([
     {
       id: '55D90',
       title: 'Birthday Party',
@@ -52,7 +40,7 @@ const OrdersScreen = () => {
       date: '11-10-2025',
       time: '7:00am - 4pm'
     }
-  ];
+  ]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -97,27 +85,20 @@ const OrdersScreen = () => {
         </Pressable>
       </View>
       
-      {/* Scrollable Content */}
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: 120 + insets.bottom } // Account for bottom nav (80px) + safe area + extra space
-        ]}
+      <FlatList
+        data={orders}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
         showsVerticalScrollIndicator={false}
-      >
-        {/* Orders Title */}
-        <View style={styles.titleContainer}>
-          <View style={styles.titleRow}>
-            <Text style={styles.headerTitle}>Orders</Text>
-            <FileText width={24} height={24} stroke="#000000" />
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]}
+        ListHeaderComponent={(
+          <View style={styles.titleContainer}>
+            <View style={styles.titleRow}>
+              <Text style={styles.headerTitle}>Orders</Text>
+              <FileText width={24} height={24} stroke="#000000" />
+            </View>
           </View>
-        </View>
-
-        {!isReady ? (
-          <View style={{ height: 120 }} />
-        ) : orders.length === 0 ? (
-          /* Empty State - Only show when no orders */
+        )}
+        ListEmptyComponent={(
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStatePlaceholder}>
               <FileText width={60} height={60} stroke="#CCCCCC" />
@@ -127,128 +108,59 @@ const OrdersScreen = () => {
               </Text>
             </View>
           </View>
-        ) : (
-          /* Orders List */
-          <View style={styles.ordersContainer}>
-          <Pressable 
-          style={styles.orderCard}
-          onPress={() => router.push({
-            pathname: '/orders/customerApproval',
-            params: {
-              orderId: '55D90',
-              title: 'Birthday Party',
-              customerName: 'Bodhi Dharmar',
-              packageType: 'Premium Package',
-              customerEmail: 'bodhi.dharmar@example.com',
-              customerPhone: '+1 (555) 123-4567'
-            }
-          })}
-        >
-          <View style={styles.cardHeader}>
-            <Text style={styles.orderId}>#55D90</Text>
-            <View style={styles.headerActions}>
-              <View style={styles.pendingBadge}>
-                <Text style={styles.pendingText}>Pending</Text>
-              </View>
-              <Pressable style={styles.editButton}>
-                <Edit width={16} height={16} stroke="#FFFFFF" />
-              </Pressable>
-            </View>
-          </View>
-          
-          <Text style={styles.eventTitle}>Birthday Party</Text>
-          <Text style={styles.customerName} numberOfLines={1} ellipsizeMode="tail">Bodhi Dharmar</Text>
-          
-          <View style={styles.cardFooter}>
-            <View style={styles.dateContainer}>
-              <Calendar width={16} height={16} stroke="#666666" />
-              <Text style={styles.dateText}>15-10-2025</Text>
-            </View>
-            <View style={styles.timeContainer}>
-              <Clock width={16} height={16} stroke="#666666" />
-              <Text style={styles.timeText}>7:00am - 4pm</Text>
-            </View>
-          </View>
-        </Pressable>
-
-        <Pressable 
-          style={styles.orderCard}
-          onPress={() => router.push({
-            pathname: '/orders/customerDetails',
-            params: {
-              orderId: '55D90',
-              title: 'Birthday Party',
-              customerName: 'Praveen Kumar',
-              packageType: 'Business Package',
-              customerEmail: 'praveen.kumar@example.com',
-              customerPhone: '+1 (555) 987-6543'
-            }
-          })}
-        >
-          <View style={styles.cardHeader}>
-            <Text style={styles.orderId}>#55D90</Text>
-            <View style={styles.headerActions}>
-              <View style={styles.approvedBadge}>
-                <Text style={styles.approvedText}>Approved</Text>
-              </View>
-            </View>
-          </View>
-          
-          <Text style={styles.eventTitle}>Birthday Party</Text>
-          <Text style={styles.customerName} numberOfLines={1} ellipsizeMode="tail">Praveen Kumar</Text>
-          
-          <View style={styles.cardFooter}>
-            <View style={styles.dateContainer}>
-              <Calendar width={16} height={16} stroke="#666666" />
-              <Text style={styles.dateText}>13-10-2025</Text>
-            </View>
-            <View style={styles.timeContainer}>
-              <Clock width={16} height={16} stroke="#666666" />
-              <Text style={styles.timeText}>7:00am - 4pm</Text>
-            </View>
-          </View>
-        </Pressable>
-
-        <Pressable 
-          style={styles.orderCard}
-          onPress={() => router.push({
-            pathname: '/orders/customerDetails',
-            params: {
-              orderId: '55D90',
-              title: 'Marriage Function',
-              customerName: 'Mohan Raj',
-              packageType: 'Premium Package',
-              customerEmail: 'mohan.raj@example.com',
-              customerPhone: '+1 (555) 456-7890'
-            }
-          })}
-        >
-          <View style={styles.cardHeader}>
-            <Text style={styles.orderId}>#55D90</Text>
-            <View style={styles.headerActions}>
-              <View style={styles.doneBadge}>
-                <Text style={styles.doneText}>Done</Text>
-              </View>
-            </View>
-          </View>
-          
-          <Text style={styles.eventTitle}>Marriage Function</Text>
-          <Text style={styles.customerName} numberOfLines={1} ellipsizeMode="tail">Mohan Raj</Text>
-          
-          <View style={styles.cardFooter}>
-            <View style={styles.dateContainer}>
-              <Calendar width={16} height={16} stroke="#666666" />
-              <Text style={styles.dateText}>11-10-2025</Text>
-            </View>
-            <View style={styles.timeContainer}>
-              <Clock width={16} height={16} stroke="#666666" />
-              <Text style={styles.timeText}>7:00am - 4pm</Text>
-            </View>
-          </View>
-        </Pressable>
-        </View>
         )}
-      </ScrollView>
+        renderItem={({ item }) => {
+          const goTo = item.status === 'pending' ? '/orders/customerApproval' : '/orders/customerDetails';
+          return (
+            <Pressable
+              style={styles.orderCard}
+              onPress={() => router.push({
+                pathname: goTo,
+                params: {
+                  orderId: item.id,
+                  title: item.title,
+                  customerName: item.customerName,
+                  packageType: item.status === 'approved' ? 'Business Package' : 'Premium Package',
+                  customerEmail: 'example@example.com',
+                  customerPhone: '+1 (555) 000-0000'
+                }
+              })}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={styles.orderId}>#{item.id}</Text>
+                <View style={styles.headerActions}>
+                  {item.status === 'pending' && (
+                    <View style={styles.pendingBadge}><Text style={styles.pendingText}>Pending</Text></View>
+                  )}
+                  {item.status === 'approved' && (
+                    <View style={styles.approvedBadge}><Text style={styles.approvedText}>Approved</Text></View>
+                  )}
+                  {item.status === 'done' && (
+                    <View style={styles.doneBadge}><Text style={styles.doneText}>Done</Text></View>
+                  )}
+                  <Pressable style={styles.editButton}>
+                    <Edit width={16} height={16} stroke="#FFFFFF" />
+                  </Pressable>
+                </View>
+              </View>
+
+              <Text style={styles.eventTitle}>{item.title}</Text>
+              <Text style={styles.customerName} numberOfLines={1} ellipsizeMode="tail">{item.customerName}</Text>
+
+              <View style={styles.cardFooter}>
+                <View style={styles.dateContainer}>
+                  <Calendar width={16} height={16} stroke="#666666" />
+                  <Text style={styles.dateText}>{item.date}</Text>
+                </View>
+                <View style={styles.timeContainer}>
+                  <Clock width={16} height={16} stroke="#666666" />
+                  <Text style={styles.timeText}>{item.time}</Text>
+                </View>
+              </View>
+            </Pressable>
+          );
+        }}
+      />
 
       {/* Bottom Navigation - Fixed */}
       <View style={styles.bottomNavContainer}>
