@@ -17,43 +17,19 @@ export default function RootLayout() {
 
   return (
     <>
-      <Stack >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="event" options={{ headerShown: false }} />
-        <Stack.Screen name="requests" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="auth/UserLogin"
-          options={{
-            headerShown: false,
-            animation: "fade",
-          }}
-        />
-        <Stack.Screen
-          name="auth/register"
-          options={{
-            headerShown: false,
-            animation: "fade",
-          }}
-        />
-        <Stack.Screen
-          name="auth/OtpPage"
-          options={{
-            headerShown: false,
-            animation: "fade",
-          }}
-        />
-        <Stack.Screen
-          name="auth/EmailAuth"
-          options={{
-            headerShown: false,
-            animation: "fade",
-          }}
-        />
-        <Stack.Screen name="orders" options={{ headerShown: false }} />
-        <Stack.Screen name="customerApproval" options={{ headerShown: false }} />
-        <Stack.Screen name="customerDetails" options={{ headerShown: false }} />
-        <Stack.Screen name="profile" options={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false, animation: 'none' }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="event" />
+        <Stack.Screen name="requests" />
+        <Stack.Screen name="auth/UserLogin" />
+        <Stack.Screen name="auth/register" />
+        <Stack.Screen name="auth/OtpPage" />
+        <Stack.Screen name="auth/EmailAuth" />
+        <Stack.Screen name="orders" />
+        <Stack.Screen name="customerApproval" />
+        <Stack.Screen name="customerDetails" />
+        <Stack.Screen name="profile" />
       </Stack>
       <Toast />
     </>

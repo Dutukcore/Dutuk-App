@@ -1,11 +1,11 @@
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
 } from 'react-native';
 import { Bell, Calendar, Clock, Edit, FileText, User } from 'react-native-feather';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +13,19 @@ import BottomNavigation from '../../components/BottomNavigation';
 
 const OrdersScreen = () => {
   const insets = useSafeAreaInsets();
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const task = (async () => {
+      const { InteractionManager } = await import('react-native');
+      InteractionManager.runAfterInteractions(() => {
+        setIsReady(true);
+      });
+    })();
+    return () => {
+      // no-op cleanup
+    };
+  }, []);
   // Demo orders - set to empty array to show empty state
   const orders = [
     {
@@ -101,7 +114,9 @@ const OrdersScreen = () => {
           </View>
         </View>
 
-        {orders.length === 0 ? (
+        {!isReady ? (
+          <View style={{ height: 120 }} />
+        ) : orders.length === 0 ? (
           /* Empty State - Only show when no orders */
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStatePlaceholder}>

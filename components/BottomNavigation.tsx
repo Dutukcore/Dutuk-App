@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import React from 'react';
 import {
-    Pressable,
-    StyleSheet,
-    Text,
-    View
+  Pressable,
+  StyleSheet,
+  Text,
+  View
 } from 'react-native';
 import { FileText, Home, User } from 'react-native-feather';
 

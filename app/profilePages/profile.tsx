@@ -1,13 +1,13 @@
 import { supabase } from "@/utils/supabase";
 import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
@@ -15,26 +15,39 @@ import BottomNavigation from '../../components/BottomNavigation';
 
 const ProfileScreen = () => {
   const insets = useSafeAreaInsets();
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const task = (async () => {
+      const { InteractionManager } = await import('react-native');
+      InteractionManager.runAfterInteractions(() => {
+        setIsReady(true);
+      });
+    })();
+    return () => {
+      // no-op cleanup
+    };
+  }, []);
   const menuItems = [
     {
       icon: 'person-outline',
       title: 'Edit Profile',
-      onPress: () => router.push('/editProfile')
+      onPress: () => router.push('/editProfile' as any)
     },
     {
       icon: 'document-text-outline',
       title: 'Document Verification',
-      onPress: () => router.push('/documentVerification')
+      onPress: () => router.push('/documentVerification' as any)
     },
     {
       icon: 'time-outline',
       title: 'History',
-      onPress: () => router.push('/history')
+      onPress: () => router.push('/history' as any)
     },
     {
       icon: 'help-circle-outline',
       title: 'Help Center',
-      onPress: () => router.push('/helpCenter')
+      onPress: () => router.push('/helpCenter' as any)
     }
   ];
 
@@ -75,6 +88,10 @@ const ProfileScreen = () => {
         ]}
         showsVerticalScrollIndicator={false}
       >
+        {!isReady ? (
+          <View style={{ height: 120 }} />
+        ) : (
+        <>
         {/* Header Background */}
         <View style={styles.headerBackground}>
           <Pressable style={styles.bannerPlaceholder} onPress={() => {
@@ -130,6 +147,8 @@ const ProfileScreen = () => {
             <Ionicons name="chevron-forward" size={17.59} color="#FF0000" />
           </Pressable>
         </View>
+        </>
+        )}
       </ScrollView>
 
       {/* Bottom Navigation - Fixed */}
