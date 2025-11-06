@@ -189,50 +189,53 @@ const CustomerApprovalScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft width={18} height={18} stroke="#000000" />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft width={18} height={18} stroke="#000000" />
+          </TouchableOpacity>
+        </View>
 
-      {/* Order Info */}
-      <View style={styles.orderInfo}>
-        <Text style={styles.orderTitle}>{params.title || "Event"}</Text>
-        <Text style={styles.customerName}>{params.customerName || "Customer"}</Text>
-        <Text style={styles.packageInfo}>Package: {params.packageType || "Basic"}</Text>
-      </View>
+        {/* Order Info */}
+        <View style={styles.orderInfo}>
+          <Text style={styles.orderTitle}>{params.title || "Event"}</Text>
+          <Text style={styles.customerName}>{params.customerName || "Customer"}</Text>
+          <Text style={styles.packageInfo}>Package: {params.packageType || "Basic"}</Text>
+        </View>
 
-      {/* Calendar */}
-      <View style={styles.calendarContainer}>
-        {renderCalendar()}
-      </View>
+        {/* Calendar */}
+        <View style={styles.calendarContainer}>
+          {renderCalendar()}
+        </View>
 
-      {/* Action Buttons */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity 
-          style={[styles.acceptButton, loading && styles.buttonDisabled]} 
-          onPress={handleAccept}
-          disabled={loading}
-        >
-          <Text style={styles.acceptButtonText}>
-            {loading ? "Processing..." : "Accept"}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.rejectButton, loading && styles.buttonDisabled]} 
-          onPress={handleReject}
-          disabled={loading}
-        >
-          <Text style={styles.rejectButtonText}>
-            {loading ? "Processing..." : "Reject"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="orders" />
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity 
+            style={[styles.acceptButton, loading && styles.buttonDisabled]} 
+            onPress={handleAccept}
+            disabled={loading}
+          >
+            <Text style={styles.acceptButtonText}>
+              {loading ? "Processing..." : "Accept"}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.rejectButton, loading && styles.buttonDisabled]} 
+            onPress={handleReject}
+            disabled={loading}
+          >
+            <Text style={styles.rejectButtonText}>
+              {loading ? "Processing..." : "Reject"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
