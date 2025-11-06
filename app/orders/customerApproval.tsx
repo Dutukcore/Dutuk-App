@@ -1,9 +1,8 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'react-native-feather';
 import { SafeAreaView } from "react-native-safe-area-context";
-import BottomNavigation from "../../components/BottomNavigation";
 import { useOrders } from "../../hooks/useOrders";
 
 const CustomerApprovalScreen = () => {
