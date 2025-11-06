@@ -45,14 +45,14 @@ const Index = () => {
           text={"Change Username"}
         />
         <RouteAssist
-          path={"/profile/profileSettings/history_and_highlights"}
+          path={"/profilePages/profileSettings/history_and_highlights"}
           text={"History & Highlights"}
         />
         <RouteAssist
-          path={"/profile/profileSettings/helpcenter"}
+          path={"/profilePages/profileSettings/helpcenter"}
           text={"Help Center"}
         />
-        <RouteAssist path={"/profile/profileSettings/about"} text={"About"} />
+        <RouteAssist path={"/profilePages/profileSettings/about"} text={"About"} />
         <Pressable style={profileSettingsMenuStyle.options} onPress={logoutUser}>
                     <Text style={profileSettingsMenuStyle.optionText}>Logout</Text>
                 </Pressable>
