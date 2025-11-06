@@ -18,22 +18,27 @@ const ProfileScreen = () => {
     {
       icon: 'person-outline',
       title: 'Edit Profile',
-      onPress: () => router.push('/editProfile' as any)
+      onPress: () => router.push('/profilePages/editProfile')
     },
     {
       icon: 'document-text-outline',
       title: 'Document Verification',
-      onPress: () => router.push('/documentVerification' as any)
+      onPress: () => router.push('/profilePages/documentVerificationScreen')
     },
     {
       icon: 'time-outline',
       title: 'History',
-      onPress: () => router.push('/history' as any)
+      onPress: () => router.push('/profilePages/historyScreen')
+    },
+    {
+      icon: 'chatbubbles-outline',
+      title: 'Chat Support',
+      onPress: () => router.push('/profilePages/chatSupport')
     },
     {
       icon: 'help-circle-outline',
       title: 'Help Center',
-      onPress: () => router.push('/helpCenter' as any)
+      onPress: () => router.push('/profilePages/profileSettings/helpcenter')
     }
   ];
 
