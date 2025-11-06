@@ -11,7 +11,7 @@ import {
     Text,
     View
 } from "react-native";
-import BottomNavigation from '../../components/BottomNavigation';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Home = () => {
   const [requests, setRequests] = useState<number | null>(null);
@@ -40,7 +40,7 @@ const Home = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerIcons}>
@@ -62,7 +62,11 @@ const Home = () => {
       </View>
 
       {/* Content */}
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Quick Actions */}
         <View style={styles.quickActions}>
           <Pressable 
@@ -121,10 +125,7 @@ const Home = () => {
           </View>
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="home" />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F3F3',
   },
   header: {
-    paddingTop: 40,
+    paddingTop: 10,
     paddingHorizontal: 28,
     paddingBottom: 20,
     backgroundColor: '#F3F3F3',
@@ -179,7 +180,10 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 28,
+    paddingBottom: 20,
   },
   quickActions: {
     flexDirection: 'row',
@@ -252,7 +256,7 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   statsSection: {
-    marginBottom: 100,
+    marginBottom: 20,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -281,7 +285,6 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
   },
-
 });
 
 export default Home;
