@@ -114,7 +114,8 @@ const OrdersScreen = () => {
           return (
             <Pressable
               style={styles.orderCard}
-              onPress={() => router.push({
+              
+              onPress={ () =>  router.push({
                 pathname: goTo,
                 params: {
                   orderId: item.id,

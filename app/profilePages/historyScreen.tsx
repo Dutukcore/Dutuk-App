@@ -1,5 +1,6 @@
+import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface HistoryItem {
   id: string;
@@ -37,8 +38,8 @@ const DATA: HistoryItem[] = [
   },
 ];
 
-export default function PastEvents() {
- 
+export default function HistoryScreen() {
+  const navigation = useNavigation();
 
   const renderItem = ({ item }: { item: HistoryItem }) => (
     <View style={styles.card}>
@@ -65,8 +66,11 @@ export default function PastEvents() {
 
   return (
     <View style={styles.container}>
-  
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Text style={styles.backArrow}>←</Text>
+      </TouchableOpacity>
 
+      <Text style={styles.header}>History</Text>
 
       <FlatList
         data={DATA}

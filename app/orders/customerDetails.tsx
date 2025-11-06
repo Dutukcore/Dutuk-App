@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ArrowLeft, ChevronLeft, ChevronRight, Copy } from 'react-native-feather';
 import { SafeAreaView } from "react-native-safe-area-context";
-import BottomNavigation from "../../components/BottomNavigation";
 
 const CustomerDetailsScreen = () => {
   const params = useLocalSearchParams();
@@ -184,8 +183,7 @@ const CustomerDetailsScreen = () => {
         {renderCalendar()}
       </View>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="orders" />
+     
     </SafeAreaView>
   );
 };

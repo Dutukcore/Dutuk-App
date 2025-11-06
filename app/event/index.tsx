@@ -17,22 +17,20 @@ const styles = StyleSheet.create({
     options:{
         padding:20,
         margin:10,
-        borderColor:"rgb(45, 45, 45)",
-        borderWidth:2,
-        borderRadius:5,
+       borderRadius: 10,
     },
     optionsText:{
         textAlign:"left",
         color:"black"
     },
    past: {
-    backgroundColor: "#F8D7DA"
+    backgroundColor: "#ffffffff"
     },
     current: {
-    backgroundColor: "#D4EDDA" 
+    backgroundColor: "#ffffffff" 
     },
     upcoming: {
-    backgroundColor: "#DDEEFF" 
+    backgroundColor: "#ffffffff" 
     }
 
 })

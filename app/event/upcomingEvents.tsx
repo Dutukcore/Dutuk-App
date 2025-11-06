@@ -7,31 +7,74 @@ const UpcomingEvents = () => {
       <FlatList
         data={upcomingEvents}
         keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.text}>📅 {item.from} → {item.to}</Text>
-            <Text style={styles.text}>💰 Estimated Cost: ₹{item.cost}</Text>
-            <Text style={styles.text}>🔮 Expectations: {item.expectation}</Text>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+
+            <View style={styles.footerRow}>
+              <View style={styles.row}>
+                <Text>📅</Text>
+                <Text style={styles.footerText}>{item.from}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text>➡️</Text>
+                
+                <Text style={styles.footerText}>{item.to}</Text>
+              </View>
+            </View>
+
+            <Text style={styles.info}>💰 Estimated Cost: ₹{item.cost}</Text>
+            <Text style={styles.info}>🔮 Expectations: {item.expectation}</Text>
           </View>
         )}
       />
     </View>
   );
 };
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FAFAFA", padding: 16 },
-  heading: { fontSize: 24, fontWeight: "700", marginBottom: 16 },
-  card: {
-    backgroundColor: "#DDEEFF",
+  container: {
+    flex: 1,
+    backgroundColor: "#f3f3f3",
     padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    elevation: 1,
   },
-  title: { fontSize: 18, fontWeight: "600" },
-  text: { marginTop: 4, color: "#333" },
+
+  card: {
+    backgroundColor: "white",
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 16,
+    elevation: 2,
+  },
+
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+
+  footerRow: {
+    flexDirection: "column",      // ⬅️ stack vertically
+    alignItems: "flex-start",     // ⬅️ left-aligned like bulletin notes
+    gap: 6,                        // ⬅️ small spacing between items
+    marginBottom: 10,
+  },
+
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+
+  footerText: {
+    color: "#444",
+  },
+
+  info: {
+    marginTop: 6,
+    color: "#333",
+  },
 });
+
 
 export default UpcomingEvents;

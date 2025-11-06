@@ -3,11 +3,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import React from "react";
 import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
@@ -19,7 +19,7 @@ const ProfileScreen = () => {
     {
       icon: 'person-outline',
       title: 'Edit Profile',
-      onPress: () => router.push('/editProfile' as any)
+      onPress: () => router.push('/profilePages/legal')
     },
     {
       icon: 'document-text-outline',
