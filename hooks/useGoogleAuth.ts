@@ -135,12 +135,20 @@ const googleLogin = async (): Promise<void> => {
 
     console.log("Session established successfully");
 
-    // Set vendor role for new users from this app
-    // For existing users, their role should already be set
-    const roleSet = await setRole();
+    // Extract user's name from Google account metadata
+    const googleUserName = sessionData.session?.user?.user_metadata?.full_name || 
+                          sessionData.session?.user?.user_metadata?.name || 
+                          null;
+    
+    console.log("Google user name:", googleUserName);
+
+    // Create company entry for new users from this app
+    // Pass the Google user's name as default company name
+    // For existing users, their company should already exist
+    const roleSet = await setRole(googleUserName);
     
     if (!roleSet && isNewUser) {
-      console.warn("Warning: Failed to set vendor role for new Google OAuth user");
+      console.warn("Warning: Failed to create company entry for new Google OAuth user");
       Toast.show({
         type: 'info',
         text1: 'Account Created',
