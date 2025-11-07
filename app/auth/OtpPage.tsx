@@ -57,11 +57,16 @@ const OtpPage = () => {
 
       if (error) throw error;
 
-      Toast.show({ type: "success", text1: "OTP Verified!" });
+      Toast.show({ type: "success", text1: "OTP Verified! Welcome to Dutuk." });
       const setRole = (await import("@/hooks/setVendorAsRoleOnRegister"))
         .default;
-      await setRole();
-      router.replace("/(tabs)");
+      const roleSet = await setRole();
+      
+      if (!roleSet) {
+        console.warn("Warning: Failed to set vendor role after OTP verification");
+      }
+      
+      router.replace("/(tabs)/home");
     } catch (err: any) {
       Toast.show({
         type: "error",
