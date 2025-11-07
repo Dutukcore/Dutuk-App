@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEFEFE',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: -10
+    marginRight: -20
   },
   profileImagePlaceholder: {
     width: '100%',
@@ -451,15 +451,21 @@ const styles = StyleSheet.create({
   },
   eventsSection: {
     marginBottom: 30,
+    marginLeft: -28,
+    marginRight: -28,
   },
   manageSection: {
     marginBottom: 30,
+    marginLeft: -28,
+    marginRight: -28,
   },
   manageHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 15,
+    paddingLeft: 28,
+    paddingRight: 28,
   },
   createButton: {
     flexDirection: 'row',
@@ -486,6 +492,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
+    marginHorizontal: 28,
   },
   emptyManageTitle: {
     marginTop: 12,
@@ -500,6 +507,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   manageScrollContent: {
+    paddingLeft: 28,
     paddingRight: 28,
   },
   manageCard: {
@@ -512,7 +520,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
-    elevation: 4,
+    elevation: 0,
   },
   manageCardImage: {
     width: '100%',
@@ -580,6 +588,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 15,
+    paddingLeft: 28,
+    paddingRight: 28,
   },
   addMoreButton: {
     flexDirection: 'row',
@@ -596,6 +606,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   eventsScrollContent: {
+    paddingLeft: 28,
     paddingRight: 28,
   },
   eventCard: {
@@ -608,7 +619,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 0,
   },
   eventIconContainer: {
     width: 56,
@@ -655,7 +666,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 0,
   },
   requestsContent: {
     flexDirection: 'row',
@@ -693,7 +704,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 0,
   },
   statNumber: {
     fontSize: 24,

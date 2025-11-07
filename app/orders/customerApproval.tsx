@@ -3,19 +3,12 @@ import React, { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'react-native-feather';
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 import { useOrders } from "../../hooks/useOrders";
 
 const CustomerApprovalScreen = () => {
   const params = useLocalSearchParams();
-  
-  let updateOrderStatus;
-  try {
-    const hookResult = useOrders();
-    updateOrderStatus = hookResult.updateOrderStatus;
-  } catch (e) {
-    // Fallback if hook fails
-    updateOrderStatus = async () => true;
-  }
+  const { updateOrderStatus, getOrders } = useOrders();
   const [selectedDate, setSelectedDate] = useState(26);
   const [currentMonth, setCurrentMonth] = useState("October 2025");
   const [currentMonthIndex, setCurrentMonthIndex] = useState(9); // October = 9 (0-indexed)
@@ -45,45 +38,114 @@ const CustomerApprovalScreen = () => {
   const [loading, setLoading] = useState(false);
 
   const handleAccept = async () => {
+    if (!params.orderId) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Order ID is missing.'
+      });
+      return;
+    }
+
     setLoading(true);
-    const success = await updateOrderStatus(params.orderId as string, 'approved');
-    setLoading(false);
-    
-    if (success) {
-      Alert.alert(
-        "Order Accepted",
-        "The order has been approved successfully!",
-        [
-          {
-            text: "OK",
-            onPress: () => router.back()
-          }
-        ]
-      );
-    } else {
-      Alert.alert("Error", "Failed to approve order. Please try again.");
+    try {
+      const success = await updateOrderStatus(params.orderId as string, 'approved');
+      
+      if (success) {
+        // Refresh orders list
+        await getOrders();
+        
+        Toast.show({
+          type: 'success',
+          text1: 'Order Accepted',
+          text2: 'The order has been approved successfully!'
+        });
+        
+        // Navigate back after a short delay
+        setTimeout(() => {
+          router.back();
+        }, 1500);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Failed to Approve',
+          text2: 'Unable to approve order. Please try again.'
+        });
+      }
+    } catch (error) {
+      console.error('Error accepting order:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'An unexpected error occurred. Please try again.'
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleReject = async () => {
-    setLoading(true);
-    const success = await updateOrderStatus(params.orderId as string, 'rejected');
-    setLoading(false);
-    
-    if (success) {
-      Alert.alert(
-        "Order Rejected",
-        "The order has been rejected.",
-        [
-          {
-            text: "OK", 
-            onPress: () => router.back()
-          }
-        ]
-      );
-    } else {
-      Alert.alert("Error", "Failed to reject order. Please try again.");
+    if (!params.orderId) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Order ID is missing.'
+      });
+      return;
     }
+
+    // Show confirmation dialog before rejecting
+    Alert.alert(
+      "Reject Order",
+      "Are you sure you want to reject this order? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Reject",
+          style: "destructive",
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const success = await updateOrderStatus(params.orderId as string, 'rejected');
+              
+              if (success) {
+                // Refresh orders list
+                await getOrders();
+                
+                Toast.show({
+                  type: 'success',
+                  text1: 'Order Rejected',
+                  text2: 'The order has been rejected.'
+                });
+                
+                // Navigate back after a short delay
+                setTimeout(() => {
+                  router.back();
+                }, 1500);
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Failed to Reject',
+                  text2: 'Unable to reject order. Please try again.'
+                });
+              }
+            } catch (error) {
+              console.error('Error rejecting order:', error);
+              Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'An unexpected error occurred. Please try again.'
+              });
+            } finally {
+              setLoading(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const renderCalendar = () => {

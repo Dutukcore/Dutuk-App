@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { supabase } from '@/utils/supabase';
+import { useState } from 'react';
 
 export interface Order {
   id: string;
@@ -22,13 +22,35 @@ export const useOrders = () => {
     setLoading(true);
     
     try {
-      const { error } = await supabase
+      // Get current user to verify ownership
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        console.error('Authentication error:', authError);
+        setLoading(false);
+        return false;
+      }
+
+      // Update order status and verify vendor ownership
+      const { data, error } = await supabase
         .from('orders')
-        .update({ status })
-        .eq('id', orderId);
+        .update({ 
+          status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId)
+        .eq('vendor_id', user.id)
+        .select();
       
       if (error) {
         console.error('Failed to update order status:', error);
+        setLoading(false);
+        return false;
+      }
+
+      // Check if order was found and updated
+      if (!data || data.length === 0) {
+        console.error('Order not found or you do not have permission to update it');
         setLoading(false);
         return false;
       }
