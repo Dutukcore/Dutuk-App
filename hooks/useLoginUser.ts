@@ -118,8 +118,8 @@ const loginUser = async (userEmail: string, userPassword: string): Promise<void>
       text2: "Successfully logged in.",
     });
 
-    // Navigate to main app
-    router.replace("/(tabs)");
+    // Navigate to home page
+    router.replace("/(tabs)/home");
   } catch (err: any) {
     console.error("Unexpected login error:", err);
     Toast.show({
