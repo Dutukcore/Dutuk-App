@@ -88,6 +88,8 @@ const CurrentEvents = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FAFAFA", padding: 16 },
+  centerContent: { justifyContent: "center", alignItems: "center" },
+  loadingText: { marginTop: 10, fontSize: 16, color: "#666" },
   heading: { fontSize: 24, fontWeight: "700", marginBottom: 16 },
   card: {
     backgroundColor: "#ffffffff",
@@ -98,6 +100,16 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 18, fontWeight: "600" },
   text: { marginTop: 4, color: "#333" },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 100,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#999",
+  },
 });
 
 export default CurrentEvents;
