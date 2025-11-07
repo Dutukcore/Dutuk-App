@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import Toast from 'react-native-toast-message';
 import { supabase } from "../utils/supabase";
 import setRole from "./setVendorAsRoleOnRegister";
+import checkUserExists from "./useCheckUserExists";
 
 /**
  * Register a new user with email and password
