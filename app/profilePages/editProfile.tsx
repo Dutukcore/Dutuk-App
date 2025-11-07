@@ -1,16 +1,108 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import getCompanyInfo from "@/hooks/useGetCompanyInfo";
+import useCompanyInfo from "@/hooks/useCompanyInfo";
+import Toast from "react-native-toast-message";
 
 const EditProfileScreen = () => {
-  const name = "The Event Company";
-  const tagline = `"We plan, you party." 🎉🥳`;
-  const description = `"We plan, you party." 🎉🥳 from scratch`;
-  const address = "No 5, 100 feet road,  Velachery, Chennai";
-  const phone = "908002915424";
-  const avatar =
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png";
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [companyData, setCompanyData] = useState({
+    name: "",
+    description: "",
+    address: "",
+    phone: "",
+    website: "",
+    mail: "",
+    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png"
+  });
+
+  // Fetch company data on mount
+  useEffect(() => {
+    loadCompanyInfo();
+  }, []);
+
+  const loadCompanyInfo = async () => {
+    try {
+      setLoading(true);
+      const data = await getCompanyInfo();
+      
+      if (data) {
+        setCompanyData({
+          name: data.company || "",
+          description: data.description || "",
+          address: data.address || "",
+          phone: data.phone || "",
+          website: data.website || "",
+          mail: data.mail || "",
+          logoUrl: data.logo_url || "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png"
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load company info:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to load company information.'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      
+      // Validate required fields
+      if (!companyData.name.trim()) {
+        Toast.show({
+          type: 'error',
+          text1: 'Validation Error',
+          text2: 'Company name is required.'
+        });
+        setSaving(false);
+        return;
+      }
+
+      await useCompanyInfo({
+        company: companyData.name,
+        mail: companyData.mail,
+        phone: companyData.phone,
+        address: companyData.address,
+        website: companyData.website,
+      });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Company information saved successfully!'
+      });
+      
+      // Optionally go back after saving
+      // router.back();
+    } catch (error) {
+      console.error("Failed to save company info:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to save company information.'
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#000000" />
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
