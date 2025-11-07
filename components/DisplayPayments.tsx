@@ -2,16 +2,18 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type PaymentProp = {
-    paymentid: string;
-    associatedbookingid: string;
-    associatedeventname: string;
-    paymentdate: string;
-    amountpaid: number;
-    paymentmethod: string;
-    paymenttype: string;
-    status: string;
-    payername: string;
-    vendornetreceipt?: number;
+    id: string;
+    vendor_id: string;
+    customer_id: string;
+    customer_name?: string;
+    event_id?: string;
+    event_name?: string;
+    amount: number;
+    payment_method?: string;
+    payment_status: string;
+    transaction_id?: string;
+    payment_date?: string;
+    created_at: string;
 };
 
 type PaymentsProp = {
