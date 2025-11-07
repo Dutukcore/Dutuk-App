@@ -2,13 +2,16 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type ReviewProp = {
-    reviewid: string;
-    associatedeventname: string;
-    associatedeventid: string;
-    reviewername: string;
+    id: string;
+    vendor_id: string;
+    customer_id: string;
+    customer_name: string;
+    event_id?: string;
     rating: number;
-    reviewtext: string;
-    reviewdate: string;
+    review?: string;
+    event_name?: string;
+    event_date?: string;
+    created_at: string;
 };
 
 type ReviewsProp = {
