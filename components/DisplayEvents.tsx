@@ -20,6 +20,16 @@ type EventsProp = {
 };
 
 const DisplayEvents = ({ events }: EventsProp) => {
+    const formatDate = (dateString: string) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    };
+
     return (
         <ScrollView style={styles.container}>
             {events.length === 0 ? (
@@ -28,47 +38,54 @@ const DisplayEvents = ({ events }: EventsProp) => {
                 events.map((event) => (
                     <View key={event.id} style={styles.card}>
                         {/* Event Name */}
-                        <Text style={styles.eventName}>{event.eventnametype}</Text>
+                        <Text style={styles.eventName}>{event.event}</Text>
+
+                        {/* Company */}
+                        <Text style={styles.detailText}>
+                            <Text style={styles.label}>Company: </Text>
+                            {event.company_name}
+                        </Text>
 
                         {/* Date */}
                         <Text style={styles.detailText}>
                             <Text style={styles.label}>Date: </Text>
-                            {event.startdate}
-                            {event.startdate !== event.enddate && (
-                                <Text>{` to ${event.enddate}`}</Text>
+                            {formatDate(event.start_date)}
+                            {event.start_date !== event.end_date && (
+                                <Text>{` to ${formatDate(event.end_date)}`}</Text>
                             )}
                         </Text>
 
-                        {/* Time */}
+                        {/* Payment */}
                         <Text style={styles.detailText}>
-                            <Text style={styles.label}>Time: </Text>
-                            {`${event.starttime} - ${event.endtime}`}
+                            <Text style={styles.label}>Payment: </Text>
+                            ₹{event.payment?.toFixed(2) || '0.00'}
                         </Text>
 
-                        {/* Location */}
+                        {/* Status */}
                         <Text style={styles.detailText}>
-                            <Text style={styles.label}>Location: </Text>
-                            {event.venuename && (
-                                <Text>{`${event.venuename}, `}</Text>
-                            )}
-                            {event.fulladdress}
+                            <Text style={styles.label}>Status: </Text>
+                            {event.status}
                         </Text>
+
+                        {/* Description */}
+                        {event.description && (
+                            <Text style={styles.detailText}>
+                                <Text style={styles.label}>Description: </Text>
+                                {event.description}
+                            </Text>
+                        )}
 
                         {/* Customer Info */}
-                        <View style={styles.separator} />
-                        <Text style={styles.customerHeader}>Customer Details:</Text>
-                        <Text style={styles.detailText}>
-                            <Text style={styles.label}>Name: </Text>
-                            {event.customername}
-                        </Text>
-                        <Text style={styles.detailText}>
-                            <Text style={styles.label}>Email: </Text>
-                            {event.customeremail}
-                        </Text>
-                        <Text style={styles.detailText}>
-                            <Text style={styles.label}>Phone: </Text>
-                            {event.customerphonenumber}
-                        </Text>
+                        {event.customer_name && (
+                            <>
+                                <View style={styles.separator} />
+                                <Text style={styles.customerHeader}>Customer Details:</Text>
+                                <Text style={styles.detailText}>
+                                    <Text style={styles.label}>Name: </Text>
+                                    {event.customer_name}
+                                </Text>
+                            </>
+                        )}
                     </View>
                 ))
             )}
