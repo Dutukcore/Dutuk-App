@@ -118,6 +118,10 @@ const OrdersScreen = () => {
         )}
         renderItem={({ item }) => {
           const goTo = item.status === 'pending' ? '/orders/customerApproval' : '/orders/customerDetails';
+          
+          // Map status for display
+          const displayStatus = item.status === 'completed' ? 'done' : item.status;
+          
           return (
             <Pressable
               style={styles.orderCard}
@@ -127,23 +131,26 @@ const OrdersScreen = () => {
                   orderId: item.id,
                   title: item.title,
                   customerName: item.customerName,
-                  packageType: item.status === 'approved' ? 'Business Package' : 'Premium Package',
-                  customerEmail: 'example@example.com',
-                  customerPhone: '+1 (555) 000-0000'
+                  packageType: item.packageType,
+                  customerEmail: item.customerEmail,
+                  customerPhone: item.customerPhone
                 }
               })}
             >
               <View style={styles.cardHeader}>
-                <Text style={styles.orderId}>#{item.id}</Text>
+                <Text style={styles.orderId}>#{item.id.substring(0, 8)}</Text>
                 <View style={styles.headerActions}>
-                  {item.status === 'pending' && (
+                  {displayStatus === 'pending' && (
                     <View style={styles.pendingBadge}><Text style={styles.pendingText}>Pending</Text></View>
                   )}
-                  {item.status === 'approved' && (
+                  {displayStatus === 'approved' && (
                     <View style={styles.approvedBadge}><Text style={styles.approvedText}>Approved</Text></View>
                   )}
-                  {item.status === 'done' && (
+                  {(displayStatus === 'done' || displayStatus === 'completed') && (
                     <View style={styles.doneBadge}><Text style={styles.doneText}>Done</Text></View>
+                  )}
+                  {displayStatus === 'rejected' && (
+                    <View style={styles.rejectedBadge}><Text style={styles.rejectedText}>Rejected</Text></View>
                   )}
                   <Pressable style={styles.editButton}>
                     <Edit width={16} height={16} stroke="#FFFFFF" />
@@ -159,10 +166,11 @@ const OrdersScreen = () => {
                   <Calendar width={16} height={16} stroke="#666666" />
                   <Text style={styles.dateText}>{item.date}</Text>
                 </View>
-                <View style={styles.timeContainer}>
-                  <Clock width={16} height={16} stroke="#666666" />
-                  <Text style={styles.timeText}>{item.time}</Text>
-                </View>
+                {item.amount && (
+                  <View style={styles.amountContainer}>
+                    <Text style={styles.amountText}>${item.amount}</Text>
+                  </View>
+                )}
               </View>
             </Pressable>
           );
