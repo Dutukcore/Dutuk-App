@@ -256,11 +256,20 @@ const Home = () => {
           <Text style={styles.sectionTitle}>Overview</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
-              <Text style={styles.statNumber}>12</Text>
+              <Text style={styles.statNumber}>
+                {events.filter(e => e.status === 'upcoming' || e.status === 'ongoing').length}
+              </Text>
               <Text style={styles.statLabel}>Active Events</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statNumber}>8</Text>
+              <Text style={styles.statNumber}>
+                {events.filter(e => {
+                  const eventDate = new Date(e.start_date);
+                  const currentDate = new Date();
+                  return eventDate.getMonth() === currentDate.getMonth() && 
+                         eventDate.getFullYear() === currentDate.getFullYear();
+                }).length}
+              </Text>
               <Text style={styles.statLabel}>This Month</Text>
             </View>
           </View>
