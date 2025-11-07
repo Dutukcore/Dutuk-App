@@ -1,18 +1,30 @@
 import { supabase } from "@/utils/supabase";
 import getUser from "./getUser";
 
-const getPastReviews=async()=>{
-    const user =await getUser();
-    let id;
-    if(user){
-        id=user.id;
+const getPastReviews = async () => {
+    try {
+        const user = await getUser();
+        if (!user) {
+            console.error("No authenticated user");
+            return [];
+        }
+
+        const { data: reviews, error } = await supabase
+            .from("reviews")
+            .select("*")
+            .eq("vendor_id", user.id)
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            console.error("Error fetching past reviews:", error);
+            return [];
+        }
+
+        return reviews || [];
+    } catch (e) {
+        console.error("Exception fetching past reviews:", e);
+        return [];
     }
-    const { data: existing, error: fetchError } = await supabase
-        .from("pastreviews")
-        .select("*")
-        .eq("user_id",id)
-    if(existing){
-        return existing;
-    }
-}
+};
+
 export default getPastReviews;
