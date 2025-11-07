@@ -1,16 +1,15 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type EarningProp = {
-    associatedeventname: string;
-    associatedeventid: string;
-    eventdate: string; 
-    vendorservicesprovided: string;
-    totalagreeduponprice: number;
-    platformcommissionfees?: number; 
-    netearningsforevent: number;
-    paymentstatus: string; 
-    outstandingbalance: number;
-    invoicereference?: string; 
+    id: string;
+    vendor_id: string;
+    event_id?: string;
+    event_name?: string;
+    amount: number;
+    earning_date: string;
+    payment_id?: string;
+    notes?: string;
+    created_at: string;
 };
 
 type EarningsProp = {
