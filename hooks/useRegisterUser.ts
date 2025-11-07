@@ -39,6 +39,28 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
     
     console.log("Attempting to register user:", trimmedEmail);
 
+    // Check if user already exists before attempting registration
+    console.log("Checking if user already exists...");
+    const { exists, error: checkError } = await checkUserExists(trimmedEmail);
+    
+    if (exists) {
+      console.log("User already exists:", trimmedEmail);
+      Toast.show({
+        type: 'error',
+        text1: 'Account Already Exists',
+        text2: 'An account with this email already exists. Please log in instead.'
+      });
+      
+      // Navigate to login page after a short delay
+      setTimeout(() => {
+        router.push('/auth/UserLogin');
+      }, 1500);
+      
+      throw new Error('User already exists');
+    }
+    
+    console.log("User does not exist, proceeding with registration");
+
     // Attempt to sign up the user
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: trimmedEmail,
