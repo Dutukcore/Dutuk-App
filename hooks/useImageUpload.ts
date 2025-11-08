@@ -87,7 +87,10 @@ const useImageUpload = () => {
     filePath: string
   ): Promise<string> => {
     try {
-      console.log("Uploading to storage:", { bucket, filePath });
+      console.log("=== Starting Upload to Storage ===");
+      console.log("Bucket:", bucket);
+      console.log("File path:", filePath);
+      console.log("URI:", uri);
       
       // Convert image to blob
       const response = await fetch(uri);
@@ -97,6 +100,7 @@ const useImageUpload = () => {
       
       const blob = await response.blob();
       console.log("Image blob size:", blob.size, "bytes");
+      console.log("Image blob type:", blob.type);
 
       // Create array buffer from blob
       const arrayBuffer = await new Response(blob).arrayBuffer();
@@ -104,12 +108,15 @@ const useImageUpload = () => {
       const fileName = `${filePath}.${fileExt}`;
 
       console.log("File name:", fileName);
+      console.log("File extension:", fileExt);
 
       // Get proper MIME type
       const mimeType = getMimeType(fileExt);
       console.log("MIME type:", mimeType);
+      console.log("Array buffer size:", arrayBuffer.byteLength, "bytes");
 
       // Upload to Supabase Storage
+      console.log("Attempting upload to Supabase...");
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(fileName, arrayBuffer, {
@@ -118,26 +125,41 @@ const useImageUpload = () => {
         });
 
       if (error) {
-        console.error("Supabase upload error:", error);
-        throw new Error(`Upload failed: ${error.message || 'Unknown error'}`);
+        console.error("=== Supabase Upload Error ===");
+        console.error("Error object:", JSON.stringify(error, null, 2));
+        console.error("Error message:", error.message);
+        console.error("Error name:", error.name);
+        
+        // Provide more specific error messages
+        if (error.message?.includes('Bucket not found')) {
+          throw new Error(`Storage bucket "${bucket}" not found. Please ensure the bucket is created in Supabase Dashboard: Storage → Create bucket → Name: "${bucket}" → Public: Yes`);
+        } else if (error.message?.includes('row-level security')) {
+          throw new Error(`Permission denied. Please check storage policies for "${bucket}" bucket in Supabase Dashboard.`);
+        } else {
+          throw new Error(`Upload failed: ${error.message || 'Unknown error'}`);
+        }
       }
 
-      console.log("Upload successful:", data);
+      console.log("Upload successful!");
+      console.log("Upload data:", JSON.stringify(data, null, 2));
 
       // Get public URL
       const { data: urlData } = supabase.storage
         .from(bucket)
         .getPublicUrl(fileName);
 
-      console.log("Public URL:", urlData.publicUrl);
+      console.log("Public URL generated:", urlData.publicUrl);
       
       if (!urlData.publicUrl) {
         throw new Error("Failed to generate public URL");
       }
       
+      console.log("=== Upload Complete ===");
       return urlData.publicUrl;
     } catch (error: any) {
-      console.error("Error uploading to storage:", error);
+      console.error("=== Upload Error ===");
+      console.error("Error:", error);
+      console.error("Error message:", error?.message);
       throw new Error(error?.message || "Failed to upload image to storage");
     }
   };
