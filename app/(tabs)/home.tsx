@@ -36,6 +36,7 @@ const Home = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [markedDates, setMarkedDates] = useState<any>({});
   const [selectedDate, setSelectedDate] = useState('');
+  const [profileImageUrl, setProfileImageUrl] = useState<string>("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png");
 
   const manageableEvents = useMemo(() => {
     return events.filter((evt) => evt.status !== 'completed');
