@@ -89,6 +89,89 @@ const ManageEventScreen = () => {
     fetchEvent();
   }, [eventId]);
 
+  const handleEventImageSelect = async () => {
+    try {
+      setSelectingImage(true);
+      
+      const imageUri = await pickImage({
+        bucket: "event-images",
+        folder: "events",
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 0.8,
+      });
+
+      if (imageUri) {
+        setSelectedImageUri(imageUri);
+        Toast.show({
+          type: 'success',
+          text1: 'Image Selected',
+          text2: 'Now click "Upload Image" to save it.'
+        });
+      }
+    } catch (error: any) {
+      console.error("Failed to select event image:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Selection Failed',
+        text2: error?.message || 'Failed to select image. Please try again.'
+      });
+    } finally {
+      setSelectingImage(false);
+    }
+  };
+
+  const handleEventImageUpload = async () => {
+    if (!selectedImageUri) {
+      Toast.show({
+        type: 'error',
+        text1: 'No Image Selected',
+        text2: 'Please select an image first.'
+      });
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      
+      Toast.show({
+        type: 'info',
+        text1: 'Uploading...',
+        text2: 'Uploading image to server...'
+      });
+      
+      const imageUrl = await uploadImage(selectedImageUri, {
+        bucket: "event-images",
+        folder: "events",
+      });
+
+      if (imageUrl) {
+        setEventImageUrl(imageUrl);
+        setSelectedImageUri(null);
+        
+        // Also update in database immediately
+        if (eventId) {
+          await updateEvent(eventId, { image_url: imageUrl });
+        }
+        
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Event image updated successfully!'
+        });
+      }
+    } catch (error: any) {
+      console.error("Failed to upload event image:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Upload Failed',
+        text2: error?.message || 'Failed to upload event image. Please try again.'
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!eventId) {
       return;
