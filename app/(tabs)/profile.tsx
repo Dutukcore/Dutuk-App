@@ -1,8 +1,8 @@
 import getCompanyInfo from "@/hooks/useGetCompanyInfo";
 import { supabase } from "@/utils/supabase";
 import { Ionicons } from '@expo/vector-icons';
-import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
