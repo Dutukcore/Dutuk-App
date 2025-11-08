@@ -425,6 +425,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: -20
   },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
   profileImagePlaceholder: {
     width: '100%',
     height: '100%',
