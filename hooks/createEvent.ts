@@ -13,6 +13,8 @@ export type CreateEventPayload = {
   endDate?: string;
   customerId?: string;
   customerName?: string;
+  image_url?: string;
+  banner_url?: string;
 };
 
 const createEvent = async (payload: CreateEventPayload) => {
