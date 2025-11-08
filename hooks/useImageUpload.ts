@@ -207,16 +207,22 @@ const useImageUpload = () => {
     try {
       console.log("Starting image upload:", imageUri);
 
+      if (!imageUri) {
+        throw new Error("No image URI provided for upload");
+      }
+
       // Get user ID for folder structure
       const user = await getUser();
       if (!user) {
-        throw new Error("User not authenticated");
+        throw new Error("User not authenticated. Please log in and try again.");
       }
 
       // Create file path (user_id/folder/timestamp)
       const timestamp = Date.now();
       const folder = options.folder || "default";
       const filePath = `${user.id}/${folder}/${timestamp}`;
+
+      console.log("Uploading with file path:", filePath);
 
       // Upload to Supabase Storage
       const publicUrl = await uploadToStorage(
@@ -227,9 +233,9 @@ const useImageUpload = () => {
 
       console.log("Image upload completed successfully:", publicUrl);
       return publicUrl;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in uploadImage:", error);
-      throw error;
+      throw new Error(error?.message || "Failed to upload image");
     }
   };
 
