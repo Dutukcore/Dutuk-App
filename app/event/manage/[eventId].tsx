@@ -71,6 +71,10 @@ const ManageEventScreen = () => {
           startDate: data.start_date || "",
           endDate: data.end_date || "",
         });
+        // Load existing image if available
+        if (data.image_url) {
+          setEventImageUrl(data.image_url);
+        }
       } catch (error) {
         Toast.show({
           type: "error",
