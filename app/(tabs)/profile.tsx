@@ -51,6 +51,12 @@ const ProfileScreen = () => {
     loadCompanyInfo();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadCompanyInfo();
+    }, [])
+  );
+
   const loadCompanyInfo = async () => {
     try {
       setLoading(true);
