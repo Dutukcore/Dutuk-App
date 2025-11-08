@@ -93,9 +93,10 @@ const OrdersScreen = () => {
             router.push('/profilePages/profile');
           }}
         >
-          <View style={styles.profileImagePlaceholder}>
-            <User width={24} height={24} stroke="#CCCCCC" />
-          </View>
+          <Image 
+            source={{ uri: profileImageUrl }} 
+            style={styles.profileImage}
+          />
         </Pressable>
       </View>
       
