@@ -282,6 +282,77 @@ const ManageEventScreen = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Event Details</Text>
 
+        {/* Event Image Section */}
+        <Text style={styles.label}>Event Image</Text>
+        {eventImageUrl ? (
+          <View style={styles.imagePreviewContainer}>
+            <Image 
+              source={{ uri: eventImageUrl }} 
+              style={styles.imagePreview} 
+            />
+            <Pressable 
+              style={styles.changeImageButton}
+              onPress={handleEventImageSelect}
+              disabled={selectingImage || uploadingImage || saving || deleting}
+            >
+              {selectingImage ? (
+                <ActivityIndicator color="#FFF" size="small" />
+              ) : (
+                <Text style={styles.changeImageText}>Change Image</Text>
+              )}
+            </Pressable>
+          </View>
+        ) : selectedImageUri ? (
+          <View style={styles.imagePreviewContainer}>
+            <Image 
+              source={{ uri: selectedImageUri }} 
+              style={styles.imagePreview} 
+            />
+            <View style={styles.imageActionsRow}>
+              <Pressable 
+                style={[styles.uploadImageButton, uploadingImage && { opacity: 0.6 }]}
+                onPress={handleEventImageUpload}
+                disabled={uploadingImage || saving || deleting}
+              >
+                {uploadingImage ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="cloud-upload-outline" size={18} color="#FFF" />
+                    <Text style={styles.uploadImageButtonText}>Upload Image</Text>
+                  </>
+                )}
+              </Pressable>
+              <Pressable 
+                style={styles.changeSelectionButton}
+                onPress={handleEventImageSelect}
+                disabled={uploadingImage || saving || deleting}
+              >
+                <Text style={styles.changeSelectionText}>Change Selection</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <Pressable 
+            style={styles.uploadButton}
+            onPress={handleEventImageSelect}
+            disabled={selectingImage || saving || deleting}
+          >
+            {selectingImage ? (
+              <View style={styles.uploadingContainer}>
+                <ActivityIndicator color="#007AFF" size="large" />
+                <Text style={styles.uploadingText}>Selecting...</Text>
+              </View>
+            ) : (
+              <>
+                <Ionicons name="image-outline" size={40} color="#007AFF" />
+                <Text style={styles.uploadButtonText}>Add Event Image</Text>
+                <Text style={styles.uploadButtonSubtext}>Tap to choose from gallery</Text>
+              </>
+            )}
+          </Pressable>
+        )}
+
         <Text style={styles.label}>Event Title</Text>
         <TextInput
           style={styles.input}
