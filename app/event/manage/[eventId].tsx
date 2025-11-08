@@ -295,6 +295,9 @@ const ManageEventScreen = () => {
         text1: "Event updated",
         text2: "Your event details have been saved.",
       });
+      
+      // Navigate back to home after successful save
+      router.push("/(tabs)/home");
     } catch (error) {
       Toast.show({
         type: "error",
