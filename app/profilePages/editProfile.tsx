@@ -11,6 +11,8 @@ const EditProfileScreen = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectingImage, setSelectingImage] = useState(false);
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const [companyData, setCompanyData] = useState({
     name: "",
     description: "",
@@ -21,7 +23,7 @@ const EditProfileScreen = () => {
     logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png"
   });
 
-  const { pickAndUploadImage } = useImageUpload();
+  const { pickImage, uploadImage } = useImageUpload();
 
   // Fetch company data on mount
   useEffect(() => {
