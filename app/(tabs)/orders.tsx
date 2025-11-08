@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
+    Image,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -12,6 +13,7 @@ import {
 import { Bell, Calendar, Clock, Edit, FileText, User } from 'react-native-feather';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useOrders } from '@/hooks/useOrders';
+import getCompanyInfo from '@/hooks/useGetCompanyInfo';
 import Toast from 'react-native-toast-message';
 
 const OrdersScreen = () => {
