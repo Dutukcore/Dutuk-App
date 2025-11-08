@@ -56,6 +56,57 @@ const EditProfileScreen = () => {
     }
   };
 
+  const handleProfileImageUpload = async () => {
+    try {
+      setUploadingImage(true);
+      
+      Toast.show({
+        type: 'info',
+        text1: 'Uploading...',
+        text2: 'Compressing and uploading image...'
+      });
+      
+      const imageUrl = await pickAndUploadImage({
+        bucket: "profile-images",
+        folder: "profile",
+        maxWidth: 500,
+        maxHeight: 500,
+        quality: 0.8,
+      });
+
+      if (imageUrl) {
+        // Update local state
+        setCompanyData({ ...companyData, logoUrl: imageUrl });
+        
+        // Update in database
+        await useCompanyInfo({
+          company: companyData.name,
+          mail: companyData.mail,
+          phone: companyData.phone,
+          address: companyData.address,
+          website: companyData.website,
+          description: companyData.description,
+          logo_url: imageUrl,
+        });
+
+        Toast.show({
+          type: 'success',
+          text1: 'Success',
+          text2: 'Profile image updated successfully!'
+        });
+      }
+    } catch (error: any) {
+      console.error("Failed to upload profile image:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Upload Failed',
+        text2: error?.message || 'Failed to upload profile image. Please try again.'
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSave = async () => {
     try {
       setSaving(true);
@@ -77,6 +128,8 @@ const EditProfileScreen = () => {
         phone: companyData.phone,
         address: companyData.address,
         website: companyData.website,
+        description: companyData.description,
+        logo_url: companyData.logoUrl,
       });
 
       Toast.show({
