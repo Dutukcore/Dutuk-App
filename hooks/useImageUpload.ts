@@ -91,7 +91,12 @@ const useImageUpload = () => {
       
       // Convert image to blob
       const response = await fetch(uri);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+      }
+      
       const blob = await response.blob();
+      console.log("Image blob size:", blob.size, "bytes");
 
       // Create array buffer from blob
       const arrayBuffer = await new Response(blob).arrayBuffer();
@@ -114,7 +119,7 @@ const useImageUpload = () => {
 
       if (error) {
         console.error("Supabase upload error:", error);
-        throw error;
+        throw new Error(`Upload failed: ${error.message || 'Unknown error'}`);
       }
 
       console.log("Upload successful:", data);
@@ -125,10 +130,15 @@ const useImageUpload = () => {
         .getPublicUrl(fileName);
 
       console.log("Public URL:", urlData.publicUrl);
+      
+      if (!urlData.publicUrl) {
+        throw new Error("Failed to generate public URL");
+      }
+      
       return urlData.publicUrl;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading to storage:", error);
-      throw new Error("Failed to upload image to storage");
+      throw new Error(error?.message || "Failed to upload image to storage");
     }
   };
 
