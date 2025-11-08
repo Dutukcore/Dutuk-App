@@ -20,6 +20,8 @@ const STATUSES = ["upcoming", "ongoing", "completed", "cancelled"] as const;
 const CreateEventScreen = () => {
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectingImage, setSelectingImage] = useState(false);
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const [eventImageUrl, setEventImageUrl] = useState<string | null>(null);
   const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
@@ -30,7 +32,7 @@ const CreateEventScreen = () => {
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
 
-  const { pickAndUploadImage } = useImageUpload();
+  const { pickImage, uploadImage } = useImageUpload();
 
   const handleEventImageUpload = async () => {
     try {
