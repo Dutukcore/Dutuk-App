@@ -494,6 +494,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+  imageActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  uploadImageButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
+  },
+  uploadImageButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  changeSelectionButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#FFF',
+  },
+  changeSelectionText: {
+    color: '#007AFF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
 });
 
 export default CreateEventScreen;
