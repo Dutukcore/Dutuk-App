@@ -326,7 +326,58 @@ const useImageUpload = () => {
     }
   };
 
-  return { pickImage, uploadImage, pickAndUploadImage };
+  /**
+   * Delete image from Supabase Storage
+   * @param imageUrl - Full public URL of the image to delete
+   * @returns true if deleted successfully, false otherwise
+   */
+  const deleteImage = async (imageUrl: string): Promise<boolean> => {
+    try {
+      if (!imageUrl) {
+        console.log("No image URL provided for deletion");
+        return false;
+      }
+
+      console.log("=== Starting Image Deletion ===");
+      console.log("Image URL:", imageUrl);
+
+      // Extract bucket and file path from URL
+      // URL format: https://[project].supabase.co/storage/v1/object/public/[bucket]/[filepath]
+      const urlParts = imageUrl.split('/storage/v1/object/public/');
+      if (urlParts.length < 2) {
+        console.error("Invalid image URL format");
+        return false;
+      }
+
+      const pathParts = urlParts[1].split('/');
+      const bucket = pathParts[0];
+      const filePath = pathParts.slice(1).join('/');
+
+      console.log("Bucket:", bucket);
+      console.log("File path:", filePath);
+
+      // Delete from Supabase Storage
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .remove([filePath]);
+
+      if (error) {
+        console.error("Error deleting image from storage:", error);
+        // Don't throw error - we don't want to block event deletion if image delete fails
+        return false;
+      }
+
+      console.log("Image deleted successfully:", data);
+      console.log("=== Image Deletion Complete ===");
+      return true;
+    } catch (error: any) {
+      console.error("Error in deleteImage:", error);
+      // Don't throw - just log and return false
+      return false;
+    }
+  };
+
+  return { pickImage, uploadImage, pickAndUploadImage, deleteImage };
 };
 
 export default useImageUpload;
