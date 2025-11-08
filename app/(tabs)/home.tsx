@@ -140,10 +140,17 @@ const Home = () => {
 
             {/* Right group */}
             <Pressable style={styles.profileIcon}  onPress={() => router.push("/profilePages/editProfile")}>
-              <Image 
-                source={{ uri: profileImageUrl }} 
-                style={styles.profileImage}
-              />
+              {profileImageLoading ? (
+                <ActivityIndicator color="#007AFF" size="small" />
+              ) : (
+                <Image 
+                  source={{ uri: profileImageUrl }} 
+                  style={styles.profileImage}
+                  onLoadStart={() => setProfileImageLoading(true)}
+                  onLoadEnd={() => setProfileImageLoading(false)}
+                  onError={() => setProfileImageLoading(false)}
+                />
+              )}
             </Pressable>
           </View>
         </View>
