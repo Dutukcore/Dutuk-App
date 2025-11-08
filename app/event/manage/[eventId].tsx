@@ -140,12 +140,26 @@ const ManageEventScreen = () => {
         text2: 'Uploading image to server...'
       });
       
+      // Store old image URL before uploading new one
+      const oldImageUrl = eventImageUrl;
+      
       const imageUrl = await uploadImage(selectedImageUri, {
         bucket: "event-images",
         folder: "events",
       });
 
       if (imageUrl) {
+        // Delete old image from storage if it exists
+        if (oldImageUrl) {
+          console.log("Deleting old image:", oldImageUrl);
+          const deleted = await deleteImage(oldImageUrl);
+          if (deleted) {
+            console.log("Old image deleted successfully");
+          } else {
+            console.log("Could not delete old image (non-critical)");
+          }
+        }
+
         setEventImageUrl(imageUrl);
         setSelectedImageUri(null);
         
