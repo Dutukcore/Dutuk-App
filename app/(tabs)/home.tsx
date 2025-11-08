@@ -495,12 +495,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEFEFE',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: -20
+    marginRight: -20,
+    position: 'relative',
   },
   profileImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  profileImageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   profileImagePlaceholder: {
     width: '100%',
