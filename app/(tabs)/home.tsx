@@ -223,16 +223,36 @@ const Home = () => {
             >
               {manageableEvents.map((item) => {
                 const imageUri = item.image_url || item.banner_url || "";
+                const isImageLoading = imageLoadingStates[item.id] || false;
                 return (
                   <Pressable
                     key={item.id}
                     style={styles.manageCard}
                     onPress={() => router.push(`/event/manage/${item.id}`)}
                   >
-                    <Image
-                      source={imageUri ? { uri: imageUri } : placeholderImage}
-                      style={styles.manageCardImage}
-                    />
+                    <View style={styles.imageContainer}>
+                      {imageUri ? (
+                        <>
+                          <Image
+                            source={{ uri: imageUri }}
+                            style={styles.manageCardImage}
+                            onLoadStart={() => handleImageLoadStart(item.id)}
+                            onLoadEnd={() => handleImageLoadEnd(item.id)}
+                            onError={() => handleImageLoadError(item.id)}
+                          />
+                          {isImageLoading && (
+                            <View style={styles.imageLoadingOverlay}>
+                              <ActivityIndicator color="#007AFF" size="large" />
+                            </View>
+                          )}
+                        </>
+                      ) : (
+                        <Image
+                          source={placeholderImage}
+                          style={styles.manageCardImage}
+                        />
+                      )}
+                    </View>
                     <View style={styles.manageCardContent}>
                       <Text style={styles.manageCardTitle}>{item.event}</Text>
                       {item.description ? (
