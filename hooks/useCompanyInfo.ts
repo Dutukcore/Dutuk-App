@@ -47,9 +47,21 @@ const useCompanyInfo = async ({
 
     if (existing) {
       // Update existing company info
+      const updateData: any = { company, mail, phone, address, website };
+      
+      // Only include logo_url if provided
+      if (logo_url !== undefined) {
+        updateData.logo_url = logo_url;
+      }
+      
+      // Only include description if provided
+      if (description !== undefined) {
+        updateData.description = description;
+      }
+      
       const { error: updateError } = await supabase
         .from("companies")
-        .update({ company, mail, phone, address, website })
+        .update(updateData)
         .eq("user_id", userId);
 
       if (updateError) {
@@ -59,16 +71,26 @@ const useCompanyInfo = async ({
       }
     } else {
       // Insert new company info
-      const { error: insertError } = await supabase.from("companies").insert([
-        {
-          user_id: userId,
-          company,
-          mail,
-          phone,
-          address,
-          website,
-        },
-      ]);
+      const insertData: any = {
+        user_id: userId,
+        company,
+        mail,
+        phone,
+        address,
+        website,
+      };
+      
+      // Only include logo_url if provided
+      if (logo_url !== undefined) {
+        insertData.logo_url = logo_url;
+      }
+      
+      // Only include description if provided
+      if (description !== undefined) {
+        insertData.description = description;
+      }
+      
+      const { error: insertError } = await supabase.from("companies").insert([insertData]);
 
       if (insertError) {
         console.error("Error inserting company info:", insertError);
