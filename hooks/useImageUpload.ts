@@ -155,7 +155,7 @@ const useImageUpload = () => {
       // Step 1: Request permissions
       const hasPermission = await requestPermissions();
       if (!hasPermission) {
-        throw new Error("Permission to access media library denied");
+        throw new Error("Permission to access media library denied. Please enable photo access in your device settings.");
       }
 
       // Step 2: Open image picker
@@ -174,6 +174,10 @@ const useImageUpload = () => {
       const imageUri = result.assets[0].uri;
       console.log("Image selected:", imageUri);
 
+      if (!imageUri) {
+        throw new Error("No image URI received from picker");
+      }
+
       // Step 3: Compress image
       const compressedUri = await compressImage(
         imageUri,
@@ -184,9 +188,9 @@ const useImageUpload = () => {
 
       console.log("Image compressed successfully:", compressedUri);
       return compressedUri;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in pickImage:", error);
-      throw error;
+      throw new Error(error?.message || "Failed to select image");
     }
   };
 
