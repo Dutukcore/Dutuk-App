@@ -366,6 +366,63 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
   },
+  imagePreviewContainer: {
+    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
+    backgroundColor: '#F0F0F0',
+  },
+  changeImageButton: {
+    backgroundColor: '#007AFF',
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 8,
+    borderRadius: 8,
+  },
+  changeImageText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  uploadButton: {
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    padding: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8F9FF',
+    marginBottom: 16,
+  },
+  uploadButtonText: {
+    marginTop: 12,
+    color: '#007AFF',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  uploadButtonSubtext: {
+    marginTop: 4,
+    color: '#666666',
+    fontSize: 13,
+  },
+  uploadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  uploadingText: {
+    marginTop: 12,
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });
 
 export default CreateEventScreen;
