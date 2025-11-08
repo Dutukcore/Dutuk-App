@@ -53,7 +53,7 @@ const ManageEventScreen = () => {
     endDate: "",
   });
 
-  const { pickImage, uploadImage } = useImageUpload();
+  const { pickImage, uploadImage, deleteImage } = useImageUpload();
 
   useEffect(() => {
     const fetchEvent = async () => {
