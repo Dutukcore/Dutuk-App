@@ -586,6 +586,7 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 8,
   },
+  uploadImageButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
