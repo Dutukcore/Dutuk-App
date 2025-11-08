@@ -19,6 +19,8 @@ const STATUSES = ["upcoming", "ongoing", "completed", "cancelled"] as const;
 
 const CreateEventScreen = () => {
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [eventImageUrl, setEventImageUrl] = useState<string | null>(null);
   const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
   const [payment, setPayment] = useState("0");
@@ -27,6 +29,8 @@ const CreateEventScreen = () => {
   const [endDate, setEndDate] = useState("");
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
+
+  const { pickAndUploadImage } = useImageUpload();
 
   const handleSave = async () => {
     if (!eventName.trim()) {
