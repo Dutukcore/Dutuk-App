@@ -51,6 +51,8 @@ const createEvent = async (payload: CreateEventPayload) => {
         date: dateArray,
         payment: payload.payment ?? 0,
         status: payload.status || "upcoming",
+        image_url: payload.image_url || null,
+        banner_url: payload.banner_url || null,
       })
       .select()
       .single();
