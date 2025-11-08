@@ -130,6 +130,16 @@ const CreateEventScreen = () => {
       return;
     }
 
+    // Make image upload mandatory
+    if (!eventImageUrl) {
+      Toast.show({
+        type: "error",
+        text1: "Image required",
+        text2: "Please upload an event image before creating the event.",
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       await createEvent({
