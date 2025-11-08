@@ -9,6 +9,8 @@ export type UpdateEventPayload = {
   status?: EventStatus;
   payment?: number;
   date?: string[];
+  image_url?: string | null;
+  banner_url?: string | null;
 };
 
 const updateEvent = async (eventId: string, payload: UpdateEventPayload) => {
