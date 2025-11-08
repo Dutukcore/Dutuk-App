@@ -163,16 +163,20 @@ const Home = () => {
 
             {/* Right group */}
             <Pressable style={styles.profileIcon}  onPress={() => router.push("/profilePages/editProfile")}>
-              {profileImageLoading ? (
-                <ActivityIndicator color="#007AFF" size="small" />
-              ) : (
-                <Image 
-                  source={{ uri: profileImageUrl }} 
-                  style={styles.profileImage}
-                  onLoadStart={() => setProfileImageLoading(true)}
-                  onLoadEnd={() => setProfileImageLoading(false)}
-                  onError={() => setProfileImageLoading(false)}
-                />
+              <Image 
+                source={{ uri: profileImageUrl }} 
+                style={styles.profileImage}
+                onLoadStart={() => setProfileImageLoading(true)}
+                onLoadEnd={() => setProfileImageLoading(false)}
+                onError={() => {
+                  setProfileImageLoading(false);
+                  setProfileImageUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png");
+                }}
+              />
+              {profileImageLoading && (
+                <View style={styles.profileImageLoadingOverlay}>
+                  <ActivityIndicator color="#007AFF" size="small" />
+                </View>
               )}
             </Pressable>
           </View>
