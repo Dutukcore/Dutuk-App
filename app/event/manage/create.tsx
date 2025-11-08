@@ -177,7 +177,7 @@ const CreateEventScreen = () => {
         <Text style={styles.sectionTitle}>Create Event</Text>
 
         {/* Event Image Section */}
-        <Text style={styles.label}>Event Image (Optional)</Text>
+        <Text style={styles.label}>Event Image (Required) *</Text>
         {eventImageUrl ? (
           <View style={styles.imagePreviewContainer}>
             <Image 
