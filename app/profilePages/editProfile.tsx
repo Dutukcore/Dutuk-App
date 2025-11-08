@@ -58,22 +58,60 @@ const EditProfileScreen = () => {
     }
   };
 
+  const handleProfileImageSelect = async () => {
+    try {
+      setSelectingImage(true);
+      
+      const imageUri = await pickImage({
+        bucket: "profile-images",
+        folder: "profile",
+        maxWidth: 500,
+        maxHeight: 500,
+        quality: 0.8,
+      });
+
+      if (imageUri) {
+        setSelectedImageUri(imageUri);
+        Toast.show({
+          type: 'success',
+          text1: 'Image Selected',
+          text2: 'Now click "Upload Image" to save it.'
+        });
+      }
+    } catch (error: any) {
+      console.error("Failed to select profile image:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Selection Failed',
+        text2: error?.message || 'Failed to select image. Please try again.'
+      });
+    } finally {
+      setSelectingImage(false);
+    }
+  };
+
   const handleProfileImageUpload = async () => {
+    if (!selectedImageUri) {
+      Toast.show({
+        type: 'error',
+        text1: 'No Image Selected',
+        text2: 'Please select an image first.'
+      });
+      return;
+    }
+
     try {
       setUploadingImage(true);
       
       Toast.show({
         type: 'info',
         text1: 'Uploading...',
-        text2: 'Compressing and uploading image...'
+        text2: 'Uploading image to server...'
       });
       
-      const imageUrl = await pickAndUploadImage({
+      const imageUrl = await uploadImage(selectedImageUri, {
         bucket: "profile-images",
         folder: "profile",
-        maxWidth: 500,
-        maxHeight: 500,
-        quality: 0.8,
       });
 
       if (imageUrl) {
@@ -90,6 +128,9 @@ const EditProfileScreen = () => {
           description: companyData.description,
           logo_url: imageUrl,
         });
+
+        // Clear selected image after successful upload
+        setSelectedImageUri(null);
 
         Toast.show({
           type: 'success',
