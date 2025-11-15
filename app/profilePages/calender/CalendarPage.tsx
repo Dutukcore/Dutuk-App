@@ -287,12 +287,76 @@ const style = StyleSheet.create({
     container:{
         flex:1,
         alignItems:"center",
-        justifyContent:"center"
+        justifyContent:"center",
+        backgroundColor: '#F3F3F3',
+        paddingVertical: 20,
+    },
+    headerContainer: {
+        alignItems: 'center',
+        marginBottom: 20,
+        paddingHorizontal: 20,
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: '#000000',
+        marginBottom: 8,
+    },
+    headerSubtitle: {
+        fontSize: 14,
+        color: '#666666',
+        textAlign: 'center',
+    },
+    legendContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+        gap: 20,
+    },
+    legendItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    legendBox: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+    },
+    legendText: {
+        fontSize: 13,
+        color: '#000000',
+        fontWeight: '500',
     },
     calendar:{
-        width:300,
-        borderCurve:"circular",
-        borderRadius:10
+        width: 350,
+        borderRadius: 16,
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 4,
+        padding: 10,
+    },
+    instructionContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 20,
+        paddingHorizontal: 20,
+        gap: 8,
+    },
+    instructionText: {
+        fontSize: 13,
+        color: '#666666',
+        textAlign: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 14,
+        color: '#666666',
     }
 })
 export default CalendarPage;
