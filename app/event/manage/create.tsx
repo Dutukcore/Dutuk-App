@@ -248,11 +248,9 @@ const CreateEventScreen = () => {
         event: eventName.trim(),
         description: description.trim() || undefined,
         payment: Number.parseFloat(payment) || 0,
-        status,
+        status: "upcoming",
         startDate: startDate.trim(),
         endDate: endDate.trim() || undefined,
-        customerId: customerId.trim() || undefined,
-        customerName: customerName.trim() || undefined,
         image_url: eventImageUrl || undefined,
       });
 
