@@ -16,8 +16,6 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 
-const STATUSES = ["upcoming", "ongoing", "completed", "cancelled"] as const;
-
 const CreateEventScreen = () => {
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -27,11 +25,8 @@ const CreateEventScreen = () => {
   const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
   const [payment, setPayment] = useState("0");
-  const [status, setStatus] = useState<(typeof STATUSES)[number]>("upcoming");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [customerId, setCustomerId] = useState("");
-  const [customerName, setCustomerName] = useState("");
 
   const { pickImage, uploadImage, deleteImage } = useImageUpload();
 
