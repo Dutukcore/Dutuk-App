@@ -422,7 +422,7 @@ const CreateEventScreen = () => {
           style={styles.input}
           value={endDate}
           onChangeText={setEndDate}
-          placeholder="2025-01-02"
+          placeholder="YYYY-MM-DD (e.g. 2025-01-02)"
         />
 
         <Text style={styles.label}>Customer ID (optional)</Text>
