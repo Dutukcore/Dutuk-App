@@ -374,65 +374,101 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  avatarRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  profileImageSection: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+
+  avatarContainer: {
+    alignItems: "center",
+    marginBottom: 15,
+  },
+
+  avatarWrapper: {
+    position: 'relative',
   },
 
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#ccc",
-    marginRight: 15,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#E5E5E5",
+    borderWidth: 3,
+    borderColor: "#FFF",
   },
 
-  profileInfo: {
-    flex: 1,
+  profileTextInfo: {
+    alignItems: "center",
+    marginBottom: 15,
   },
 
   companyName: {
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 4,
+    textAlign: "center",
+    width: "100%",
   },
 
   tagline: {
     fontSize: 13,
-    color: "#444",
+    color: "#666",
+    textAlign: "center",
+    width: "100%",
   },
 
-  buttonRow: {
+  imageButtonsContainer: {
     flexDirection: "row",
-    marginTop: 10,
-    gap: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
+    flexWrap: "wrap",
   },
 
   primaryBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: "black",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: "#000000",
+    minWidth: 100,
+    justifyContent: "center",
   },
 
   primaryBtnText: {
     color: "white",
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
   },
 
   uploadBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
     backgroundColor: "#007AFF",
+    minWidth: 100,
+    justifyContent: "center",
   },
 
   uploadBtnText: {
     color: "white",
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
+  },
+
+  buttonDisabled: {
+    opacity: 0.6,
   },
 
   outlinedBtn: {
