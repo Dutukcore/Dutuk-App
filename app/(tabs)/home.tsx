@@ -242,7 +242,7 @@ const Home = () => {
               selectedDayTextColor: '#ffffff',
               todayTextColor: '#007AFF',
               dayTextColor: '#000000',
-              textDisabledColor: '#d9e1e8',
+              textDisabledColor: '#CCCCCC', // Past dates in grey
               dotColor: '#007AFF',
               selectedDotColor: '#ffffff',
               arrowColor: '#007AFF',
