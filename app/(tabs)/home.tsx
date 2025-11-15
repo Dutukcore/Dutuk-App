@@ -69,11 +69,16 @@ const Home = () => {
       const allEvents = await getAllEvents();
       setEvents(allEvents);
       
+      // Load calendar dates from AsyncStorage
+      const storedCalendarDates = await getCalendarDates();
+      setCalendarDates(storedCalendarDates);
+      
       // Create marked dates object for calendar
       const marked: any = {};
+      
+      // First, add events with dots
       allEvents.forEach((event: Event) => {
         const startDate = event.start_date?.split('T')[0];
-        const endDate = event.end_date?.split('T')[0];
         
         if (startDate) {
           marked[startDate] = {
@@ -82,6 +87,38 @@ const Home = () => {
           };
         }
       });
+      
+      // Then, add calendar availability dates with custom styling
+      storedCalendarDates.forEach((calDate: CalendarDate) => {
+        if (calDate.status === 'unavailable') {
+          // Unavailable dates: red text
+          marked[calDate.date] = {
+            ...marked[calDate.date], // Preserve event dots if they exist
+            customStyles: {
+              text: {
+                color: '#FF3B30',
+                fontWeight: '700',
+              },
+            },
+          };
+        } else if (calDate.status === 'available') {
+          // Available dates: black circle with white text
+          marked[calDate.date] = {
+            ...marked[calDate.date], // Preserve event dots if they exist
+            customStyles: {
+              container: {
+                backgroundColor: '#000000',
+                borderRadius: 20,
+              },
+              text: {
+                color: '#FFFFFF',
+                fontWeight: '700',
+              },
+            },
+          };
+        }
+      });
+      
       setMarkedDates(marked);
     } catch (error) {
       console.error('Failed to load events:', error);
