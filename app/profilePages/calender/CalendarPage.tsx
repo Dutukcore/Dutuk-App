@@ -2,19 +2,19 @@
 // import customStyle from "@/assets/customStyle";
 // import getStoredDates from "@/hooks/getStoredDates";
 // import storeDates from "@/hooks/useStoreDates";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import { Alert, StyleSheet, Text, View, Pressable, ActivityIndicator } from "react-native";
-import { Calendar } from "react-native-calendars";
-import { 
-  getCalendarDates, 
-  setCalendarDate, 
-  removeCalendarDate, 
-  isPastDate,
+import {
   CalendarDate,
-  CalendarDateStatus 
+  CalendarDateStatus,
+  getCalendarDates,
+  isPastDate,
+  removeCalendarDate,
+  setCalendarDate
 } from "@/utils/calendarStorage";
 import { Ionicons } from '@expo/vector-icons';
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Calendar } from "react-native-calendars";
 import Toast from 'react-native-toast-message';
 
 
@@ -206,8 +206,8 @@ const CalendarPage = ()=>{
             onPress={() => router.back()}
             data-testid="calendar-back-button"
           >
-            <Ionicons name="arrow-back" size={24} color="#007AFF" />
-            <Text style={style.backButtonText}>Back</Text>
+            <Ionicons name="arrow-back" size={24} color="#000000ff" />
+        
           </Pressable>
 
           <View style={style.headerContainer}>
@@ -277,7 +277,7 @@ const CalendarPage = ()=>{
           <View style={style.instructionContainer}>
             <Ionicons name="information-circle-outline" size={20} color="#666666" />
             <Text style={style.instructionText}>
-              You cannot mark dates in the past
+              Right now the dates  are for display
             </Text>
           </View>
        

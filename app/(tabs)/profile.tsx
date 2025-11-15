@@ -147,11 +147,7 @@ const ProfileScreen = () => {
         <View style={styles.profileSection}>
           {/* Profile Image */}
           <Pressable style={styles.profileImageContainer} onPress={() => {
-            Toast.show({
-              type: 'info',
-              text1: 'Coming Soon',
-              text2: 'Profile image upload will be available soon'
-            });
+        router.push('/profilePages/editProfile');
           }}>
             <Image
               source={{ uri: companyData.logoUrl }}
