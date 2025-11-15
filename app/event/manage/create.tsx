@@ -171,15 +171,6 @@ const CreateEventScreen = () => {
       return;
     }
 
-    if (!startDate.trim()) {
-      Toast.show({
-        type: "error",
-        text1: "Start date required",
-        text2: "Please provide a start date (YYYY-MM-DD).",
-      });
-      return;
-    }
-
     // Make image upload mandatory
     if (!eventImageUrl) {
       Toast.show({
@@ -188,6 +179,72 @@ const CreateEventScreen = () => {
         text2: "Please upload an event image before creating the event.",
       });
       return;
+    }
+
+    // Validate start date if provided
+    if (startDate.trim()) {
+      const startDateObj = new Date(startDate.trim());
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set to start of day for comparison
+
+      if (isNaN(startDateObj.getTime())) {
+        Toast.show({
+          type: "error",
+          text1: "Invalid start date",
+          text2: "Please provide a valid start date in YYYY-MM-DD format.",
+        });
+        return;
+      }
+
+      if (startDateObj < today) {
+        Toast.show({
+          type: "error",
+          text1: "Invalid start date",
+          text2: "Start date cannot be in the past.",
+        });
+        return;
+      }
+    }
+
+    // Validate end date if provided
+    if (endDate.trim()) {
+      const endDateObj = new Date(endDate.trim());
+
+      if (isNaN(endDateObj.getTime())) {
+        Toast.show({
+          type: "error",
+          text1: "Invalid end date",
+          text2: "Please provide a valid end date in YYYY-MM-DD format.",
+        });
+        return;
+      }
+
+      // If both dates are provided, validate that end date is after start date
+      if (startDate.trim()) {
+        const startDateObj = new Date(startDate.trim());
+        
+        if (endDateObj < startDateObj) {
+          Toast.show({
+            type: "error",
+            text1: "Invalid end date",
+            text2: "End date must be after the start date.",
+          });
+          return;
+        }
+      } else {
+        // If end date is provided but start date is not, validate end date is not in the past
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (endDateObj < today) {
+          Toast.show({
+            type: "error",
+            text1: "Invalid end date",
+            text2: "End date cannot be in the past.",
+          });
+          return;
+        }
+      }
     }
 
     setSaving(true);
