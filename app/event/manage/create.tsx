@@ -384,24 +384,6 @@ const CreateEventScreen = () => {
           placeholder="0.00"
         />
 
-        <Text style={styles.label}>Status</Text>
-        <View style={styles.statusRow}>
-          {STATUSES.map((item) => {
-            const active = item === status;
-            return (
-              <Pressable
-                key={item}
-                style={[styles.statusChip, active && styles.statusChipActive]}
-                onPress={() => setStatus(item)}
-              >
-                <Text style={[styles.statusChipText, active && styles.statusChipTextActive]}>
-                  {item}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
         <Text style={styles.label}>Start Date (optional)</Text>
         <TextInput
           style={styles.input}
