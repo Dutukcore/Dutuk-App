@@ -469,31 +469,6 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: "top",
   },
-  statusRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginTop: 8,
-  },
-  statusChip: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#C7C7CC",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  statusChipActive: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
-  },
-  statusChipText: {
-    fontSize: 13,
-    color: "#3A3A3C",
-    textTransform: "capitalize",
-  },
-  statusChipTextActive: {
-    color: "#FFFFFF",
-  },
   saveButton: {
     flexDirection: "row",
     alignItems: "center",
