@@ -253,7 +253,7 @@ const CalendarPage = ()=>{
               selectedDayTextColor: '#ffffff',
               todayTextColor: '#007AFF',
               dayTextColor: '#000000',
-              textDisabledColor: '#d9e1e8',
+              textDisabledColor: '#CCCCCC', // Past dates in grey
               dotColor: '#007AFF',
               selectedDotColor: '#ffffff',
               arrowColor: '#007AFF',
@@ -265,6 +265,9 @@ const CalendarPage = ()=>{
               textMonthFontSize: 16,
               textDayHeaderFontSize: 12
             }}
+            
+            // Disable past dates visually
+            minDate={new Date().toISOString().split('T')[0]}
 
             markedDates={{
                 ...markedDates,
