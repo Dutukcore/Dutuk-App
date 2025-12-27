@@ -49,29 +49,53 @@ const OtpPage = () => {
 
     setLoading(true);
     try {
+      console.log("Verifying OTP for email:", email);
+      
+      // Use "signup" type for OTP verification during registration
+      // This matches the OTP type that Supabase sends during signup
       const { error } = await supabase.auth.verifyOtp({
         email: email as string,
         token: code,
-        type: "email",
+        type: "signup",
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("OTP verification error:", error);
+        throw error;
+      }
 
+      console.log("OTP verified successfully, setting up vendor profile...");
+      
       Toast.show({ type: "success", text1: "OTP Verified! Welcome to Dutuk." });
+      
+      // Set vendor role and create company entry
       const setRole = (await import("@/hooks/setVendorAsRoleOnRegister"))
         .default;
       const roleSet = await setRole();
       
       if (!roleSet) {
         console.warn("Warning: Failed to set vendor role after OTP verification");
+      } else {
+        console.log("Vendor role and company entry created successfully");
       }
       
       router.replace("/(tabs)/home");
     } catch (err: any) {
+      const errorMessage = err.message?.toLowerCase() || "";
+      let displayMessage = "Please try again";
+      
+      if (errorMessage.includes("expired") || errorMessage.includes("invalid")) {
+        displayMessage = "Code expired or invalid. Please request a new one.";
+      } else if (errorMessage.includes("too many")) {
+        displayMessage = "Too many attempts. Please wait a moment.";
+      } else {
+        displayMessage = err.message || "Please try again";
+      }
+      
       Toast.show({
         type: "error",
         text1: "Verification failed",
-        text2: err.message || "Please try again",
+        text2: displayMessage,
       });
     } finally {
       setLoading(false);
@@ -80,12 +104,29 @@ const OtpPage = () => {
 
   const handleResend = async () => {
     if (countdown > 0) return;
+    
+    console.log("Resending OTP to:", email);
+    
     try {
-      await supabase.auth.signInWithOtp({ email: email as string });
+      // Use signInWithOtp for resending OTP
+      const { error } = await supabase.auth.signInWithOtp({ 
+        email: email as string,
+        options: {
+          shouldCreateUser: false, // Don't create user, they already exist
+        }
+      });
+      
+      if (error) throw error;
+      
       Toast.show({ type: "success", text1: "New code sent!" });
       setCountdown(59);
-    } catch {
-      Toast.show({ type: "error", text1: "Failed to resend code" });
+    } catch (err: any) {
+      console.error("Error resending OTP:", err);
+      Toast.show({ 
+        type: "error", 
+        text1: "Failed to resend code",
+        text2: err.message || "Please try again later"
+      });
     }
   };
 

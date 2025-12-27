@@ -111,23 +111,11 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
 
     // Check if email confirmation is required
     if (!signUpData.user.email_confirmed_at) {
-      console.log("Email confirmation required, sending OTP to:", trimmedEmail);
+      console.log("Email confirmation required. OTP automatically sent by Supabase to:", trimmedEmail);
       
-      // Email confirmation is required, send OTP
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: trimmedEmail,
-      });
-
-      if (otpError) {
-        console.error("OTP send error:", otpError);
-        Toast.show({
-          type: 'error',
-          text1: 'Verification Error',
-          text2: 'Failed to send verification code. Please try again.'
-        });
-        throw otpError;
-      }
-
+      // Supabase automatically sends OTP during signup when email confirmation is enabled
+      // No need to send another OTP - it would cause rate limiting or duplicate sends
+      
       Toast.show({
         type: 'success',
         text1: 'Registration Successful!',

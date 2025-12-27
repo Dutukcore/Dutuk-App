@@ -27,10 +27,12 @@ const verifyOTP = async (
 
     console.log("Attempting to verify OTP for:", email);
 
+    // Use "signup" type for OTP verification from registration flow
+    // Use "email" type for magic link/email OTP flows
     const { data, error } = await supabase.auth.verifyOtp({
       email: email.trim().toLowerCase(),
       token: otp.trim(),
-      type: "magiclink", // Use magiclink type for OTP verification
+      type: "signup", // Changed from "magiclink" to "signup" for registration flow
     });
 
     if (error) {
