@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.dharsdev.dutuk_frontend'
+    namespace 'com.vendorapp.dutuk'
     defaultConfig {
-        applicationId 'com.dharsdev.dutuk_frontend'
+        applicationId 'com.vendorapp.dutuk'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

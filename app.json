@@ -11,7 +11,7 @@
     "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dharsdev.dutuk-frontend"
+      "bundleIdentifier": "com.vendorapp.dutuk"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +19,7 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.dharsdev.dutuk_frontend"
+      "package": "com.vendorapp.dutuk"
     },
     "web": {
       "bundler": "metro",
@@ -44,10 +44,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "97c03a82-f4a5-4d56-b302-59d4bc033cc5"
-      }
+      "router": {}
     }
   }
 }

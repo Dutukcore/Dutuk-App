@@ -1,4 +1,4 @@
-package com.dharsdev.dutuk_frontend
+package com.vendorapp.dutuk
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

@@ -1,4 +1,4 @@
-package com.dharsdev.dutuk_frontend
+package com.vendorapp.dutuk
 
 import android.app.Application
 import android.content.res.Configuration
