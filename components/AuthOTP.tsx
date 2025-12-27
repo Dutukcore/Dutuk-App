@@ -44,7 +44,7 @@ const AuthOTP: React.FC<AuthOTPProps> = ({
   }, []);
 
   useEffect(() => {
-    let interval: number;
+    let interval: ReturnType<typeof setInterval>;
     if (cooldown > 0) {
       interval = setInterval(() => {
         setCooldown((prev) => prev - 1);

@@ -5,63 +5,128 @@ const supabaseUrl = "https://unqpmwlzyaqrryzyrslf.supabase.co";
 const supabaseAnonKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVucXBtd2x6eWFxcnJ5enlyc2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MTI5ODUsImV4cCI6MjA2NDE4ODk4NX0.RwDqMBy9ctQzxG9CuVzaUlriK6M5cGycPhQviNQfcxw";
 
-// Platform-specific storage adapter - check for SSR/Node environment
+// Check if we're in a server-side rendering context
 const isServerSide = typeof window === 'undefined';
 
 // Safe storage that works in all environments including SSR
-const safeStorage = {
+const createSafeStorage = () => ({
   getItem: async (key: string): Promise<string | null> => {
-    if (isServerSide) return null;
-    if (Platform.OS === 'web') {
-      return window.localStorage?.getItem(key) ?? null;
+    if (typeof window === 'undefined') return null;
+    try {
+      if (Platform.OS === 'web') {
+        return window.localStorage?.getItem(key) ?? null;
+      }
+      // Dynamic import AsyncStorage only on native
+      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      return await AsyncStorage.getItem(key);
+    } catch (error) {
+      console.warn('Storage getItem error:', error);
+      return null;
     }
-    // Dynamic import AsyncStorage only on native
-    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-    return AsyncStorage.getItem(key);
   },
   setItem: async (key: string, value: string): Promise<void> => {
-    if (isServerSide) return;
-    if (Platform.OS === 'web') {
-      window.localStorage?.setItem(key, value);
-      return;
+    if (typeof window === 'undefined') return;
+    try {
+      if (Platform.OS === 'web') {
+        window.localStorage?.setItem(key, value);
+        return;
+      }
+      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      await AsyncStorage.setItem(key, value);
+    } catch (error) {
+      console.warn('Storage setItem error:', error);
     }
-    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-    await AsyncStorage.setItem(key, value);
   },
   removeItem: async (key: string): Promise<void> => {
-    if (isServerSide) return;
-    if (Platform.OS === 'web') {
-      window.localStorage?.removeItem(key);
-      return;
+    if (typeof window === 'undefined') return;
+    try {
+      if (Platform.OS === 'web') {
+        window.localStorage?.removeItem(key);
+        return;
+      }
+      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      await AsyncStorage.removeItem(key);
+    } catch (error) {
+      console.warn('Storage removeItem error:', error);
     }
-    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-    await AsyncStorage.removeItem(key);
-  },
-};
-
-export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: safeStorage,
-    autoRefreshToken: !isServerSide,
-    persistSession: !isServerSide,
-    detectSessionInUrl: !isServerSide && Platform.OS === 'web',
-    flowType: 'pkce',
-  },
-  global: {
-    headers: {
-      'x-client-info': 'dutuk-frontend@1.0.0',
-    },
-    fetch: (url, options = {}) => {
-      // Increased timeout for storage operations (30 seconds)
-      const controller = new AbortController();
-      const isStorageRequest = url.includes('/storage/');
-      const timeoutDuration = isStorageRequest ? 30000 : 10000;
-      const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
-      
-      return fetch(url, {
-        ...options,
-        signal: controller.signal,
-      }).finally(() => clearTimeout(timeoutId));
-    },
   },
 });
+
+// Custom fetch with timeout for storage operations
+const createCustomFetch = () => (url: RequestInfo | URL, options: RequestInit = {}) => {
+  const controller = new AbortController();
+  const urlString = typeof url === 'string' ? url : url.toString();
+  const isStorageRequest = urlString.includes('/storage/');
+  const timeoutDuration = isStorageRequest ? 30000 : 10000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
+  
+  return fetch(url, {
+    ...options,
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timeoutId));
+};
+
+// Singleton instance - only created on client side
+let supabaseInstance: SupabaseClient | null = null;
+
+/**
+ * Creates or returns the Supabase client instance.
+ * Returns a no-op client during SSR to prevent hydration issues.
+ */
+const getSupabaseClient = (): SupabaseClient => {
+  // During SSR, return a mock client that does nothing
+  if (isServerSide) {
+    // Return a proxy that returns safe defaults for any property access
+    return new Proxy({} as SupabaseClient, {
+      get: (target, prop) => {
+        // For auth methods, return safe async functions
+        if (prop === 'auth') {
+          return new Proxy({}, {
+            get: () => async () => ({ data: null, error: null }),
+          });
+        }
+        // For database methods (from, rpc, etc.)
+        if (prop === 'from' || prop === 'rpc') {
+          return () => new Proxy({}, {
+            get: () => () => new Proxy({}, {
+              get: () => () => Promise.resolve({ data: null, error: null }),
+            }),
+          });
+        }
+        // For storage methods
+        if (prop === 'storage') {
+          return new Proxy({}, {
+            get: () => () => new Proxy({}, {
+              get: () => () => Promise.resolve({ data: null, error: null }),
+            }),
+          });
+        }
+        return undefined;
+      },
+    });
+  }
+
+  // Create singleton instance on client
+  if (!supabaseInstance) {
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        storage: createSafeStorage(),
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: Platform.OS === 'web',
+        flowType: 'pkce',
+      },
+      global: {
+        headers: {
+          'x-client-info': 'dutuk-frontend@1.0.0',
+        },
+        fetch: createCustomFetch(),
+      },
+    });
+  }
+
+  return supabaseInstance;
+};
+
+// Export a getter that ensures we always get the correct instance
+export const supabase: SupabaseClient = getSupabaseClient();

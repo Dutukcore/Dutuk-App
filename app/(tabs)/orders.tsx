@@ -136,8 +136,9 @@ const OrdersScreen = () => {
         renderItem={({ item }) => {
           const goTo = item.status === 'pending' ? '/orders/customerApproval' : '/orders/customerDetails';
           
-          // Map status for display
-          const displayStatus = item.status === 'completed' ? 'done' : item.status;
+          // Map status for display - use type assertion for comparison
+          const status = item.status as string;
+          const displayStatus = status === 'completed' ? 'done' : status;
           
           return (
             <Pressable
@@ -163,7 +164,7 @@ const OrdersScreen = () => {
                   {displayStatus === 'approved' && (
                     <View style={styles.approvedBadge}><Text style={styles.approvedText}>Approved</Text></View>
                   )}
-                  {(displayStatus === 'done' || displayStatus === 'completed') && (
+                  {displayStatus === 'done' && (
                     <View style={styles.doneBadge}><Text style={styles.doneText}>Done</Text></View>
                   )}
                   {displayStatus === 'rejected' && (
