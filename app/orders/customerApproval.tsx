@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'react-native-feather';
+import { ArrowLeft, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'react-native-feather';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { useOrders } from "../../hooks/useOrders";
@@ -308,6 +308,21 @@ const CustomerApprovalScreen = () => {
           <Text style={styles.packageInfo}>Package: {params.packageType || "Basic"}</Text>
         </View>
 
+        {/* Customer Notes - NEW */}
+        {params.notes && params.notes.trim() !== '' && (
+          <View style={styles.notesContainer}>
+            <Text style={styles.notesLabel}>📝 Customer Notes</Text>
+            <Text style={styles.notesText}>{params.notes}</Text>
+          </View>
+        )}
+
+        {/* Event Date Display */}
+        <View style={styles.eventDateContainer}>
+          <CalendarIcon width={20} height={20} stroke="#7C2A2A" />
+          <Text style={styles.eventDateLabel}>Event Date:</Text>
+          <Text style={styles.eventDateText}>{params.eventDate || 'Not specified'}</Text>
+        </View>
+
         {/* Calendar */}
         <View style={styles.calendarContainer}>
           {renderCalendar()}
@@ -335,7 +350,7 @@ const CustomerApprovalScreen = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaView >
   );
 };
 
@@ -389,6 +404,58 @@ const styles = StyleSheet.create({
     color: "#000000",
     fontFamily: "Inter",
   },
+
+  // Notes styles
+  notesContainer: {
+    backgroundColor: "#FFF8E7",
+    borderRadius: 10,
+    marginHorizontal: 30,
+    marginBottom: 16,
+    padding: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: "#F59E0B",
+  },
+  notesLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#92400E",
+    marginBottom: 8,
+    fontFamily: "Inter",
+  },
+  notesText: {
+    fontSize: 14,
+    fontWeight: "400",
+    color: "#78350F",
+    lineHeight: 20,
+    fontFamily: "Inter",
+  },
+
+  // Event date display styles
+  eventDateContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(124, 42, 42, 0.08)",
+    borderRadius: 10,
+    marginHorizontal: 30,
+    marginBottom: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  eventDateLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#7C2A2A",
+    marginLeft: 8,
+    fontFamily: "Inter",
+  },
+  eventDateText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#7C2A2A",
+    marginLeft: 4,
+    fontFamily: "Inter",
+  },
+
   calendarContainer: {
     backgroundColor: "rgba(255, 255, 255, 0.8)",
     borderRadius: 10,
