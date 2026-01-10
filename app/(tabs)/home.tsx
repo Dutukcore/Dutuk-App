@@ -3,9 +3,10 @@ import getCount from "@/hooks/companyRequests/getRequestsCount";
 import getAllEvents from "@/hooks/getAllEvents";
 import getUser from "@/hooks/getUser";
 import getCompanyInfo from "@/hooks/useGetCompanyInfo";
+import { CalendarDate, getCalendarDates } from '@/utils/calendarStorage';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -18,7 +19,6 @@ import {
 } from "react-native";
 import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getCalendarDates, CalendarDate } from '@/utils/calendarStorage';
 
 type Event = {
   id: string;
@@ -44,6 +44,9 @@ const Home = () => {
   const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({});
   const [calendarDates, setCalendarDates] = useState<CalendarDate[]>([]);
 
+  // Reviews data
+  const { reviews: recentReviews, stats: reviewStats, refetch: refetchReviews } = useVendorReviews(3);
+
   const manageableEvents = useMemo(() => {
     return events.filter((evt) => evt.status !== 'completed');
   }, [events]);
@@ -68,18 +71,18 @@ const Home = () => {
     try {
       const allEvents = await getAllEvents();
       setEvents(allEvents);
-      
+
       // Load calendar dates from AsyncStorage
       const storedCalendarDates = await getCalendarDates();
       setCalendarDates(storedCalendarDates);
-      
+
       // Create marked dates object for calendar
       const marked: any = {};
-      
+
       // First, add events with dots
       allEvents.forEach((event: Event) => {
         const startDate = event.start_date?.split('T')[0];
-        
+
         if (startDate) {
           marked[startDate] = {
             marked: true,
@@ -87,7 +90,7 @@ const Home = () => {
           };
         }
       });
-      
+
       // Then, add calendar availability dates with custom styling
       storedCalendarDates.forEach((calDate: CalendarDate) => {
         if (calDate.status === 'unavailable') {
@@ -118,7 +121,7 @@ const Home = () => {
           };
         }
       });
-      
+
       setMarkedDates(marked);
     } catch (error) {
       console.error('Failed to load events:', error);
@@ -175,8 +178,8 @@ const Home = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView 
-        style={styles.scrollView} 
+      <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -195,15 +198,15 @@ const Home = () => {
               <Pressable style={styles.iconButton}>
                 <Ionicons name="notifications-outline" size={28} color="#000000" />
               </Pressable>
-              <Pressable style={styles.iconButton}  onPress={() => router.push("/profilePages/calender/CalendarPage")}>
+              <Pressable style={styles.iconButton} onPress={() => router.push("/profilePages/calender/CalendarPage")}>
                 <Ionicons name="calendar-outline" size={28} color="#000000" />
               </Pressable>
             </View>
 
             {/* Right group */}
-            <Pressable style={styles.profileIcon}  onPress={() => router.push("/profilePages/editProfile")}>
-              <Image 
-                source={{ uri: profileImageUrl }} 
+            <Pressable style={styles.profileIcon} onPress={() => router.push("/profilePages/editProfile")}>
+              <Image
+                source={{ uri: profileImageUrl }}
                 style={styles.profileImage}
                 onLoadStart={() => setProfileImageLoading(true)}
                 onLoadEnd={() => setProfileImageLoading(false)}
@@ -357,7 +360,7 @@ const Home = () => {
         <View style={styles.eventsSection}>
           <View style={styles.eventsSectionHeader}>
             <Text style={styles.sectionTitle}>Events</Text>
-            <Pressable 
+            <Pressable
               style={styles.addMoreButton}
               onPress={() => router.push("/event")}
             >
@@ -366,13 +369,13 @@ const Home = () => {
             </Pressable>
           </View>
 
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.eventsScrollContent}
           >
             {/* Upcoming Events Card */}
-            <Pressable 
+            <Pressable
               style={styles.eventCard}
               onPress={() => router.push("/event/upcomingEvents")}
             >
@@ -389,7 +392,7 @@ const Home = () => {
             </Pressable>
 
             {/* Ongoing Events Card */}
-            <Pressable 
+            <Pressable
               style={styles.eventCard}
               onPress={() => router.push("/event/currentEvents")}
             >
@@ -406,7 +409,7 @@ const Home = () => {
             </Pressable>
 
             {/* Completed Events Card */}
-            <Pressable 
+            <Pressable
               style={styles.eventCard}
               onPress={() => router.push("/profilePages/profileSettings/history_and_highlights/pastEvents")}
             >
@@ -423,7 +426,7 @@ const Home = () => {
             </Pressable>
 
             {/* All Events Card */}
-            <Pressable 
+            <Pressable
               style={styles.eventCard}
               onPress={() => router.push("/event")}
             >
@@ -444,8 +447,8 @@ const Home = () => {
         {/* Requests Section */}
         <View style={styles.requestsSection}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <Pressable 
-            style={styles.requestsCard} 
+          <Pressable
+            style={styles.requestsCard}
             onPress={() => router.push("/requests/menu")}
           >
             <View style={styles.requestsContent}>
@@ -478,13 +481,97 @@ const Home = () => {
                 {events.filter(e => {
                   const eventDate = new Date(e.start_date);
                   const currentDate = new Date();
-                  return eventDate.getMonth() === currentDate.getMonth() && 
-                         eventDate.getFullYear() === currentDate.getFullYear();
+                  return eventDate.getMonth() === currentDate.getMonth() &&
+                    eventDate.getFullYear() === currentDate.getFullYear();
                 }).length}
               </Text>
               <Text style={styles.statLabel}>This Month</Text>
             </View>
           </View>
+        </View>
+
+        {/* Reviews Section */}
+        <View style={styles.reviewsSection}>
+          <View style={styles.reviewsHeader}>
+            <Text style={styles.sectionTitle}>Recent Reviews</Text>
+            <Pressable
+              style={styles.addMoreButton}
+              onPress={() => router.push("/profilePages/profileSettings/history_and_highlights/pastReviews")}
+            >
+              <Text style={styles.addMoreText}>View All</Text>
+              <Ionicons name="chevron-forward" size={16} color="#007AFF" />
+            </Pressable>
+          </View>
+
+          {recentReviews.length === 0 ? (
+            <View style={styles.emptyReviewsCard}>
+              <Ionicons name="star-outline" size={40} color="#FFC13C" />
+              <Text style={styles.emptyReviewsTitle}>No reviews yet</Text>
+              <Text style={styles.emptyReviewsSubtitle}>
+                Reviews from customers will appear here after completed events
+              </Text>
+            </View>
+          ) : (
+            <>
+              {/* Reviews Stats */}
+              <View style={styles.reviewsStatsCard}>
+                <View style={styles.reviewsRating}>
+                  <Text style={styles.reviewsRatingNumber}>{reviewStats.averageRating || '—'}</Text>
+                  <View style={styles.reviewsStarsContainer}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Ionicons
+                        key={star}
+                        name={reviewStats.averageRating >= star ? "star" : reviewStats.averageRating >= star - 0.5 ? "star-half" : "star-outline"}
+                        size={18}
+                        color="#FFC13C"
+                      />
+                    ))}
+                  </View>
+                  <Text style={styles.reviewsCountText}>{reviewStats.totalReviews} reviews</Text>
+                </View>
+              </View>
+
+              {/* Recent Reviews List */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.reviewsScrollContent}
+              >
+                {recentReviews.map((review) => (
+                  <View key={review.id} style={styles.reviewCard}>
+                    <View style={styles.reviewCardHeader}>
+                      <View style={styles.reviewerInfo}>
+                        <View style={styles.reviewerAvatar}>
+                          <Text style={styles.reviewerInitial}>
+                            {review.customer_name?.charAt(0)?.toUpperCase() || 'C'}
+                          </Text>
+                        </View>
+                        <View>
+                          <Text style={styles.reviewerName}>{review.customer_name}</Text>
+                          <Text style={styles.reviewEventName}>{review.event_name || 'Event'}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.reviewRatingBadge}>
+                        <Ionicons name="star" size={14} color="#FFC13C" />
+                        <Text style={styles.reviewRatingText}>{review.rating}</Text>
+                      </View>
+                    </View>
+                    {review.review && (
+                      <Text style={styles.reviewText} numberOfLines={3}>
+                        "{review.review}"
+                      </Text>
+                    )}
+                    {review.verified_booking && (
+                      <View style={styles.verifiedBadge}>
+                        <Ionicons name="checkmark-circle" size={12} color="#34C759" />
+                        <Text style={styles.verifiedText}>Verified Booking</Text>
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </ScrollView>
+            </>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -877,6 +964,158 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
     textAlign: 'center',
+  },
+  // Reviews Section Styles
+  reviewsSection: {
+    marginBottom: 30,
+    marginLeft: -28,
+    marginRight: -28,
+  },
+  reviewsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+    paddingLeft: 28,
+    paddingRight: 28,
+  },
+  emptyReviewsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    marginHorizontal: 28,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  emptyReviewsTitle: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  emptyReviewsSubtitle: {
+    marginTop: 6,
+    fontSize: 14,
+    color: '#6b6b6b',
+    textAlign: 'center',
+  },
+  reviewsStatsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginHorizontal: 28,
+    marginBottom: 15,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  reviewsRating: {
+    alignItems: 'center',
+  },
+  reviewsRatingNumber: {
+    fontSize: 42,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  reviewsStarsContainer: {
+    flexDirection: 'row',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  reviewsCountText: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  reviewsScrollContent: {
+    paddingLeft: 28,
+    paddingRight: 28,
+  },
+  reviewCard: {
+    width: 280,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginRight: 15,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  reviewCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  reviewerInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  reviewerAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFC13C',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  reviewerInitial: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  reviewerName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  reviewEventName: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 2,
+  },
+  reviewRatingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF8E6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  reviewRatingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+    marginLeft: 4,
+  },
+  reviewText: {
+    fontSize: 14,
+    color: '#333333',
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+  },
+  verifiedText: {
+    fontSize: 12,
+    color: '#34C759',
+    fontWeight: '500',
+    marginLeft: 4,
   },
 });
 

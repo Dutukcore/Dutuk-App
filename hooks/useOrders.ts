@@ -10,21 +10,26 @@ export interface Order {
   customerPhone: string;
   status: 'pending' | 'approved' | 'rejected' | 'completed';
   date: string;
+  rawEventDate: string; // Added for comparison
   amount?: number;
   notes?: string;
+  isNew?: boolean; // Track if order is unseen
 }
 
 /**
  * Hook to manage vendor orders with real-time updates
  * Subscribes to new orders and order status changes
+ * Tracks new unseen orders for notification badge
  */
 export const useOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [newOrderCount, setNewOrderCount] = useState(0);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
 
   // Transform database order to Order interface
-  const transformOrder = (order: any): Order => ({
+  const transformOrder = (order: any, isNew: boolean = false): Order => ({
     id: order.id,
     title: order.title,
     customerName: order.customer_name,
@@ -37,8 +42,10 @@ export const useOrders = () => {
       month: 'long',
       day: 'numeric'
     }) : 'Date TBD',
+    rawEventDate: order.event_date || '',
     amount: order.amount,
-    notes: order.notes
+    notes: order.notes,
+    isNew,
   });
 
   const getOrders = useCallback(async (): Promise<Order[]> => {
@@ -70,7 +77,7 @@ export const useOrders = () => {
       }
 
       // Transform to match Order interface
-      const transformedOrders: Order[] = (ordersData || []).map(transformOrder);
+      const transformedOrders: Order[] = (ordersData || []).map(o => transformOrder(o, false));
 
       setOrders(transformedOrders);
       setLoading(false);
@@ -87,6 +94,7 @@ export const useOrders = () => {
     if (!userId) return;
 
     console.log('Setting up orders real-time subscription for vendor:', userId);
+    setSubscriptionError(null);
 
     const channel = supabase
       .channel(`vendor-orders-${userId}`)
@@ -100,8 +108,9 @@ export const useOrders = () => {
         },
         (payload) => {
           console.log('New order received:', payload.new);
-          const newOrder = transformOrder(payload.new);
+          const newOrder = transformOrder(payload.new, true);
           setOrders((prev) => [newOrder, ...prev]);
+          setNewOrderCount((prev) => prev + 1);
         }
       )
       .on(
@@ -114,7 +123,7 @@ export const useOrders = () => {
         },
         (payload) => {
           console.log('Order updated:', payload.new);
-          const updatedOrder = transformOrder(payload.new);
+          const updatedOrder = transformOrder(payload.new, false);
           setOrders((prev) =>
             prev.map((order) =>
               order.id === updatedOrder.id ? updatedOrder : order
@@ -122,8 +131,15 @@ export const useOrders = () => {
           );
         }
       )
-      .subscribe((status) => {
+      .subscribe((status, err) => {
         console.log('Orders subscription status:', status);
+        if (status === 'CHANNEL_ERROR') {
+          console.error('Realtime subscription error:', err);
+          setSubscriptionError('Failed to connect to realtime updates');
+        } else if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to orders realtime updates');
+          setSubscriptionError(null);
+        }
       });
 
     return () => {
@@ -131,6 +147,12 @@ export const useOrders = () => {
       supabase.removeChannel(channel);
     };
   }, [userId]);
+
+  // Mark all orders as seen (clear notification count)
+  const markOrdersAsSeen = useCallback(() => {
+    setNewOrderCount(0);
+    setOrders((prev) => prev.map((order) => ({ ...order, isNew: false })));
+  }, []);
 
   const updateOrderStatus = async (orderId: string, status: 'approved' | 'rejected'): Promise<boolean> => {
     setLoading(true);
@@ -247,5 +269,8 @@ export const useOrders = () => {
     updateOrderStatus,
     getOrders,
     refetch: getOrders, // Alias for pull-to-refresh
+    newOrderCount,
+    markOrdersAsSeen,
+    subscriptionError,
   };
 };

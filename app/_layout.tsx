@@ -1,3 +1,4 @@
+import { OrderNotificationProvider } from '@/hooks/OrderNotificationContext';
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as WebBrowser from "expo-web-browser";
@@ -16,7 +17,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <>
+    <OrderNotificationProvider>
       <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
         {/* Landing/Auth Check Screen */}
         <Stack.Screen name="index" options={{ animation: 'none' }} />
@@ -48,6 +49,7 @@ export default function RootLayout() {
         <Stack.Screen name="public" />
       </Stack>
       <Toast />
-    </>
+    </OrderNotificationProvider>
   );
 }
+
