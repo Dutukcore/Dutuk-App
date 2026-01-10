@@ -3,6 +3,7 @@ import getCount from "@/hooks/companyRequests/getRequestsCount";
 import getAllEvents from "@/hooks/getAllEvents";
 import getUser from "@/hooks/getUser";
 import getCompanyInfo from "@/hooks/useGetCompanyInfo";
+import { useVendorReviews } from "@/hooks/useVendorReviews";
 import { CalendarDate, getCalendarDates } from '@/utils/calendarStorage';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from "expo-router";
