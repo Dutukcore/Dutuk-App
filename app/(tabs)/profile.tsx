@@ -31,6 +31,11 @@ const ProfileScreen = () => {
       onPress: () => router.push('/profilePages/editProfile')
     },
     {
+      icon: 'briefcase-outline',
+      title: 'Portfolio',
+      onPress: () => router.push('/profilePages/portfolio')
+    },
+    {
       icon: 'document-text-outline',
       title: 'Document Verification',
       onPress: () => router.push('/profilePages/documentVerificationScreen')
