@@ -1,5 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React from 'react';
 import {
   Dimensions,
   ImageBackground,
@@ -7,11 +8,10 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  View,
+  View
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
 
+const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
 const WelcomeScreen = () => {
@@ -22,11 +22,11 @@ const WelcomeScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* Top Hero Section (45% height) */}
+      {/* Top Image Section - 45% height */}
       <View style={styles.heroSection}>
         <ImageBackground
           source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXiiQTy-Udnk6uk-3Rs4s5ERD5QOTbDhilzeupSN3BYy-eOgn1Oil9j2NCtVXa-SbmI3nrQMf-0m1JGaMofH7WWdbfCNUMchJgry05B2v7BK5saJkOAh-XcZjfedqbIQgjTZ0-RXmB1ZhQUu5Afeuy5cdrUdswaH9ev-e0gTgU4d5o_Q-fS_emz7sY_LRbKXWAzp3NNg6boF9pMrHSjSJ3AjPsxmJvCaR6VOPhapy7QJIJQrlF7IZ8TydPDp5p04HrKWwmaIOigfXM' }}
-          style={styles.backgroundImage}
+          style={styles.heroImage}
           resizeMode="cover"
         >
           {/* Dark overlay gradient */}
@@ -34,100 +34,84 @@ const WelcomeScreen = () => {
             colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.2)', 'transparent']}
             style={styles.darkOverlay}
           />
-          
-          {/* Subtle pattern overlay */}
-          <View style={styles.patternOverlay} />
-          
-          {/* White gradient fade to bottom */}
+
+          {/* Bottom fade to white */}
           <LinearGradient
-            colors={['transparent', 'transparent', '#FFFFFF']}
-            style={styles.whiteGradient}
+            colors={['transparent', 'transparent', 'rgba(255,255,255,0.8)', '#ffffff']}
+            locations={[0, 0.4, 0.8, 1]}
+            style={styles.fadeToWhite}
           />
 
-          {/* Logo and Title */}
-          <View style={styles.logoContainer}>
-            {/* Icon Circle with frosted effect */}
-            <View style={styles.iconCircle}>
-              <Ionicons name="sparkles" size={36} color="#FFFFFF" />
+          {/* Logo Content */}
+          <View style={styles.logoContent}>
+            {/* Sparkle Icon */}
+            <View style={styles.sparkleContainer}>
+              <Ionicons name="sparkles" size={32} color="white" />
             </View>
 
-            {/* DUTUK Title */}
-            <Text style={styles.dutukTitle}>DUTUK</Text>
+            {/* DUTUK Logo */}
+            <Text style={styles.logoText}>DUTUK</Text>
 
             {/* Vendor Portal Badge */}
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>VENDOR PORTAL</Text>
+            <View style={styles.portalBadge}>
+              <Text style={styles.portalBadgeText}>VENDOR PORTAL</Text>
             </View>
           </View>
         </ImageBackground>
       </View>
 
-      {/* Bottom Content Section (55% height) */}
+      {/* Bottom Content Section */}
       <View style={styles.contentSection}>
-        {/* Soft mesh background gradient */}
-        <LinearGradient
-          colors={['#FFF5F5', '#FFFBF0', '#FFFFFF', '#FFF5F5']}
-          locations={[0, 0.3, 0.7, 1]}
-          style={styles.meshBackground}
-        />
+        {/* Welcome Text */}
+        <View style={styles.welcomeContent}>
+          <Text style={styles.welcomeText}>Welcome</Text>
 
-        {/* Content */}
-        <View style={styles.content}>
-          {/* Welcome Heading */}
-          <Text style={styles.welcomeHeading}>Welcome</Text>
+          <Text style={styles.subtitleText}>
+            Elevate your event business.
+          </Text>
 
-          {/* Subtitle Text */}
-          <View style={styles.subtitleContainer}>
-            <Text style={styles.subtitlePrimary}>
-              Elevate your event business.
-            </Text>
-            <Text style={styles.subtitleSecondary}>
-              MANAGE • TRACK • SCALE
-            </Text>
-          </View>
+          <Text style={styles.taglineText}>
+            MANAGE • TRACK • SCALE
+          </Text>
         </View>
 
-        {/* Buttons Section */}
+        {/* Buttons */}
         <View style={styles.buttonContainer}>
           {/* Log In Button */}
           <Pressable
-            style={[
+            style={({ pressed }) => [
               styles.loginButton,
-              loginPressed && styles.buttonPressed,
+              pressed && styles.buttonPressed
             ]}
             onPress={() => router.push('/auth/UserLogin')}
-            onPressIn={() => setLoginPressed(true)}
-            onPressOut={() => setLoginPressed(false)}
           >
-            <Text style={styles.loginText}>Log In</Text>
-            <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.5)" style={styles.arrowIcon} />
+            <Text style={styles.loginButtonText}>Log In</Text>
+            <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.5)" style={styles.buttonIcon} />
           </Pressable>
 
           {/* Sign Up Button */}
           <Pressable
-            style={[
+            style={({ pressed }) => [
               styles.signupButton,
-              signupPressed && styles.buttonPressed,
+              pressed && styles.buttonPressed
             ]}
             onPress={() => router.push('/auth/register')}
-            onPressIn={() => setSignupPressed(true)}
-            onPressOut={() => setSignupPressed(false)}
           >
-            <Text style={styles.signupText}>Sign up</Text>
-            <Ionicons name="arrow-forward" size={20} color="#CCCCCC" style={styles.arrowIcon} />
+            <Text style={styles.signupButtonText}>Sign up</Text>
+            <Ionicons name="arrow-forward" size={20} color="#d1d5db" style={styles.buttonIcon} />
           </Pressable>
 
           {/* Support Link */}
           <View style={styles.supportContainer}>
-            <Text style={styles.supportText}>
-              HAVING TROUBLE?{' '}
+            <Text style={styles.supportText}>HAVING TROUBLE? </Text>
+            <Pressable>
               <Text style={styles.supportLink}>GET SUPPORT</Text>
-            </Text>
+            </Pressable>
           </View>
         </View>
 
-        {/* Bottom Indicator */}
-        <View style={styles.bottomIndicator} />
+        {/* Bottom Home Indicator */}
+        <View style={styles.homeIndicator} />
       </View>
     </View>
   );
@@ -136,206 +120,178 @@ const WelcomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#ffffff',
   },
   heroSection: {
     height: '45%',
-    width: '100%',
-    position: 'relative',
+    overflow: 'hidden',
   },
-  backgroundImage: {
+  heroImage: {
+    flex: 1,
     width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   darkOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '100%',
+    ...StyleSheet.absoluteFillObject,
   },
-  patternOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '100%',
-    opacity: 0.15,
+  fadeToWhite: {
+    ...StyleSheet.absoluteFillObject,
   },
-  whiteGradient: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '50%',
-  },
-  logoContainer: {
+  logoContent: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
   },
-  iconCircle: {
+  sparkleContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    justifyContent: 'center',
+    borderColor: 'rgba(255,255,255,0.3)',
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 24,
-    shadowColor: '#000000',
+    // Backdrop blur effect approximation
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
-    elevation: 8,
   },
-  dutukTitle: {
+  logoText: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    letterSpacing: 7.2,
-    textAlign: 'center',
+    color: '#ffffff',
+    letterSpacing: 8,
+    textTransform: 'uppercase',
   },
-  badge: {
+  portalBadge: {
     marginTop: 16,
     paddingHorizontal: 20,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingVertical: 8,
+    borderRadius: 50,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
   },
-  badgeText: {
-    color: 'rgba(255, 255, 255, 0.9)',
+  portalBadgeText: {
+    color: 'rgba(255,255,255,0.9)',
     fontSize: 10,
     fontWeight: '600',
     letterSpacing: 3,
+    textTransform: 'uppercase',
   },
   contentSection: {
     flex: 1,
-    position: 'relative',
+    paddingHorizontal: 40,
+    // Soft mesh background approximation
+    backgroundColor: '#fffcfa',
   },
-  meshBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  content: {
+  welcomeContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
   },
-  welcomeHeading: {
+  welcomeText: {
     fontSize: 48,
+    fontWeight: '400',
     fontStyle: 'italic',
-    color: '#1C1C1C',
+    color: '#1c1917',
+    letterSpacing: -1,
     marginBottom: 24,
-    textAlign: 'center',
+    // Serif font - will use system serif
+    fontFamily: undefined, // React Native will use default
   },
-  subtitleContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  subtitlePrimary: {
+  subtitleText: {
     fontSize: 17,
-    color: '#57534E',
     fontWeight: '500',
-    lineHeight: 26,
+    color: '#57534e',
     textAlign: 'center',
-    maxWidth: 300,
+    lineHeight: 26,
     marginBottom: 12,
   },
-  subtitleSecondary: {
+  taglineText: {
     fontSize: 12,
-    color: '#A8A29E',
     fontWeight: '500',
-    letterSpacing: 4,
+    color: '#a8a29e',
     textAlign: 'center',
-    maxWidth: 260,
+    letterSpacing: 4,
+    textTransform: 'uppercase',
   },
   buttonContainer: {
-    paddingHorizontal: 40,
     paddingBottom: 64,
-    width: '100%',
+    gap: 16,
   },
   loginButton: {
     width: '100%',
+    height: 60,
     backgroundColor: '#800000',
-    paddingVertical: 20,
-    paddingHorizontal: 32,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    // Shadow
     shadowColor: '#800000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 8,
   },
-  loginText: {
-    color: '#FFFFFF',
+  loginButtonText: {
     fontSize: 18,
     fontWeight: '600',
+    color: '#ffffff',
   },
   signupButton: {
     width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    paddingVertical: 20,
-    paddingHorizontal: 32,
+    height: 60,
+    backgroundColor: 'rgba(255,255,255,0.5)',
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: '#E7E5E4',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderColor: '#e7e5e4',
   },
-  signupText: {
-    color: '#292524',
+  signupButtonText: {
     fontSize: 18,
     fontWeight: '600',
+    color: '#292524',
   },
-  arrowIcon: {
+  buttonIcon: {
     marginLeft: 8,
   },
   buttonPressed: {
     transform: [{ scale: 0.97 }],
+    opacity: 0.9,
   },
   supportContainer: {
-    paddingTop: 32,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 32,
   },
   supportText: {
     fontSize: 11,
-    color: '#A8A29E',
     fontWeight: '500',
+    color: '#a8a29e',
     letterSpacing: 1,
   },
   supportLink: {
+    fontSize: 11,
+    fontWeight: '700',
     color: '#800000',
-    fontWeight: 'bold',
+    letterSpacing: 1,
     textDecorationLine: 'underline',
   },
-  bottomIndicator: {
+  homeIndicator: {
     position: 'absolute',
     bottom: 8,
     left: '50%',
     marginLeft: -64,
     width: 128,
     height: 6,
-    backgroundColor: '#E7E5E4',
+    backgroundColor: '#e7e5e4',
     borderRadius: 3,
   },
 });

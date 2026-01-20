@@ -1,56 +1,34 @@
-import googleLogin from "@/hooks/useGoogleAuth";
-import registerUser from "@/hooks/useRegisterUser";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
+import useRegisterUser from "@/hooks/useRegisterUser";
 
-const UserRegister = () => {
+const Register = () => {
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  const { registerUser } = useRegisterUser();
 
   const handleSignUp = async () => {
-    // Basic validation
-    if (!email.trim()) {
+    if (!fullName.trim() || !email.trim() || !password.trim()) {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Please enter your email'
-      });
-      return;
-    }
-
-    if (!password.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Please enter a password'
-      });
-      return;
-    }
-
-    if (!confirmPassword.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Please confirm your password'
-      });
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Passwords do not match'
+        text2: 'Please fill in all fields'
       });
       return;
     }
@@ -64,21 +42,9 @@ const UserRegister = () => {
       return;
     }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Please enter a valid email address'
-      });
-      return;
-    }
-
     setLoading(true);
     try {
-      console.log('Registering user:', email.trim().toLowerCase());
-      await registerUser(email.trim().toLowerCase(), password);
+      await registerUser(email.trim().toLowerCase(), password, fullName.trim());
     } catch (error) {
       console.error('Registration error:', error);
     } finally {
@@ -86,114 +52,135 @@ const UserRegister = () => {
     }
   };
 
-  const handleGoogleAuth = async () => {
-    setLoading(true);
-    try {
-      await googleLogin();
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Google authentication failed'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
-          {/* Header */}
-          <Text style={styles.headerText}>Sign Up</Text>
-          <Text style={styles.subHeaderText}>Create your account to get started</Text>
+      {/* Soft mesh background */}
+      <View style={styles.meshBackground} />
 
-          {/* Form Fields */}
-          <View style={styles.formContainer}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Logo Header */}
+          <View style={styles.logoSection}>
+            <View style={styles.sparkleContainer}>
+              <Ionicons name="sparkles" size={24} color="#800000" />
+            </View>
+            <Text style={styles.logoText}>DUTUK</Text>
+            <View style={styles.portalBadge}>
+              <Text style={styles.portalBadgeText}>VENDOR PORTAL</Text>
+            </View>
+          </View>
+
+          {/* Title */}
+          <View style={styles.titleSection}>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Join our premium vendor network</Text>
+          </View>
+
+          {/* Form Card */}
+          <View style={styles.formCard}>
+            {/* Full Name Field */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>FULL NAME</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name="person-outline" size={20} color="#a8a29e" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="John Doe"
+                  placeholderTextColor="#d6d3d1"
+                  value={fullName}
+                  onChangeText={setFullName}
+                  autoCapitalize="words"
+                  editable={!loading}
+                />
+              </View>
+            </View>
+
             {/* Email Field */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your email"
-                placeholderTextColor="#999"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
-              />
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name="mail-outline" size={20} color="#a8a29e" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="name@example.com"
+                  placeholderTextColor="#d6d3d1"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!loading}
+                />
+              </View>
             </View>
 
             {/* Password Field */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your password"
-                placeholderTextColor="#999"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                editable={!loading}
-              />
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>PASSWORD</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name="lock-closed-outline" size={20} color="#a8a29e" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="••••••••"
+                  placeholderTextColor="#d6d3d1"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  editable={!loading}
+                />
+                <Pressable 
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons 
+                    name={showPassword ? "eye-outline" : "eye-off-outline"} 
+                    size={20} 
+                    color="#a8a29e" 
+                  />
+                </Pressable>
+              </View>
             </View>
 
-            {/* Confirm Password Field */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Confirm Password</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Confirm your password"
-                placeholderTextColor="#999"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                editable={!loading}
-              />
-            </View>
+            {/* Sign Up Button */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.signupButton,
+                pressed && styles.buttonPressed,
+                loading && styles.buttonDisabled
+              ]}
+              onPress={handleSignUp}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.signupButtonText}>Sign Up</Text>
+              )}
+            </Pressable>
           </View>
-
-          {/* Sign Up Button */}
-          <Pressable
-            style={[styles.signupButton, loading && styles.buttonDisabled]}
-            onPress={handleSignUp}
-            disabled={loading}
-          >
-            <Text style={styles.signupButtonText}>
-              {loading ? 'Creating Account...' : 'Sign Up'}
-            </Text>
-          </Pressable>
-
-          {/* Divider */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Google Auth Button */}
-          <Pressable
-            style={[styles.googleButton, loading && styles.buttonDisabled]}
-            onPress={handleGoogleAuth}
-            disabled={loading}
-          >
-            <Text style={styles.googleButtonText}>Continue with Google</Text>
-          </Pressable>
 
           {/* Login Link */}
           <View style={styles.loginContainer}>
             <Text style={styles.loginText}>Already have an account? </Text>
             <Pressable onPress={() => router.push('/auth/UserLogin')}>
-              <Text style={styles.loginLink}>Log In here</Text>
+              <Text style={styles.loginLink}>Log In</Text>
             </Pressable>
           </View>
 
+          {/* Footer Tagline */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>ELEVATE YOUR PRESENCE</Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
 
-      </View>
+      {/* Home Indicator */}
+      <View style={styles.homeIndicator} />
     </View>
   );
 };
@@ -201,123 +188,186 @@ const UserRegister = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#ffffff',
+  },
+  meshBackground: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#ffffff',
+    // Approximation of soft mesh gradient
+  },
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 32,
+  },
+  logoSection: {
+    alignItems: 'center',
+    paddingTop: 24,
+    paddingBottom: 16,
+  },
+  sparkleContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#f5f5f4',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  card: {
-    width: 402,
-    height: 888,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 25.2,
-    paddingHorizontal: 30,
-    paddingTop: "30%",
-    paddingBottom: 40,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4.8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 22.68,
-    elevation: 10,
+  logoText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1c1917',
+    letterSpacing: 6,
+    textTransform: 'uppercase',
   },
-  headerText: {
-    fontSize: 28,
+  portalBadge: {
+    marginTop: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: '#e7e5e4',
+    backgroundColor: 'rgba(250, 250, 249, 0.5)',
+  },
+  portalBadgeText: {
+    color: '#a8a29e',
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 3,
+    textTransform: 'uppercase',
+  },
+  titleSection: {
+    marginTop: 24,
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 36,
+    fontWeight: '400',
+    fontStyle: 'italic',
+    color: '#1c1917',
+    letterSpacing: -0.5,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#78716c',
+    marginTop: 8,
+  },
+  formCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 11,
     fontWeight: '700',
-    color: '#000000',
-    textAlign: 'center',
+    color: '#a8a29e',
+    letterSpacing: 2,
     marginBottom: 8,
-  },
-  subHeaderText: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  formContainer: {
-    marginBottom: 30,
+    marginLeft: 4,
   },
   inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  input: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#F8F9FA',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderWidth: 1,
-    borderColor: '#E9ECEF',
+    borderColor: '#e7e5e4',
     borderRadius: 12,
     paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#000000',
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    height: 56,
+    fontSize: 15,
+    color: '#1c1917',
+  },
+  eyeButton: {
+    padding: 4,
   },
   signupButton: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#000000',
+    height: 56,
+    backgroundColor: '#800000',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginTop: 16,
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 4,
   },
   signupButtonText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#ffffff',
   },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
+  buttonPressed: {
+    transform: [{ scale: 0.98 }],
+    opacity: 0.9,
   },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E9ECEF',
-  },
-  dividerText: {
-    fontSize: 14,
-    color: '#666666',
-    marginHorizontal: 16,
-  },
-  googleButton: {
-    width: '100%',
-    height: 50,
-    backgroundColor: '#F8F9FA',
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 30,
-  },
-  googleButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
+  buttonDisabled: {
+    opacity: 0.6,
   },
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 40,
+    marginTop: 32,
   },
   loginText: {
-    fontSize: 16,
-    color: '#666666',
+    fontSize: 14,
+    color: '#78716c',
   },
   loginLink: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#800000',
   },
-  buttonDisabled: {
+  footer: {
+    marginTop: 32,
+    marginBottom: 48,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#a8a29e',
+    letterSpacing: 3,
     opacity: 0.6,
+  },
+  homeIndicator: {
+    position: 'absolute',
+    bottom: 8,
+    left: '50%',
+    marginLeft: -64,
+    width: 128,
+    height: 6,
+    backgroundColor: '#e7e5e4',
+    borderRadius: 3,
   },
 });
 
-export default UserRegister;
+export default Register;

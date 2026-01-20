@@ -4,6 +4,7 @@ import getAllEvents from "@/hooks/getAllEvents";
 import getUser from "@/hooks/getUser";
 import getCompanyInfo from "@/hooks/useGetCompanyInfo";
 import { useVendorReviews } from "@/hooks/useVendorReviews";
+import { getPendingInquiriesCount } from "@/hooks/useEventInquiries";
 import { CalendarDate, getCalendarDates } from '@/utils/calendarStorage';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from "expo-router";
@@ -44,6 +45,7 @@ const Home = () => {
   const [profileImageLoading, setProfileImageLoading] = useState(false);
   const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({});
   const [calendarDates, setCalendarDates] = useState<CalendarDate[]>([]);
+  const [pendingInquiries, setPendingInquiries] = useState<number>(0);
 
   // Reviews data
   const { reviews: recentReviews, stats: reviewStats, refetch: refetchReviews } = useVendorReviews(3);
@@ -153,6 +155,15 @@ const Home = () => {
     setImageLoadingStates(prev => ({ ...prev, [eventId]: false }));
   };
 
+  const loadInquiriesCount = async () => {
+    try {
+      const count = await getPendingInquiriesCount();
+      setPendingInquiries(count);
+    } catch (error) {
+      console.error('Failed to load inquiries count:', error);
+    }
+  };
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -160,7 +171,8 @@ const Home = () => {
       await Promise.all([
         displayCount(),
         loadEvents(),
-        loadProfileImage()
+        loadProfileImage(),
+        loadInquiriesCount()
       ]);
     } catch (error) {
       console.error('Failed to refresh data:', error);
@@ -174,6 +186,7 @@ const Home = () => {
       displayCount();
       loadEvents();
       loadProfileImage();
+      loadInquiriesCount();
     }, [])
   );
 
@@ -461,6 +474,43 @@ const Home = () => {
                 ) : (
                   <Text style={styles.requestsCount}>{requests ?? 0} new requests</Text>
                 )}
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#999999" />
+          </Pressable>
+
+          {/* Event Inquiries Card */}
+          <Pressable
+            style={[styles.requestsCard, { marginTop: 12 }]}
+            onPress={() => router.push("/requests/inquiries")}
+          >
+            <View style={styles.requestsContent}>
+              <View style={{ position: 'relative' }}>
+                <Ionicons name="mail-outline" size={24} color="#800000" />
+                {pendingInquiries > 0 && (
+                  <View style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -8,
+                    backgroundColor: '#FF3B30',
+                    borderRadius: 10,
+                    minWidth: 18,
+                    height: 18,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    paddingHorizontal: 4,
+                  }}>
+                    <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>
+                      {pendingInquiries > 99 ? '99+' : pendingInquiries}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.requestsText}>
+                <Text style={styles.requestsTitle}>Event Inquiries</Text>
+                <Text style={styles.requestsCount}>
+                  {pendingInquiries} pending inquiries
+                </Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#999999" />
