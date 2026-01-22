@@ -83,10 +83,18 @@ const PortfolioPage = () => {
                 async (buttonIndex) => {
                     if (buttonIndex === 1) {
                         const result = await pickAndUploadImage();
-                        if (result) toast.success('Photo added to portfolio!');
+                        if (result) {
+                            toast.success('Photo added to portfolio!');
+                        } else if (error) {
+                            toast.error(error);
+                        }
                     } else if (buttonIndex === 2) {
                         const result = await pickAndUploadVideo();
-                        if (result) toast.success('Video added to portfolio!');
+                        if (result) {
+                            toast.success('Video added to portfolio!');
+                        } else if (error) {
+                            toast.error(error);
+                        }
                     }
                 }
             );
@@ -101,14 +109,22 @@ const PortfolioPage = () => {
                         text: 'Photo',
                         onPress: async () => {
                             const result = await pickAndUploadImage();
-                            if (result) toast.success('Photo added to portfolio!');
+                            if (result) {
+                                toast.success('Photo added to portfolio!');
+                            } else if (error) {
+                                toast.error(error);
+                            }
                         },
                     },
                     {
                         text: 'Video',
                         onPress: async () => {
                             const result = await pickAndUploadVideo();
-                            if (result) toast.success('Video added to portfolio!');
+                            if (result) {
+                                toast.success('Video added to portfolio!');
+                            } else if (error) {
+                                toast.error(error);
+                            }
                         },
                     },
                 ]

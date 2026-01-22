@@ -199,7 +199,7 @@ export const usePortfolio = () => {
         }
     };
 
-    // Pick and upload video
+    // Pick and upload video with trimming
     const pickAndUploadVideo = async (params?: CreatePortfolioItemParams): Promise<PortfolioItem | null> => {
         try {
             // Request permissions
@@ -209,68 +209,118 @@ export const usePortfolio = () => {
                 return null;
             }
 
-            // Pick video
+            // Pick video - allow any duration, we'll trim it
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ['videos'],
-                allowsEditing: true,
+                allowsEditing: false, // Disable built-in editing, we'll use trimmer
                 quality: 0.8,
-                videoMaxDuration: 60, // Max 60 seconds
+                // Remove videoMaxDuration to allow any length video
             });
 
             if (result.canceled) return null;
+
+            const asset = result.assets[0];
+
+            // Import and use the video trimmer
+            let trimmedUri = asset.uri;
+            try {
+                const { showEditor } = await import('react-native-video-trim');
+
+                // Show the trimmer with 60 second max duration
+                const trimResult = await showEditor(asset.uri, {
+                    maxDuration: 60, // 60 seconds max
+                    saveToPhoto: false, // Don't save to photo library, we'll upload
+                    title: 'Trim Video (Max 60 sec)',
+                });
+
+                // If user cancelled the trim
+                if (!trimResult || !trimResult.outputPath) {
+                    return null;
+                }
+
+                trimmedUri = trimResult.outputPath;
+            } catch (trimError: any) {
+                // If trimmer fails (e.g., not installed), show error
+                console.warn('Video trimmer not available:', trimError);
+                setError('Video trimmer not available. Please ensure the app is properly built.');
+                return null;
+            }
 
             setUploading(true);
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error('Not authenticated');
 
-            const asset = result.assets[0];
+            // Upload the trimmed video
+            try {
+                const response = await fetch(trimmedUri);
+                const arrayBuffer = await response.arrayBuffer();
 
-            // For videos, we need to read as base64 or use fetch
-            const response = await fetch(asset.uri);
-            const arrayBuffer = await response.arrayBuffer();
+                // Get file extension
+                const fileExt = trimmedUri.split('.').pop()?.toLowerCase() || 'mp4';
+                const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-            // Get file extension
-            const fileExt = asset.uri.split('.').pop()?.toLowerCase() || 'mp4';
-            const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+                // Upload to Supabase Storage
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('portfolio')
+                    .upload(fileName, arrayBuffer, {
+                        contentType: `video/${fileExt}`,
+                        upsert: false,
+                    });
 
-            // Upload to Supabase Storage
-            const { data: uploadData, error: uploadError } = await supabase.storage
-                .from('portfolio')
-                .upload(fileName, arrayBuffer, {
-                    contentType: `video/${fileExt}`,
-                    upsert: false,
-                });
+                if (uploadError) throw uploadError;
 
-            if (uploadError) throw uploadError;
+                // Get public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('portfolio')
+                    .getPublicUrl(uploadData.path);
 
-            // Get public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('portfolio')
-                .getPublicUrl(uploadData.path);
+                // Create portfolio item
+                const { data, error: insertError } = await supabase
+                    .from('portfolio_items')
+                    .insert({
+                        vendor_id: user.id,
+                        image_url: publicUrl, // We're using image_url for all media types
+                        title: params?.title || null,
+                        description: params?.description || null,
+                        event_type: params?.event_type || null,
+                        event_date: params?.event_date || null,
+                        is_featured: params?.is_featured || false,
+                        sort_order: items.length,
+                    })
+                    .select()
+                    .single();
 
-            // Create portfolio item
-            const { data, error: insertError } = await supabase
-                .from('portfolio_items')
-                .insert({
-                    vendor_id: user.id,
-                    image_url: publicUrl, // We're using image_url for all media types
-                    title: params?.title || null,
-                    description: params?.description || null,
-                    event_type: params?.event_type || null,
-                    event_date: params?.event_date || null,
-                    is_featured: params?.is_featured || false,
-                    sort_order: items.length,
-                })
-                .select()
-                .single();
+                if (insertError) throw insertError;
 
-            if (insertError) throw insertError;
+                setItems((prev) => [data, ...prev]);
+                return data;
+            } catch (uploadErr: any) {
+                // Handle specific error types
+                const errorMessage = uploadErr.message || String(uploadErr);
 
-            setItems((prev) => [data, ...prev]);
-            return data;
+                if (errorMessage.includes('allocate') || errorMessage.includes('OOM') || errorMessage.includes('memory')) {
+                    setError('Video is too large. Please select a shorter video or compress it first.');
+                } else if (errorMessage.includes('network') || errorMessage.includes('Network')) {
+                    setError('Network error. Please check your connection and try again.');
+                } else if (errorMessage.includes('storage') || errorMessage.includes('Storage')) {
+                    setError('Storage error. Unable to save video. Please try again.');
+                } else {
+                    setError(`Upload failed: ${errorMessage}`);
+                }
+
+                console.error('Error uploading video:', uploadErr);
+                return null;
+            }
         } catch (err: any) {
-            console.error('Error uploading video:', err);
-            setError(err.message);
+            console.error('Error in video upload flow:', err);
+            const errorMessage = err.message || String(err);
+
+            if (errorMessage.includes('allocate') || errorMessage.includes('OOM') || errorMessage.includes('memory')) {
+                setError('Video is too large. Please select a shorter video.');
+            } else {
+                setError(errorMessage || 'Failed to process video');
+            }
+
             return null;
         } finally {
             setUploading(false);
