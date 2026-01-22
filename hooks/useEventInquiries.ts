@@ -87,17 +87,30 @@ export const getPendingInquiries = async (vendorProfileId: string): Promise<Even
  */
 export const getPendingInquiriesCount = async (vendorProfileId: string): Promise<number> => {
     try {
+        if (!vendorProfileId) {
+            return 0;
+        }
+        
         const { count, error } = await supabase
             .from('event_inquiry_items')
             .select('*', { count: 'exact', head: true })
             .eq('vendor_id', vendorProfileId)
             .eq('status', 'PENDING');
 
-        if (error) throw error;
+        if (error) {
+            // Silently handle table not found or permission errors
+            if (error.code === '42P01' || error.code === 'PGRST116' || error.message?.includes('permission denied')) {
+                return 0;
+            }
+            throw error;
+        }
 
         return count || 0;
-    } catch (err) {
-        console.error('Error counting pending inquiries:', err);
+    } catch (err: any) {
+        // Only log meaningful errors, not empty ones
+        if (err?.message) {
+            console.error('Error counting pending inquiries:', err.message);
+        }
         return 0;
     }
 };

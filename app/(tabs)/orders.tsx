@@ -179,17 +179,16 @@ const OrdersScreen = () => {
 
               <Text style={styles.eventTitle}>{item.title}</Text>
               <Text style={styles.customerName} numberOfLines={1} ellipsizeMode="tail">{item.customerName}</Text>
-
               <View style={styles.cardFooter}>
                 <View style={styles.dateContainer}>
                   <Calendar width={16} height={16} stroke="#666666" />
                   <Text style={styles.dateText}>{item.date}</Text>
                 </View>
-                {item.amount && (
+                {item.amount ? (
                   <View style={styles.amountContainer}>
                     <Text style={styles.amountText}>${item.amount}</Text>
                   </View>
-                )}
+                ) : null}
               </View>
             </Pressable>
           );

@@ -2,9 +2,16 @@ import { supabase } from "@/utils/supabase";
 
 const getUser = async() => {
     try {
-        // Add timeout to prevent hanging
+        // First try to get user from existing session (faster, no network call)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+            return session.user;
+        }
+        
+        // If no session, try getUser with a longer timeout
         const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('User fetch timeout')), 3000)
+            setTimeout(() => reject(new Error('User fetch timeout')), 10000)
         );
         
         const userPromise = supabase.auth.getUser();
