@@ -182,14 +182,26 @@ export function useAttachments() {
             const fileExt = fileToUpload.name.split('.').pop() || 'file';
             const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-            // Read file as blob
-            const response = await fetch(fileToUpload.uri);
-            const blob = await response.blob();
+            // For React Native, we need to create a proper file object
+            // Using FormData approach which is more reliable on mobile
+            const formData = new FormData();
 
-            // Upload to Supabase Storage
+            // React Native requires this specific format for file uploads
+            formData.append('file', {
+                uri: Platform.OS === 'android'
+                    ? fileToUpload.uri
+                    : fileToUpload.uri.replace('file://', ''),
+                name: fileToUpload.name,
+                type: fileToUpload.type,
+            } as any);
+
+            // Upload to Supabase Storage using the arraybuffer approach
+            const response = await fetch(fileToUpload.uri);
+            const arrayBuffer = await response.arrayBuffer();
+
             const { data, error: uploadError } = await supabase.storage
                 .from('chat-attachments')
-                .upload(fileName, blob, {
+                .upload(fileName, arrayBuffer, {
                     contentType: fileToUpload.type,
                     cacheControl: '3600',
                 });
