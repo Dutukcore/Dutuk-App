@@ -210,10 +210,10 @@ const Home = () => {
             {/* Left group */}
             <View style={styles.leftIcons}>
               <Pressable style={styles.iconButton}>
-                <Ionicons name="notifications-outline" size={28} color="#1c1917" />
+                <Ionicons name="notifications-outline" size={26} color="#1c1917" />
               </Pressable>
               <Pressable style={styles.iconButton} onPress={() => router.push("/profilePages/calender/CalendarPage")}>
-                <Ionicons name="calendar-outline" size={28} color="#1c1917" />
+                <Ionicons name="calendar-outline" size={26} color="#1c1917" />
               </Pressable>
             </View>
 
@@ -240,11 +240,16 @@ const Home = () => {
 
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Home</Text>
-          <Ionicons name="home" size={37} color="#1c1917" style={styles.titleIcon} />
         </View>
 
-        {/* Calendar Section */}
+        {/* Calendar Section - FOCAL POINT */}
         <View style={styles.calendarSection}>
+          <View style={styles.calendarHeader}>
+            <Text style={styles.calendarTitle}>Your Calendar</Text>
+            <Pressable onPress={() => router.push("/profilePages/calender/CalendarPage")}>
+              <Text style={styles.calendarLink}>Manage</Text>
+            </Pressable>
+          </View>
           <Calendar
             markingType={'custom'}
             markedDates={markedDates}
@@ -264,11 +269,11 @@ const Home = () => {
               selectedDotColor: '#ffffff',
               arrowColor: '#800000',
               monthTextColor: '#1c1917',
-              textDayFontWeight: '400',
-              textMonthFontWeight: '600',
-              textDayHeaderFontWeight: '500',
-              textDayFontSize: 14,
-              textMonthFontSize: 16,
+              textDayFontWeight: '500',
+              textMonthFontWeight: '700',
+              textDayHeaderFontWeight: '600',
+              textDayFontSize: 15,
+              textMonthFontSize: 18,
               textDayHeaderFontSize: 12
             }}
             style={styles.calendar}
@@ -283,8 +288,8 @@ const Home = () => {
               style={styles.createButton}
               onPress={() => router.push("/event/manage/create")}
             >
-              <Ionicons name="add" size={18} color="#FFFFFF" />
-              <Text style={styles.createButtonText}>New Event</Text>
+              <Ionicons name="add" size={20} color="#FFFFFF" />
+              <Text style={styles.createButtonText}>Create</Text>
             </Pressable>
           </View>
 
@@ -293,10 +298,10 @@ const Home = () => {
               style={styles.emptyManageCard}
               onPress={() => router.push("/event/manage/create")}
             >
-              <Ionicons name="calendar-outline" size={36} color="#800000" />
-              <Text style={styles.emptyManageTitle}>Create your event</Text>
+              <Ionicons name="calendar-outline" size={40} color="#800000" />
+              <Text style={styles.emptyManageTitle}>Create your first event</Text>
               <Text style={styles.emptyManageSubtitle}>
-                Start building your first event to showcase it to customers.
+                Start building your event portfolio and showcase it to customers.
               </Text>
             </Pressable>
           ) : (
@@ -347,8 +352,14 @@ const Home = () => {
                         <Text style={styles.manageCardDescriptionMuted}>No description yet</Text>
                       )}
                       <View style={styles.manageCardFooter}>
-                        <View style={styles.manageStatusBadge}>
-                          <Text style={styles.manageStatusText}>{item.status}</Text>
+                        <View style={[styles.manageStatusBadge, 
+                          item.status === 'upcoming' && styles.statusUpcoming,
+                          item.status === 'ongoing' && styles.statusOngoing
+                        ]}>
+                          <Text style={[styles.manageStatusText,
+                            item.status === 'upcoming' && styles.statusUpcomingText,
+                            item.status === 'ongoing' && styles.statusOngoingText
+                          ]}>{item.status}</Text>
                         </View>
                         <Text style={styles.managePaymentText}>₹{item.payment?.toFixed(2) ?? "0.00"}</Text>
                       </View>
@@ -362,9 +373,9 @@ const Home = () => {
                 onPress={() => router.push("/event/manage/create")}
               >
                 <View style={styles.manageAddIconWrapper}>
-                  <Ionicons name="add-circle-outline" size={40} color="#800000" />
+                  <Ionicons name="add-circle-outline" size={48} color="#800000" />
                 </View>
-                <Text style={styles.manageAddMoreText}>Add another event</Text>
+                <Text style={styles.manageAddMoreText}>Add Event</Text>
               </Pressable>
             </ScrollView>
           )}
@@ -375,10 +386,10 @@ const Home = () => {
           <View style={styles.eventsSectionHeader}>
             <Text style={styles.sectionTitle}>Events</Text>
             <Pressable
-              style={styles.addMoreButton}
+              style={styles.viewAllButton}
               onPress={() => router.push("/event")}
             >
-              <Text style={styles.addMoreText}>View All</Text>
+              <Text style={styles.viewAllText}>View All</Text>
               <Ionicons name="chevron-forward" size={16} color="#800000" />
             </Pressable>
           </View>
@@ -393,15 +404,15 @@ const Home = () => {
               style={styles.eventCard}
               onPress={() => router.push("/event/upcomingEvents")}
             >
-              <View style={[styles.eventIconContainer, { backgroundColor: '#80000020' }]}>
-                <Ionicons name="calendar-outline" size={32} color="#800000" />
+              <View style={[styles.eventIconContainer, { backgroundColor: '#80000015' }]}>
+                <Ionicons name="calendar-outline" size={28} color="#800000" />
               </View>
-              <Text style={styles.eventCardTitle}>Upcoming Events</Text>
+              <Text style={styles.eventCardTitle}>Upcoming</Text>
               <Text style={styles.eventCardCount}>
-                {events.filter(e => e.status === 'upcoming').length} events
+                {events.filter(e => e.status === 'upcoming').length}
               </Text>
               <Text style={styles.eventCardDescription}>
-                Plan and prepare for your scheduled events
+                Events scheduled ahead
               </Text>
             </Pressable>
 
@@ -410,15 +421,15 @@ const Home = () => {
               style={styles.eventCard}
               onPress={() => router.push("/event/currentEvents")}
             >
-              <View style={[styles.eventIconContainer, { backgroundColor: '#FF950020' }]}>
-                <Ionicons name="time-outline" size={32} color="#FF9500" />
+              <View style={[styles.eventIconContainer, { backgroundColor: '#FF950015' }]}>
+                <Ionicons name="time-outline" size={28} color="#FF9500" />
               </View>
-              <Text style={styles.eventCardTitle}>Ongoing Events</Text>
+              <Text style={styles.eventCardTitle}>Ongoing</Text>
               <Text style={styles.eventCardCount}>
-                {events.filter(e => e.status === 'ongoing').length} events
+                {events.filter(e => e.status === 'ongoing').length}
               </Text>
               <Text style={styles.eventCardDescription}>
-                Events currently in progress
+                Currently in progress
               </Text>
             </Pressable>
 
@@ -427,15 +438,15 @@ const Home = () => {
               style={styles.eventCard}
               onPress={() => router.push("/profilePages/profileSettings/history_and_highlights/pastEvents")}
             >
-              <View style={[styles.eventIconContainer, { backgroundColor: '#34C75920' }]}>
-                <Ionicons name="checkmark-circle-outline" size={32} color="#34C759" />
+              <View style={[styles.eventIconContainer, { backgroundColor: '#34C75915' }]}>
+                <Ionicons name="checkmark-circle-outline" size={28} color="#34C759" />
               </View>
               <Text style={styles.eventCardTitle}>Completed</Text>
               <Text style={styles.eventCardCount}>
-                {events.filter(e => e.status === 'completed').length} events
+                {events.filter(e => e.status === 'completed').length}
               </Text>
               <Text style={styles.eventCardDescription}>
-                Successfully completed events
+                Successfully delivered
               </Text>
             </Pressable>
 
@@ -444,15 +455,15 @@ const Home = () => {
               style={styles.eventCard}
               onPress={() => router.push("/event")}
             >
-              <View style={[styles.eventIconContainer, { backgroundColor: '#a8a29e20' }]}>
-                <Ionicons name="grid-outline" size={32} color="#a8a29e" />
+              <View style={[styles.eventIconContainer, { backgroundColor: '#a8a29e15' }]}>
+                <Ionicons name="grid-outline" size={28} color="#57534e" />
               </View>
               <Text style={styles.eventCardTitle}>All Events</Text>
               <Text style={styles.eventCardCount}>
-                {events.length} total
+                {events.length}
               </Text>
               <Text style={styles.eventCardDescription}>
-                View complete event history
+                Complete history
               </Text>
             </Pressable>
           </ScrollView>
@@ -460,19 +471,21 @@ const Home = () => {
 
         {/* Requests Section */}
         <View style={styles.requestsSection}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <Text style={styles.sectionTitle}>Activity</Text>
           <Pressable
             style={styles.requestsCard}
             onPress={() => router.push("/requests/menu")}
           >
             <View style={styles.requestsContent}>
-              <Ionicons name="document-text-outline" size={24} color="#800000" />
+              <View style={styles.requestsIconWrapper}>
+                <Ionicons name="document-text-outline" size={22} color="#800000" />
+              </View>
               <View style={styles.requestsText}>
                 <Text style={styles.requestsTitle}>Pending Requests</Text>
                 {loading ? (
                   <ActivityIndicator size="small" color="#800000" />
                 ) : (
-                  <Text style={styles.requestsCount}>{requests ?? 0} new requests</Text>
+                  <Text style={styles.requestsCount}>{requests ?? 0} new</Text>
                 )}
               </View>
             </View>
@@ -481,26 +494,15 @@ const Home = () => {
 
           {/* Event Inquiries Card */}
           <Pressable
-            style={[styles.requestsCard, { marginTop: 12 }]}
+            style={styles.requestsCard}
             onPress={() => router.push("/requests/inquiries")}
           >
             <View style={styles.requestsContent}>
-              <View style={{ position: 'relative' }}>
-                <Ionicons name="mail-outline" size={24} color="#800000" />
+              <View style={styles.requestsIconWrapper}>
+                <Ionicons name="mail-outline" size={22} color="#800000" />
                 {pendingInquiries > 0 && (
-                  <View style={{
-                    position: 'absolute',
-                    top: -6,
-                    right: -8,
-                    backgroundColor: '#FF3B30',
-                    borderRadius: 10,
-                    minWidth: 18,
-                    height: 18,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    paddingHorizontal: 4,
-                  }}>
-                    <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '700' }}>
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>
                       {pendingInquiries > 99 ? '99+' : pendingInquiries}
                     </Text>
                   </View>
@@ -509,7 +511,7 @@ const Home = () => {
               <View style={styles.requestsText}>
                 <Text style={styles.requestsTitle}>Event Inquiries</Text>
                 <Text style={styles.requestsCount}>
-                  {pendingInquiries} pending inquiries
+                  {pendingInquiries} pending
                 </Text>
               </View>
             </View>
@@ -519,13 +521,13 @@ const Home = () => {
 
         {/* Stats Cards */}
         <View style={styles.statsSection}>
-          <Text style={styles.sectionTitle}>Overview</Text>
+          <Text style={styles.sectionTitle}>Quick Stats</Text>
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
               <Text style={styles.statNumber}>
                 {events.filter(e => e.status === 'upcoming' || e.status === 'ongoing').length}
               </Text>
-              <Text style={styles.statLabel}>Active Events</Text>
+              <Text style={styles.statLabel}>Active</Text>
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statNumber}>
@@ -544,22 +546,22 @@ const Home = () => {
         {/* Reviews Section */}
         <View style={styles.reviewsSection}>
           <View style={styles.reviewsHeader}>
-            <Text style={styles.sectionTitle}>Recent Reviews</Text>
+            <Text style={styles.sectionTitle}>Reviews</Text>
             <Pressable
-              style={styles.addMoreButton}
+              style={styles.viewAllButton}
               onPress={() => router.push("/profilePages/profileSettings/history_and_highlights/pastReviews")}
             >
-              <Text style={styles.addMoreText}>View All</Text>
+              <Text style={styles.viewAllText}>View All</Text>
               <Ionicons name="chevron-forward" size={16} color="#800000" />
             </Pressable>
           </View>
 
           {recentReviews.length === 0 ? (
             <View style={styles.emptyReviewsCard}>
-              <Ionicons name="star-outline" size={40} color="#FFC13C" />
+              <Ionicons name="star-outline" size={44} color="#FFC13C" />
               <Text style={styles.emptyReviewsTitle}>No reviews yet</Text>
               <Text style={styles.emptyReviewsSubtitle}>
-                Reviews from customers will appear here after completed events
+                Customer reviews will appear here after completed events
               </Text>
             </View>
           ) : (
@@ -573,7 +575,7 @@ const Home = () => {
                       <Ionicons
                         key={star}
                         name={reviewStats.averageRating >= star ? "star" : reviewStats.averageRating >= star - 0.5 ? "star-half" : "star-outline"}
-                        size={18}
+                        size={20}
                         color="#FFC13C"
                       />
                     ))}
@@ -635,46 +637,48 @@ const styles = StyleSheet.create({
     backgroundColor: '#fffcfa',
   },
   header: {
-    paddingTop: 10,
-    paddingHorizontal: 28,
-    paddingBottom: 20,
+    paddingTop: 12,
+    paddingHorizontal: 24,
+    paddingBottom: 16,
     backgroundColor: '#fffcfa',
   },
   headerIcons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
   },
   leftIcons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 13,
-    marginLeft: -30,
+    gap: 12,
   },
   iconButton: {
-    width: 44,
-    height: 44,
-    backgroundColor: '#FEFEFE',
-    borderRadius: 22,
+    width: 46,
+    height: 46,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 23,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   profileIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     overflow: 'hidden',
-    backgroundColor: '#FEFEFE',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: -20,
     position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   profileImage: {
     width: '100%',
@@ -691,129 +695,143 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  profileImagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#CCCCCC',
-  },
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 26,
-    fontWeight: '500',
+    fontSize: 36,
+    fontWeight: '600',
     color: '#1c1917',
-    marginRight: 15,
-  },
-  titleIcon: {
-    marginTop: 5,
+    letterSpacing: -0.5,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 28,
-    paddingBottom: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 32,
   },
+  // Calendar Section - FOCAL POINT with enhanced prominence
   calendarSection: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginBottom: 30,
+    borderRadius: 20,
+    marginBottom: 40,
     overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+  },
+  calendarTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1c1917',
+    letterSpacing: -0.3,
+  },
+  calendarLink: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#800000',
   },
   calendar: {
-    borderRadius: 16,
-    paddingBottom: 10,
+    borderRadius: 20,
+    paddingBottom: 16,
   },
   eventsSection: {
-    marginBottom: 30,
-    marginLeft: -28,
-    marginRight: -28,
+    marginBottom: 36,
+    marginLeft: -24,
+    marginRight: -24,
   },
   manageSection: {
-    marginBottom: 30,
-    marginLeft: -28,
-    marginRight: -28,
+    marginBottom: 36,
+    marginLeft: -24,
+    marginRight: -24,
   },
   manageHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
-    paddingLeft: 28,
-    paddingRight: 28,
+    marginBottom: 18,
+    paddingLeft: 24,
+    paddingRight: 24,
   },
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     backgroundColor: '#800000',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     shadowColor: '#800000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
   createButtonText: {
     color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 14,
+    fontWeight: '700',
+    fontSize: 15,
+    letterSpacing: 0.2,
   },
   emptyManageCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 20,
+    padding: 32,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-    marginHorizontal: 28,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+    marginHorizontal: 24,
   },
   emptyManageTitle: {
-    marginTop: 12,
-    fontSize: 18,
-    fontWeight: '600',
+    marginTop: 16,
+    fontSize: 19,
+    fontWeight: '700',
     color: '#1c1917',
+    letterSpacing: -0.2,
   },
   emptyManageSubtitle: {
-    marginTop: 6,
+    marginTop: 8,
     fontSize: 14,
     color: '#57534e',
     textAlign: 'center',
+    lineHeight: 20,
   },
   manageScrollContent: {
-    paddingLeft: 28,
-    paddingRight: 28,
+    paddingLeft: 24,
+    paddingRight: 24,
   },
   manageCard: {
-    width: 260,
+    width: 270,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 18,
     marginRight: 16,
     overflow: 'hidden',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 0,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   imageContainer: {
     position: 'relative',
     width: '100%',
-    height: 140,
-    backgroundColor: '#F0F0F0',
+    height: 150,
+    backgroundColor: '#F5F5F5',
   },
   imageLoadingOverlay: {
     position: 'absolute',
@@ -827,25 +845,28 @@ const styles = StyleSheet.create({
   },
   manageCardImage: {
     width: '100%',
-    height: 140,
+    height: 150,
     resizeMode: 'cover',
   },
   manageCardContent: {
-    padding: 16,
+    padding: 18,
     gap: 8,
   },
   manageCardTitle: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#1c1917',
+    letterSpacing: -0.2,
   },
   manageCardDescription: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#57534e',
+    lineHeight: 19,
   },
   manageCardDescriptionMuted: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#a8a29e',
+    fontStyle: 'italic',
   },
   manageCardFooter: {
     flexDirection: 'row',
@@ -855,74 +876,90 @@ const styles = StyleSheet.create({
   },
   manageStatusBadge: {
     backgroundColor: '#F3F4F6',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
   },
   manageStatusText: {
     fontSize: 12,
     textTransform: 'capitalize',
-    color: '#800000',
-    fontWeight: '600',
+    color: '#57534e',
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  statusUpcoming: {
+    backgroundColor: '#007AFF15',
+  },
+  statusUpcomingText: {
+    color: '#007AFF',
+  },
+  statusOngoing: {
+    backgroundColor: '#FF950015',
+  },
+  statusOngoingText: {
+    color: '#FF9500',
   },
   managePaymentText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#1c1917',
+    letterSpacing: -0.2,
   },
   manageAddMoreCard: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
   manageAddIconWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   manageAddMoreText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#800000',
     textAlign: 'center',
+    letterSpacing: 0.2,
   },
   eventsSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
-    paddingLeft: 28,
-    paddingRight: 28,
+    marginBottom: 18,
+    paddingLeft: 24,
+    paddingRight: 24,
   },
-  addMoreButton: {
+  viewAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#F8F8F8',
     borderRadius: 20,
   },
-  addMoreText: {
+  viewAllText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#800000',
     marginRight: 4,
+    letterSpacing: 0.2,
   },
   eventsScrollContent: {
-    paddingLeft: 28,
-    paddingRight: 28,
+    paddingLeft: 24,
+    paddingRight: 24,
   },
   eventCard: {
-    width: 200,
+    width: 170,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 20,
-    marginRight: 15,
+    marginRight: 14,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 0,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
   },
   eventIconContainer: {
     width: 56,
@@ -930,19 +967,21 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   eventCardTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1c1917',
-    marginBottom: 4,
+    marginBottom: 6,
+    letterSpacing: -0.2,
   },
   eventCardCount: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#800000',
     marginBottom: 8,
+    letterSpacing: -0.5,
   },
   eventCardDescription: {
     fontSize: 12,
@@ -950,164 +989,201 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   requestsSection: {
-    marginBottom: 30,
+    marginBottom: 36,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     color: '#1c1917',
-    marginBottom: 15,
+    marginBottom: 18,
+    letterSpacing: -0.3,
   },
   requestsCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 12,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 0,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   requestsContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
+  requestsIconWrapper: {
+    position: 'relative',
+    width: 44,
+    height: 44,
+    backgroundColor: '#80000010',
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#FF3B30',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 5,
+  },
+  notificationBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+  },
   requestsText: {
-    marginLeft: 15,
+    marginLeft: 16,
     flex: 1,
   },
   requestsTitle: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#1c1917',
     marginBottom: 4,
+    letterSpacing: -0.1,
   },
   requestsCount: {
     fontSize: 14,
     color: '#57534e',
+    fontWeight: '500',
   },
   statsSection: {
-    marginBottom: 20,
+    marginBottom: 36,
   },
   statsGrid: {
     flexDirection: 'row',
-    gap: 15,
+    gap: 16,
   },
   statCard: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 16,
+    padding: 24,
     alignItems: 'center',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 0,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '700',
     color: '#800000',
     marginBottom: 8,
+    letterSpacing: -1,
   },
   statLabel: {
     fontSize: 14,
     color: '#57534e',
     textAlign: 'center',
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   // Reviews Section Styles
   reviewsSection: {
-    marginBottom: 30,
-    marginLeft: -28,
-    marginRight: -28,
+    marginBottom: 36,
+    marginLeft: -24,
+    marginRight: -24,
   },
   reviewsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
-    paddingLeft: 28,
-    paddingRight: 28,
+    marginBottom: 18,
+    paddingLeft: 24,
+    paddingRight: 24,
   },
   emptyReviewsCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
+    borderRadius: 20,
+    padding: 40,
     alignItems: 'center',
-    marginHorizontal: 28,
+    marginHorizontal: 24,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   emptyReviewsTitle: {
-    marginTop: 12,
-    fontSize: 18,
-    fontWeight: '600',
+    marginTop: 16,
+    fontSize: 19,
+    fontWeight: '700',
     color: '#1c1917',
+    letterSpacing: -0.2,
   },
   emptyReviewsSubtitle: {
-    marginTop: 6,
+    marginTop: 8,
     fontSize: 14,
     color: '#57534e',
     textAlign: 'center',
+    lineHeight: 20,
   },
   reviewsStatsCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    marginHorizontal: 28,
-    marginBottom: 15,
+    borderRadius: 20,
+    padding: 28,
+    marginHorizontal: 24,
+    marginBottom: 18,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   reviewsRating: {
     alignItems: 'center',
   },
   reviewsRatingNumber: {
-    fontSize: 42,
+    fontSize: 48,
     fontWeight: '700',
     color: '#1c1917',
+    letterSpacing: -1.5,
   },
   reviewsStarsContainer: {
     flexDirection: 'row',
-    marginTop: 8,
-    marginBottom: 8,
+    marginTop: 10,
+    marginBottom: 10,
   },
   reviewsCountText: {
     fontSize: 14,
     color: '#57534e',
+    fontWeight: '600',
   },
   reviewsScrollContent: {
-    paddingLeft: 28,
-    paddingRight: 28,
+    paddingLeft: 24,
+    paddingRight: 24,
   },
   reviewCard: {
-    width: 280,
+    width: 290,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginRight: 15,
+    borderRadius: 18,
+    padding: 18,
+    marginRight: 16,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowRadius: 10,
+    elevation: 4,
   },
   reviewCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   reviewerInfo: {
     flexDirection: 'row',
@@ -1115,9 +1191,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   reviewerAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: '#FFC13C',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1130,46 +1206,48 @@ const styles = StyleSheet.create({
   },
   reviewerName: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1c1917',
+    letterSpacing: -0.1,
   },
   reviewEventName: {
     fontSize: 12,
     color: '#57534e',
     marginTop: 2,
+    fontWeight: '500',
   },
   reviewRatingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFF8E6',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
   },
   reviewRatingText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1c1917',
     marginLeft: 4,
   },
   reviewText: {
     fontSize: 14,
     color: '#292524',
-    lineHeight: 20,
+    lineHeight: 21,
     fontStyle: 'italic',
   },
   verifiedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 12,
+    marginTop: 14,
+    paddingTop: 14,
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
   },
   verifiedText: {
     fontSize: 12,
     color: '#34C759',
-    fontWeight: '500',
+    fontWeight: '600',
     marginLeft: 4,
   },
 });
