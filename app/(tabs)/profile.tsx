@@ -116,8 +116,8 @@ const ProfileScreen = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#000" />
-          <Text style={{ marginTop: 10, color: '#555' }}>Loading profile...</Text>
+          <ActivityIndicator size="large" color="#800000" />
+          <Text style={{ marginTop: 10, color: '#57534e' }}>Loading profile...</Text>
         </View>
       </SafeAreaView>
     );
@@ -174,10 +174,10 @@ const ProfileScreen = () => {
           {menuItems.map((item, index) => (
             <Pressable key={index} style={styles.menuItem} onPress={item.onPress}>
               <View style={styles.menuItemLeft}>
-                <Ionicons name={item.icon as any} size={22} color="#000000" />
+                <Ionicons name={item.icon as any} size={22} color="#1c1917" />
                 <Text style={styles.menuItemText}>{item.title}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={17.59} color="#000000" />
+              <Ionicons name="chevron-forward" size={17.59} color="#1c1917" />
             </Pressable>
           ))}
 
@@ -201,7 +201,7 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
+    backgroundColor: '#fffcfa',
   },
   scrollView: {
     flex: 1,
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   bottomNavContainer: {
-    backgroundColor: '#F3F3F3',
+    backgroundColor: '#fffcfa',
     paddingTop: 10,
   },
   headerBackground: {
@@ -227,11 +227,11 @@ const styles = StyleSheet.create({
   bannerPlaceholderText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#999999',
+    color: '#a8a29e',
     marginTop: 8,
   },
   profileSection: {
-    backgroundColor: '#F3F3F3',
+    backgroundColor: '#fffcfa',
     paddingHorizontal: 35,
     paddingTop: 0,
     paddingBottom: 30,
@@ -256,13 +256,13 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 26.3272,
     fontWeight: '400',
-    color: '#000000',
+    color: '#1c1917',
     marginBottom: 8,
   },
   companyTagline: {
     fontSize: 15.612,
     fontWeight: '300',
-    color: '#000000',
+    color: '#57534e',
   },
   menuContainer: {
     backgroundColor: '#FFFFFF',
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: 16.3083,
     fontWeight: '300',
-    color: '#000000',
+    color: '#1c1917',
     marginLeft: 28,
   },
 });

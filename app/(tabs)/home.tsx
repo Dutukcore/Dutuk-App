@@ -200,8 +200,8 @@ const Home = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#007AFF"
-            colors={["#007AFF"]}
+            tintColor="#800000"
+            colors={["#800000"]}
           />
         }
       >
@@ -210,10 +210,10 @@ const Home = () => {
             {/* Left group */}
             <View style={styles.leftIcons}>
               <Pressable style={styles.iconButton}>
-                <Ionicons name="notifications-outline" size={28} color="#000000" />
+                <Ionicons name="notifications-outline" size={28} color="#1c1917" />
               </Pressable>
               <Pressable style={styles.iconButton} onPress={() => router.push("/profilePages/calender/CalendarPage")}>
-                <Ionicons name="calendar-outline" size={28} color="#000000" />
+                <Ionicons name="calendar-outline" size={28} color="#1c1917" />
               </Pressable>
             </View>
 
@@ -231,7 +231,7 @@ const Home = () => {
               />
               {profileImageLoading && (
                 <View style={styles.profileImageLoadingOverlay}>
-                  <ActivityIndicator color="#007AFF" size="small" />
+                  <ActivityIndicator color="#800000" size="small" />
                 </View>
               )}
             </Pressable>
@@ -240,7 +240,7 @@ const Home = () => {
 
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Home</Text>
-          <Ionicons name="home" size={37} color="#000000" style={styles.titleIcon} />
+          <Ionicons name="home" size={37} color="#1c1917" style={styles.titleIcon} />
         </View>
 
         {/* Calendar Section */}
@@ -254,16 +254,16 @@ const Home = () => {
             theme={{
               backgroundColor: '#ffffff',
               calendarBackground: '#ffffff',
-              textSectionTitleColor: '#000000',
-              selectedDayBackgroundColor: '#007AFF',
+              textSectionTitleColor: '#1c1917',
+              selectedDayBackgroundColor: '#800000',
               selectedDayTextColor: '#ffffff',
-              todayTextColor: '#007AFF',
-              dayTextColor: '#000000',
-              textDisabledColor: '#CCCCCC', // Past dates in grey
-              dotColor: '#007AFF',
+              todayTextColor: '#800000',
+              dayTextColor: '#1c1917',
+              textDisabledColor: '#e7e5e4',
+              dotColor: '#800000',
               selectedDotColor: '#ffffff',
-              arrowColor: '#007AFF',
-              monthTextColor: '#000000',
+              arrowColor: '#800000',
+              monthTextColor: '#1c1917',
               textDayFontWeight: '400',
               textMonthFontWeight: '600',
               textDayHeaderFontWeight: '500',
@@ -293,7 +293,7 @@ const Home = () => {
               style={styles.emptyManageCard}
               onPress={() => router.push("/event/manage/create")}
             >
-              <Ionicons name="calendar-outline" size={36} color="#007AFF" />
+              <Ionicons name="calendar-outline" size={36} color="#800000" />
               <Text style={styles.emptyManageTitle}>Create your event</Text>
               <Text style={styles.emptyManageSubtitle}>
                 Start building your first event to showcase it to customers.
@@ -326,7 +326,7 @@ const Home = () => {
                           />
                           {isImageLoading && (
                             <View style={styles.imageLoadingOverlay}>
-                              <ActivityIndicator color="#007AFF" size="large" />
+                          <ActivityIndicator color="#800000" size="large" />
                             </View>
                           )}
                         </>
@@ -362,7 +362,7 @@ const Home = () => {
                 onPress={() => router.push("/event/manage/create")}
               >
                 <View style={styles.manageAddIconWrapper}>
-                  <Ionicons name="add-circle-outline" size={40} color="#007AFF" />
+                  <Ionicons name="add-circle-outline" size={40} color="#800000" />
                 </View>
                 <Text style={styles.manageAddMoreText}>Add another event</Text>
               </Pressable>
@@ -379,7 +379,7 @@ const Home = () => {
               onPress={() => router.push("/event")}
             >
               <Text style={styles.addMoreText}>View All</Text>
-              <Ionicons name="chevron-forward" size={16} color="#007AFF" />
+              <Ionicons name="chevron-forward" size={16} color="#800000" />
             </Pressable>
           </View>
 
@@ -393,8 +393,8 @@ const Home = () => {
               style={styles.eventCard}
               onPress={() => router.push("/event/upcomingEvents")}
             >
-              <View style={[styles.eventIconContainer, { backgroundColor: '#007AFF20' }]}>
-                <Ionicons name="calendar-outline" size={32} color="#007AFF" />
+              <View style={[styles.eventIconContainer, { backgroundColor: '#80000020' }]}>
+                <Ionicons name="calendar-outline" size={32} color="#800000" />
               </View>
               <Text style={styles.eventCardTitle}>Upcoming Events</Text>
               <Text style={styles.eventCardCount}>
@@ -444,8 +444,8 @@ const Home = () => {
               style={styles.eventCard}
               onPress={() => router.push("/event")}
             >
-              <View style={[styles.eventIconContainer, { backgroundColor: '#8E8E9320' }]}>
-                <Ionicons name="grid-outline" size={32} color="#8E8E93" />
+              <View style={[styles.eventIconContainer, { backgroundColor: '#a8a29e20' }]}>
+                <Ionicons name="grid-outline" size={32} color="#a8a29e" />
               </View>
               <Text style={styles.eventCardTitle}>All Events</Text>
               <Text style={styles.eventCardCount}>
@@ -466,17 +466,17 @@ const Home = () => {
             onPress={() => router.push("/requests/menu")}
           >
             <View style={styles.requestsContent}>
-              <Ionicons name="document-text-outline" size={24} color="#007AFF" />
+              <Ionicons name="document-text-outline" size={24} color="#800000" />
               <View style={styles.requestsText}>
                 <Text style={styles.requestsTitle}>Pending Requests</Text>
                 {loading ? (
-                  <ActivityIndicator size="small" color="#007AFF" />
+                  <ActivityIndicator size="small" color="#800000" />
                 ) : (
                   <Text style={styles.requestsCount}>{requests ?? 0} new requests</Text>
                 )}
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999999" />
+            <Ionicons name="chevron-forward" size={20} color="#a8a29e" />
           </Pressable>
 
           {/* Event Inquiries Card */}
@@ -513,7 +513,7 @@ const Home = () => {
                 </Text>
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#999999" />
+            <Ionicons name="chevron-forward" size={20} color="#a8a29e" />
           </Pressable>
         </View>
 
@@ -550,7 +550,7 @@ const Home = () => {
               onPress={() => router.push("/profilePages/profileSettings/history_and_highlights/pastReviews")}
             >
               <Text style={styles.addMoreText}>View All</Text>
-              <Ionicons name="chevron-forward" size={16} color="#007AFF" />
+              <Ionicons name="chevron-forward" size={16} color="#800000" />
             </Pressable>
           </View>
 
@@ -632,13 +632,13 @@ const Home = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
+    backgroundColor: '#fffcfa',
   },
   header: {
     paddingTop: 10,
     paddingHorizontal: 28,
     paddingBottom: 20,
-    backgroundColor: '#F3F3F3',
+    backgroundColor: '#fffcfa',
   },
   headerIcons: {
     flexDirection: 'row',
@@ -704,7 +704,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: '500',
-    color: '#000000',
+    color: '#1c1917',
     marginRight: 15,
   },
   titleIcon: {
@@ -754,10 +754,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#800000',
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 8,
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
   createButtonText: {
     color: '#FFFFFF',
@@ -781,12 +785,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1c1917',
   },
   emptyManageSubtitle: {
     marginTop: 6,
     fontSize: 14,
-    color: '#6b6b6b',
+    color: '#57534e',
     textAlign: 'center',
   },
   manageScrollContent: {
@@ -833,15 +837,15 @@ const styles = StyleSheet.create({
   manageCardTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1c1917',
   },
   manageCardDescription: {
     fontSize: 13,
-    color: '#4A4A4A',
+    color: '#57534e',
   },
   manageCardDescriptionMuted: {
     fontSize: 13,
-    color: '#9A9A9A',
+    color: '#a8a29e',
   },
   manageCardFooter: {
     flexDirection: 'row',
@@ -858,13 +862,13 @@ const styles = StyleSheet.create({
   manageStatusText: {
     fontSize: 12,
     textTransform: 'capitalize',
-    color: '#007AFF',
+    color: '#800000',
     fontWeight: '600',
   },
   managePaymentText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#111111',
+    color: '#1c1917',
   },
   manageAddMoreCard: {
     alignItems: 'center',
@@ -879,7 +883,7 @@ const styles = StyleSheet.create({
   manageAddMoreText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#007AFF',
+    color: '#800000',
     textAlign: 'center',
   },
   eventsSectionHeader: {
@@ -901,7 +905,7 @@ const styles = StyleSheet.create({
   addMoreText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#007AFF',
+    color: '#800000',
     marginRight: 4,
   },
   eventsScrollContent: {
@@ -931,18 +935,18 @@ const styles = StyleSheet.create({
   eventCardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1c1917',
     marginBottom: 4,
   },
   eventCardCount: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#007AFF',
+    color: '#800000',
     marginBottom: 8,
   },
   eventCardDescription: {
     fontSize: 12,
-    color: '#666666',
+    color: '#57534e',
     lineHeight: 16,
   },
   requestsSection: {
@@ -951,7 +955,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1c1917',
     marginBottom: 15,
   },
   requestsCard: {
@@ -979,12 +983,12 @@ const styles = StyleSheet.create({
   requestsTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
+    color: '#1c1917',
     marginBottom: 4,
   },
   requestsCount: {
     fontSize: 14,
-    color: '#666666',
+    color: '#57534e',
   },
   statsSection: {
     marginBottom: 20,
@@ -1008,12 +1012,12 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#007AFF',
+    color: '#800000',
     marginBottom: 8,
   },
   statLabel: {
     fontSize: 14,
-    color: '#666666',
+    color: '#57534e',
     textAlign: 'center',
   },
   // Reviews Section Styles
@@ -1046,12 +1050,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1c1917',
   },
   emptyReviewsSubtitle: {
     marginTop: 6,
     fontSize: 14,
-    color: '#6b6b6b',
+    color: '#57534e',
     textAlign: 'center',
   },
   reviewsStatsCard: {
@@ -1072,7 +1076,7 @@ const styles = StyleSheet.create({
   reviewsRatingNumber: {
     fontSize: 42,
     fontWeight: '700',
-    color: '#000000',
+    color: '#1c1917',
   },
   reviewsStarsContainer: {
     flexDirection: 'row',
@@ -1081,7 +1085,7 @@ const styles = StyleSheet.create({
   },
   reviewsCountText: {
     fontSize: 14,
-    color: '#666666',
+    color: '#57534e',
   },
   reviewsScrollContent: {
     paddingLeft: 28,
@@ -1127,11 +1131,11 @@ const styles = StyleSheet.create({
   reviewerName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1c1917',
   },
   reviewEventName: {
     fontSize: 12,
-    color: '#666666',
+    color: '#57534e',
     marginTop: 2,
   },
   reviewRatingBadge: {
@@ -1145,12 +1149,12 @@ const styles = StyleSheet.create({
   reviewRatingText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1c1917',
     marginLeft: 4,
   },
   reviewText: {
     fontSize: 14,
-    color: '#333333',
+    color: '#292524',
     lineHeight: 20,
     fontStyle: 'italic',
   },

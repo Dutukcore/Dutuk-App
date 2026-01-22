@@ -63,8 +63,25 @@ export const Typography = {
 } as const;
 
 export const Colors = {
-  black: '#000000',
+  // Primary Colors
+  primaryMaroon: '#800000',
   white: '#FFFFFF',
-  lightGray: '#F3F3F3',
+  background: '#fffcfa',
+  cardBackground: '#ffffff',
+  
+  // Text Colors
+  textHeading: '#1c1917',
+  textBody: '#57534e',
+  textMuted: '#a8a29e',
+  textSecondary: '#292524',
+  
+  // UI Elements
+  border: '#e7e5e4',
+  divider: '#e7e5e4',
+  buttonSecondaryBg: 'rgba(255,255,255,0.5)',
+  
+  // Legacy (for gradual migration)
+  black: '#1c1917',
+  lightGray: '#fffcfa',
   textLight: '#FAFAFA',
 } as const;

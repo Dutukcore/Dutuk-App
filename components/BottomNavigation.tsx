@@ -30,11 +30,11 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
         <Home 
           width={24} 
           height={24} 
-          stroke={activeTab === 'home' ? "#000000" : "#808080"} 
+          stroke={activeTab === 'home' ? "#800000" : "#a8a29e"} 
         />
         <Text style={[
           styles.navLabel, 
-          { color: activeTab === 'home' ? '#000000' : '#808080' }
+          { color: activeTab === 'home' ? '#800000' : '#a8a29e' }
         ]}>
           Home
         </Text>
@@ -47,11 +47,11 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
         <FileText 
           width={24} 
           height={24} 
-          stroke={activeTab === 'orders' ? "#000000" : "#808080"} 
+          stroke={activeTab === 'orders' ? "#800000" : "#a8a29e"} 
         />
         <Text style={[
           styles.navLabel, 
-          { color: activeTab === 'orders' ? '#000000' : '#808080' }
+          { color: activeTab === 'orders' ? '#800000' : '#a8a29e' }
         ]}>
           Orders
         </Text>
@@ -64,11 +64,11 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
         <User 
           width={24} 
           height={24} 
-          stroke={activeTab === 'profile' ? "#000000" : "#808080"} 
+          stroke={activeTab === 'profile' ? "#800000" : "#a8a29e"} 
         />
         <Text style={[
           styles.navLabel, 
-          { color: activeTab === 'profile' ? '#000000' : '#808080' }
+          { color: activeTab === 'profile' ? '#800000' : '#a8a29e' }
         ]}>
           Profile
         </Text>
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   navLabel: {
     fontSize: 12.701,
     fontWeight: '400',
-    color: '#808080',
+    color: '#a8a29e',
     marginTop: 4,
   },
 });

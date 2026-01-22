@@ -71,7 +71,7 @@ const OrdersScreen = () => {
               console.log('Notifications pressed');
             }}
           >
-            <Bell width={24} height={24} stroke="#000000" />
+            <Bell width={24} height={24} stroke="#1c1917" />
           </Pressable>
 
           {/* Calendar Icon */}
@@ -81,7 +81,7 @@ const OrdersScreen = () => {
               router.push('/profilePages/calender/CalendarPage');
             }}
           >
-            <Calendar width={24} height={24} stroke="#000000" />
+            <Calendar width={24} height={24} stroke="#1c1917" />
           </Pressable>
         </View>
 
@@ -110,20 +110,20 @@ const OrdersScreen = () => {
           <View style={styles.titleContainer}>
             <View style={styles.titleRow}>
               <Text style={styles.headerTitle}>Orders</Text>
-              <FileText width={24} height={24} stroke="#000000" />
+              <FileText width={24} height={24} stroke="#1c1917" />
             </View>
           </View>
         )}
         ListEmptyComponent={(
           loading ? (
             <View style={styles.emptyStateContainer}>
-              <ActivityIndicator size="large" color="#000000" />
+              <ActivityIndicator size="large" color="#800000" />
               <Text style={styles.loadingText}>Loading orders...</Text>
             </View>
           ) : (
             <View style={styles.emptyStateContainer}>
               <View style={styles.emptyStatePlaceholder}>
-                <FileText width={60} height={60} stroke="#CCCCCC" />
+                <FileText width={60} height={60} stroke="#e7e5e4" />
                 <Text style={styles.emptyStateTitle}>No Orders Yet</Text>
                 <Text style={styles.emptyStateSubtitle}>
                   Your orders will appear here once customers start booking your services
@@ -181,7 +181,7 @@ const OrdersScreen = () => {
               <Text style={styles.customerName} numberOfLines={1} ellipsizeMode="tail">{item.customerName}</Text>
               <View style={styles.cardFooter}>
                 <View style={styles.dateContainer}>
-                  <Calendar width={16} height={16} stroke="#666666" />
+                  <Calendar width={16} height={16} stroke="#57534e" />
                   <Text style={styles.dateText}>{item.date}</Text>
                 </View>
                 {item.amount ? (
@@ -201,7 +201,7 @@ const OrdersScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
+    backgroundColor: '#fffcfa',
   },
   header: {
     flexDirection: 'row',
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingTop: 10,
     paddingBottom: 15,
-    backgroundColor: '#F3F3F3',
+    backgroundColor: '#fffcfa',
     zIndex: 10,
   },
   scrollContent: {
