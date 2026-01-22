@@ -5,7 +5,7 @@ const getAllEvents = async () => {
     try {
         const user = await getUser();
         if (!user) {
-            console.error("No authenticated user");
+            // Silently return empty - user may not be authenticated yet
             return [];
         }
 
