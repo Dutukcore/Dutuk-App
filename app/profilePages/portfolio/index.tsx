@@ -2,7 +2,7 @@ import { PortfolioItem, usePortfolio } from '@/hooks/usePortfolio';
 import { toast, Toasts } from '@backpackapp-io/react-native-toast';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     ActionSheetIOS,
     ActivityIndicator,
@@ -64,6 +64,13 @@ const PortfolioPage = () => {
     const [editTitle, setEditTitle] = useState('');
     const [editDescription, setEditDescription] = useState('');
     const [editEventType, setEditEventType] = useState('');
+
+    // Show error toast when error state changes
+    useEffect(() => {
+        if (error) {
+            toast.error(error);
+        }
+    }, [error]);
 
     const openDetailModal = (item: PortfolioItem) => {
         setSelectedItem(item);
