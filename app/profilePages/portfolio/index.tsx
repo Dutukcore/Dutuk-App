@@ -326,7 +326,16 @@ const PortfolioPage = () => {
                             >
                                 {isVideoUrl(item.image_url) ? (
                                     <View style={styles.videoContainer}>
-                                        <Image source={{ uri: item.image_url }} style={styles.gridImage} />
+                                                                                <Video
+                                            source={{ uri: item.image_url }}
+                                            style={styles.gridImage}
+                                            resizeMode={ResizeMode.COVER}
+                                            shouldPlay={false}
+                                            isLooping={false}
+                                            useNativeControls={false}
+                                            isMuted={true}
+                                            positionMillis={0}
+                                        />
                                         <View style={styles.playIconContainer}>
                                             <Ionicons name="play-circle" size={40} color="rgba(255,255,255,0.9)" />
                                         </View>
