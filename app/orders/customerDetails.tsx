@@ -2,22 +2,64 @@ import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { ArrowLeft, Copy } from 'react-native-feather';
+import { ArrowLeft, Copy, Calendar as CalendarIcon } from 'react-native-feather';
 import { SafeAreaView } from "react-native-safe-area-context";
 import UnifiedCalendar from "../../components/UnifiedCalendar";
 
 const CustomerDetailsScreen = () => {
-  const params = useLocalSearchParams();
-  const [selectedDate, setSelectedDate] = useState(24);
+  const params = useLocalSearchParams<{
+    orderId: string;
+    title: string;
+    customerName: string;
+    packageType: string;
+    customerEmail: string;
+    customerPhone: string;
+    eventDate?: string;
+  }>();
   
-  // Create initial date for calendar (October 2025)
-  const initialDate = new Date(2025, 9, 24);
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
   
-  // Marked dates for unavailable days (example data)
+  // Parse the event date from params (format: "January 20, 2026" or fallback)
+  const parsedEventDate = React.useMemo(() => {
+    if (!params.eventDate) {
+      // Fallback to October 24, 2025 if no date provided
+      return { day: 24, month: 9, year: 2025 };
+    }
+
+    // Try to parse "January 20, 2026" format
+    const parts = params.eventDate.split(' ');
+    if (parts.length >= 3) {
+      const monthName = parts[0];
+      const day = parseInt(parts[1].replace(',', ''));
+      const year = parseInt(parts[2]);
+      const monthIndex = months.indexOf(monthName);
+      if (monthIndex !== -1 && !isNaN(day) && !isNaN(year)) {
+        return { day, month: monthIndex, year };
+      }
+    }
+
+    // Fallback to October 24, 2025
+    return { day: 24, month: 9, year: 2025 };
+  }, [params.eventDate]);
+  
+  const [selectedDate, setSelectedDate] = useState(parsedEventDate.day);
+  
+  // Create initial date for calendar
+  const initialDate = new Date(parsedEventDate.year, parsedEventDate.month, parsedEventDate.day);
+  
+  // Create the booked event date string
+  const bookedEventDateString = `${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-${String(parsedEventDate.day).padStart(2, '0')}`;
+  
+  // Marked dates for unavailable days and booked event (example data)
   const markedDates = {
-    '2025-10-22': { unavailable: true },
-    '2025-10-23': { unavailable: true },
-    '2025-10-26': { unavailable: true },
+    [`${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-22`]: { unavailable: true },
+    [`${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-23`]: { unavailable: true },
+    [`${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-26`]: { unavailable: true },
+    // Add the booked event date with maroon indicator
+    [bookedEventDateString]: { hasEvent: true, eventColor: '#800000' },
   };
 
   const handleDayPress = (day: number, dateString: string) => {
@@ -65,6 +107,13 @@ const CustomerDetailsScreen = () => {
             <Copy width={20} height={20} stroke="#FFFFFF" />
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* Event Date Display */}
+      <View style={styles.eventDateContainer}>
+        <CalendarIcon width={20} height={20} stroke="#7C2A2A" />
+        <Text style={styles.eventDateLabel}>Event Date:</Text>
+        <Text style={styles.eventDateText}>{params.eventDate || 'Not specified'}</Text>
       </View>
 
       {/* Calendar */}
@@ -166,6 +215,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#FFFFFF",
+    fontFamily: "Inter",
+  },
+
+  // Event date display styles
+  eventDateContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(128, 0, 0, 0.08)",
+    borderRadius: 20,
+    marginHorizontal: 30,
+    marginBottom: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(128, 0, 0, 0.12)',
+  },
+  eventDateLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#800000",
+    marginLeft: 10,
+    fontFamily: "Inter",
+  },
+  eventDateText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#800000",
+    marginLeft: 6,
     fontFamily: "Inter",
   },
 

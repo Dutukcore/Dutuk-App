@@ -243,6 +243,7 @@ const Home = () => {
                 setSelectedDate(dateString);
               }}
               markedDates={markedDates}
+              disabled={true}
             />
           </View>
         </View>

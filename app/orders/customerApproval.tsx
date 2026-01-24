@@ -55,12 +55,17 @@ const CustomerApprovalScreen = () => {
   // Create initial date for calendar
   const initialDate = new Date(parsedEventDate.year, parsedEventDate.month, parsedEventDate.day);
   
-  // Marked dates for unavailable days (example data)
+  // Create the booked event date string
+  const bookedEventDateString = `${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-${String(parsedEventDate.day).padStart(2, '0')}`;
+  
+  // Marked dates for unavailable days and booked event (example data)
   const markedDates = {
     [`${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-22`]: { unavailable: true },
     [`${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-23`]: { unavailable: true },
     [`${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-24`]: { unavailable: true },
     [`${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-26`]: { unavailable: true },
+    // Add the booked event date with maroon indicator
+    [bookedEventDateString]: { hasEvent: true, eventColor: '#800000' },
   };
 
   const handleDayPress = (day: number, dateString: string) => {
