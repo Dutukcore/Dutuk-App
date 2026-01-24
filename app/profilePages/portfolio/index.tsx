@@ -22,9 +22,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
-const GRID_GAP = 8;
+const GRID_GAP = 12;
 const GRID_COLUMNS = 2;
-const IMAGE_SIZE = (width - 32 - (GRID_COLUMNS - 1) * GRID_GAP) / GRID_COLUMNS;
+const IMAGE_SIZE = (width - 40 - (GRID_COLUMNS - 1) * GRID_GAP) / GRID_COLUMNS;
 
 const EVENT_TYPES = [
     'Wedding',
@@ -490,7 +490,8 @@ const styles = StyleSheet.create({
     grid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: GRID_GAP,
+        gap: 12,
+        justifyContent: 'flex-start',
     },
     gridItem: {
         width: IMAGE_SIZE,
