@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1c1917',
+    color: '#800000',
     marginBottom: 8,
     textAlign: 'center',
     letterSpacing: -0.5,

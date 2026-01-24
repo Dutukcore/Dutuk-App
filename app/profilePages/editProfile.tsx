@@ -354,7 +354,7 @@ export default EditProfileScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#faf8f5",
     paddingHorizontal: 20,
   },
 
@@ -372,6 +372,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 26,
     fontWeight: "700",
+    color: '#800000',
   },
 
   profileImageSection: {
@@ -438,7 +439,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: "#000000",
+    backgroundColor: "#800000",
     minWidth: 100,
     justifyContent: "center",
   },
@@ -456,7 +457,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
-    backgroundColor: "#007AFF",
+    backgroundColor: "#800000",
     minWidth: 100,
     justifyContent: "center",
   },
@@ -534,7 +535,7 @@ const styles = StyleSheet.create({
 
   saveButton: {
     marginTop: 25,
-    backgroundColor: "black",
+    backgroundColor: "#800000",
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
@@ -554,7 +555,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: "#666666",
+    color: "#57534e",
   },
 
   saveButtonDisabled: {

@@ -325,7 +325,7 @@ const style = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: '#F3F3F3',
+    backgroundColor: '#faf8f5',
     paddingVertical: 20,
   },
   backButton: {
@@ -360,12 +360,12 @@ const style = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#000000',
+    color: '#800000',
     marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#666666',
+    color: '#57534e',
     textAlign: 'center',
   },
   legendContainer: {
@@ -387,7 +387,7 @@ const style = StyleSheet.create({
   },
   legendText: {
     fontSize: 13,
-    color: '#000000',
+    color: '#1c1917',
     fontWeight: '500',
   },
   calendar: {
@@ -418,7 +418,7 @@ const style = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 14,
-    color: '#666666',
+    color: '#57534e',
   },
   savingOverlay: {
     position: 'absolute',
@@ -438,7 +438,7 @@ const style = StyleSheet.create({
   },
   savingText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: '#800000',
     fontWeight: '500',
   },
 });

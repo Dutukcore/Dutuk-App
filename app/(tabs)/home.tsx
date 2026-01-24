@@ -707,7 +707,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#1c1917',
+    color: '#800000',
     letterSpacing: -0.5,
   },
   scrollView: {

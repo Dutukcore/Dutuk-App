@@ -427,7 +427,7 @@ const CreateEventScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#faf8f5",
   },
   content: {
     padding: 20,
@@ -448,13 +448,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 16,
+    color: '#800000',
   },
   label: {
     fontSize: 14,
     fontWeight: "600",
     marginBottom: 6,
     marginTop: 14,
-    color: "#333333",
+    color: "#1c1917",
   },
   input: {
     borderWidth: 1,
@@ -474,7 +475,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: "#007AFF",
+    backgroundColor: "#800000",
     paddingVertical: 14,
     borderRadius: 14,
     marginBottom: 16,
@@ -494,7 +495,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   backButtonText: {
-    color: "#007AFF",
+    color: "#800000",
     fontSize: 15,
     fontWeight: "600",
   },
@@ -512,7 +513,7 @@ const styles = StyleSheet.create({
   },
   changeImageButton: {
     flex: 1,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#800000',
     padding: 12,
     alignItems: 'center',
     borderRadius: 8,
@@ -583,7 +584,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#800000',
     padding: 12,
     borderRadius: 8,
   },
@@ -597,7 +598,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#800000',
     padding: 12,
     borderRadius: 8,
     backgroundColor: '#FFF',

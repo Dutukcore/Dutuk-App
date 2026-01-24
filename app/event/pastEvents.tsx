@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type PastEvent = {
   id: string;
@@ -64,21 +65,29 @@ const PastEvents = () => {
   const renderItem = ({ item }: { item: PastEvent }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardId}>{item.id}</Text>
-        {item.status && <Text style={styles.status}>{item.status}</Text>}
+        <Text style={styles.cardTitle}>{item.event || "Untitled Event"}</Text>
+        <View style={styles.statusBadge}>
+          <Ionicons name="checkmark-circle" size={14} color="#34C759" />
+          <Text style={styles.statusText}>Completed</Text>
+        </View>
       </View>
 
-      <Text style={styles.cardTitle}>{item.event || "Untitled Event"}</Text>
-      <Text style={styles.cardName}>{item.customer_name || "Unknown customer"}</Text>
-
-      <View style={styles.footerRow}>
-        <View style={styles.row}>
-          <Ionicons name="calendar-outline" size={20} color="black" />
-          <Text style={styles.footerText}>{formatDateRange(item.start_date, item.end_date)}</Text>
+      {item.customer_name && (
+        <View style={styles.infoRow}>
+          <Ionicons name="person-outline" size={18} color="#57534e" />
+          <Text style={styles.infoText}>{item.customer_name}</Text>
         </View>
-        <View style={styles.row}>
-          <Ionicons name="cash-outline" size={20} color="black" />
-          <Text style={styles.footerText}>{formatCurrency(item.payment)}</Text>
+      )}
+
+      <View style={styles.infoRow}>
+        <Ionicons name="calendar-outline" size={18} color="#57534e" />
+        <Text style={styles.infoText}>{formatDateRange(item.start_date, item.end_date)}</Text>
+      </View>
+
+      <View style={styles.cardFooter}>
+        <View style={styles.paymentContainer}>
+          <Ionicons name="cash-outline" size={18} color="#800000" />
+          <Text style={styles.paymentText}>{formatCurrency(item.payment)}</Text>
         </View>
       </View>
     </View>
@@ -86,27 +95,39 @@ const PastEvents = () => {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#000" />
-        <Text style={styles.loadingText}>Loading past events...</Text>
-      </View>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color="#800000" />
+          <Text style={styles.loadingText}>Loading past events...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Past Events</Text>
+        <Text style={styles.subtitle}>Completed event history</Text>
+      </View>
+      
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No past events</Text>
+            <View style={styles.emptyIconContainer}>
+              <Ionicons name="checkmark-circle-outline" size={48} color="#34C759" />
+            </View>
+            <Text style={styles.emptyTitle}>No past events</Text>
+            <Text style={styles.emptyText}>Completed events will appear here</Text>
           </View>
         }
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -115,87 +136,138 @@ export default PastEvents;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f3f3f3",
-    padding: 16,
-    paddingTop: 40,
-  },
-  centerContent: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: "#666",
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-    elevation: 3,
-  },
-  backArrow: {
-    fontSize: 20,
+    backgroundColor: '#faf8f5',
   },
   header: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 16,
+    paddingHorizontal: 28,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
-  card: {
-    backgroundColor: "white",
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#800000',
+    letterSpacing: -0.5,
     marginBottom: 8,
   },
-  cardId: {
-    color: "gray",
+  subtitle: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#57534e',
   },
-  status: {
-    color: "#007AFF",
-    fontWeight: "600",
-    textTransform: "capitalize",
+  listContent: {
+    paddingHorizontal: 28,
+    paddingBottom: 24,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  cardName: {
-    color: "gray",
+  loadingText: {
+    marginTop: 16,
+    fontSize: 15,
+    color: '#57534e',
+    fontWeight: '500',
+  },
+  card: {
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(128, 0, 0, 0.06)',
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
-  footerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  cardTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1c1917',
+    letterSpacing: -0.3,
+    marginRight: 12,
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#34C75915',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     gap: 6,
   },
-  footerText: {
-    color: "#444",
+  statusText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#34C759',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#57534e',
+    fontWeight: '400',
+  },
+  cardFooter: {
+    marginTop: 8,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(128, 0, 0, 0.06)',
+  },
+  paymentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  paymentText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#800000',
+    letterSpacing: -0.3,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 80,
+    paddingHorizontal: 40,
+  },
+  emptyIconContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: '#34C75915',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1c1917',
+    marginBottom: 8,
+    letterSpacing: -0.3,
   },
   emptyText: {
-    fontSize: 16,
-    color: "#999",
+    fontSize: 14,
+    color: '#57534e',
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
-
