@@ -2,36 +2,26 @@ import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { ArrowLeft, ChevronLeft, ChevronRight, Copy } from 'react-native-feather';
+import { ArrowLeft, Copy } from 'react-native-feather';
 import { SafeAreaView } from "react-native-safe-area-context";
+import UnifiedCalendar from "../../components/UnifiedCalendar";
 
 const CustomerDetailsScreen = () => {
   const params = useLocalSearchParams();
   const [selectedDate, setSelectedDate] = useState(24);
-  const [currentMonth, setCurrentMonth] = useState("October 2025");
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(9); // October = 9 (0-indexed)
-  const [currentYear, setCurrentYear] = useState(2025);
+  
+  // Create initial date for calendar (October 2025)
+  const initialDate = new Date(2025, 9, 24);
+  
+  // Marked dates for unavailable days (example data)
+  const markedDates = {
+    '2025-10-22': { unavailable: true },
+    '2025-10-23': { unavailable: true },
+    '2025-10-26': { unavailable: true },
+  };
 
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    let newMonthIndex = currentMonthIndex;
-    let newYear = currentYear;
-
-    if (direction === 'prev') {
-      newMonthIndex = currentMonthIndex === 0 ? 11 : currentMonthIndex - 1;
-      if (currentMonthIndex === 0) newYear = currentYear - 1;
-    } else {
-      newMonthIndex = currentMonthIndex === 11 ? 0 : currentMonthIndex + 1;
-      if (currentMonthIndex === 11) newYear = currentYear + 1;
-    }
-
-    setCurrentMonthIndex(newMonthIndex);
-    setCurrentYear(newYear);
-    setCurrentMonth(`${months[newMonthIndex]} ${newYear}`);
+  const handleDayPress = (day: number, dateString: string) => {
+    setSelectedDate(day);
   };
 
   const customerEmail = params.customerEmail as string || "customer@example.com";
@@ -40,107 +30,6 @@ const CustomerDetailsScreen = () => {
   const copyToClipboard = async (text: string, type: string) => {
     await Clipboard.setStringAsync(text);
     Alert.alert("Copied", `${type} copied to clipboard!`);
-  };
-
-  const renderCalendar = () => {
-    // Get the first day of the month and number of days
-    const firstDay = new Date(currentYear, currentMonthIndex, 1);
-    const lastDay = new Date(currentYear, currentMonthIndex + 1, 0);
-    const daysInCurrentMonth = lastDay.getDate();
-    const startingDayOfWeek = (firstDay.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
-
-    // Generate calendar grid
-    const calendarDays = [];
-    const totalCells = 42; // 6 rows × 7 days
-
-    // Previous month's trailing days
-    const prevMonth = new Date(currentYear, currentMonthIndex - 1, 0);
-    const daysInPrevMonth = prevMonth.getDate();
-    
-    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
-      calendarDays.push({
-        day: daysInPrevMonth - i,
-        isCurrentMonth: false,
-        isNextMonth: false
-      });
-    }
-
-    // Current month's days
-    for (let day = 1; day <= daysInCurrentMonth; day++) {
-      calendarDays.push({
-        day,
-        isCurrentMonth: true,
-        isNextMonth: false
-      });
-    }
-
-    // Next month's leading days
-    const remainingCells = totalCells - calendarDays.length;
-    for (let day = 1; day <= remainingCells; day++) {
-      calendarDays.push({
-        day,
-        isCurrentMonth: false,
-        isNextMonth: true
-      });
-    }
-
-    // Create weeks array
-    const weeks = [];
-    for (let i = 0; i < calendarDays.length; i += 7) {
-      weeks.push(calendarDays.slice(i, i + 7));
-    }
-
-    const unavailableDates = [22, 23, 26];
-
-    return (
-      <View style={styles.calendar}>
-        <View style={styles.calendarHeader}>
-          <TouchableOpacity style={styles.navButton} onPress={() => navigateMonth('prev')}>
-            <ChevronLeft width={18} height={18} stroke="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.monthText}>{currentMonth}</Text>
-          <TouchableOpacity style={styles.navButton} onPress={() => navigateMonth('next')}>
-            <ChevronRight width={18} height={18} stroke="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.weekDays}>
-          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-            <Text key={day} style={styles.weekDayText}>{day}</Text>
-          ))}
-        </View>
-
-        {weeks.map((week, weekIndex) => (
-          <View key={weekIndex} style={styles.weekRow}>
-            {week.map((dayObj, dayIndex) => {
-              const { day, isCurrentMonth } = dayObj;
-              const isUnavailable = unavailableDates.includes(day) && isCurrentMonth;
-              const isSelected = day === selectedDate && isCurrentMonth;
-              
-              return (
-                <TouchableOpacity
-                  key={dayIndex}
-                  style={[
-                    styles.dayCell,
-                    isSelected && styles.selectedDay
-                  ]}
-                  onPress={() => isCurrentMonth && !isUnavailable && setSelectedDate(day)}
-                >
-                  <Text style={[
-                    styles.dayText,
-                    !isCurrentMonth && styles.otherMonthText,
-                    isUnavailable && styles.unavailableText,
-                    isSelected && styles.selectedDayText
-                  ]}>
-                    {day}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ))}
-      </View>
-    );
   };
 
   return (
@@ -180,7 +69,12 @@ const CustomerDetailsScreen = () => {
 
       {/* Calendar */}
       <View style={styles.calendarContainer}>
-        {renderCalendar()}
+        <UnifiedCalendar
+          initialDate={initialDate}
+          selectedDate={selectedDate}
+          onDayPress={handleDayPress}
+          markedDates={markedDates}
+        />
       </View>
 
      
@@ -288,83 +182,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 4,
-  },
-  calendar: {
-    width: "100%",
-  },
-  calendarHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  navButton: {
-    width: 36,
-    height: 36,
-    backgroundColor: "#800000",
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-
-  monthText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1c1917",
-    fontFamily: "Inter",
-    letterSpacing: -0.2,
-  },
-  weekDays: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 16,
-  },
-  weekDayText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#57534e",
-    fontFamily: "Inter",
-    width: 30,
-    textAlign: "center",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  weekRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 10,
-  },
-  dayCell: {
-    width: 30,
-    height: 30,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  selectedDay: {
-    backgroundColor: "#800000",
-    borderRadius: 15,
-  },
-  dayText: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#1c1917",
-    fontFamily: "Inter",
-  },
-  otherMonthText: {
-    color: "#d6d3d1",
-  },
-  unavailableText: {
-    color: "#FF3B30",
-    fontWeight: "700",
-  },
-  selectedDayText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
   },
 });
 

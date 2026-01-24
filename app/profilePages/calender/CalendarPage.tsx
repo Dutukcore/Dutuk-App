@@ -5,8 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { Calendar } from "react-native-calendars";
 import Toast from 'react-native-toast-message';
+import UnifiedCalendar from "@/components/UnifiedCalendar";
 
 // Helper function to check if a date is in the past
 const isPastDate = (dateString: string): boolean => {
@@ -17,25 +17,6 @@ const isPastDate = (dateString: string): boolean => {
 };
 
 const CalendarPage = () => {
-  type MarkedDateType = {
-    [date: string]: {
-      dots?: { key: string; color: string }[];
-      periods?: { startingDay?: boolean; endingDay?: boolean; color: string }[];
-      customStyles?: {
-        container?: {
-          borderRadius?: number;
-          borderWidth?: number;
-          borderColor?: string;
-          backgroundColor?: string;
-        };
-        text?: {
-          color?: string;
-          fontWeight?: '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900' | 'normal' | 'bold';
-        };
-      };
-    };
-  };
-
   const [isAllowed, setAllowed] = useState(false);
   const [calendarDates, setCalendarDates] = useState<StoredDate[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -53,43 +34,27 @@ const CalendarPage = () => {
     }
   };
 
-  // Convert calendar dates to marked dates format
-  const markedDates: MarkedDateType = calendarDates.reduce((acc, calDate) => {
+  // Convert calendar dates to marked dates format for UnifiedCalendar
+  const markedDates: { [date: string]: any } = calendarDates.reduce((acc, calDate) => {
     if (calDate.status === 'unavailable') {
-      // Unavailable: red text
       acc[calDate.date] = {
-        customStyles: {
-          text: {
-            color: '#FF3B30',
-            fontWeight: '700',
-          },
-        },
+        unavailable: true,
       };
     } else if (calDate.status === 'available') {
-      // Available: black circle with white text
       acc[calDate.date] = {
-        customStyles: {
-          container: {
-            backgroundColor: '#000000',
-            borderRadius: 20,
-          },
-          text: {
-            color: '#FFFFFF',
-            fontWeight: '700',
-          },
-        },
+        available: true,
       };
     }
     return acc;
-  }, {} as MarkedDateType);
+  }, {} as { [date: string]: any });
 
   useEffect(() => {
     getDates();
   }, []);
 
-  const handleDayPress = async (day: any) => {
+  const handleDayPress = async (day: number, dateString: string) => {
     // Validate: Cannot mark past dates
-    if (isPastDate(day.dateString)) {
+    if (isPastDate(dateString)) {
       Toast.show({
         type: 'error',
         text1: 'Invalid Date',
@@ -99,7 +64,7 @@ const CalendarPage = () => {
       return;
     }
 
-    const existingDate = calendarDates.find(d => d.date === day.dateString);
+    const existingDate = calendarDates.find(d => d.date === dateString);
 
     if (existingDate) {
       // Date exists - show options
@@ -118,7 +83,7 @@ const CalendarPage = () => {
               const newStatus: DateStatus =
                 existingDate.status === 'available' ? 'unavailable' : 'available';
               const success = await storeDateWithStatus(
-                day.dateString,
+                dateString,
                 newStatus,
                 existingDate.event,
                 existingDate.description
@@ -147,7 +112,7 @@ const CalendarPage = () => {
             style: 'destructive',
             onPress: async () => {
               setIsSaving(true);
-              const success = await removeDate(day.dateString);
+              const success = await removeDate(dateString);
               if (success) {
                 await getDates(); // Reload from database
                 Toast.show({
@@ -184,7 +149,7 @@ const CalendarPage = () => {
             text: 'Available',
             onPress: async () => {
               setIsSaving(true);
-              const success = await storeDateWithStatus(day.dateString, 'available');
+              const success = await storeDateWithStatus(dateString, 'available');
               if (success) {
                 await getDates(); // Reload from database
                 Toast.show({
@@ -209,7 +174,7 @@ const CalendarPage = () => {
             style: 'default',
             onPress: async () => {
               setIsSaving(true);
-              const success = await storeDateWithStatus(day.dateString, 'unavailable');
+              const success = await storeDateWithStatus(dateString, 'unavailable');
               if (success) {
                 await getDates(); // Reload from database
                 Toast.show({
@@ -236,6 +201,9 @@ const CalendarPage = () => {
   };
 
   if (isAllowed) {
+    const today = new Date();
+    const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
     return (
       <View style={style.container}>
         {/* Back Button */}
@@ -265,35 +233,13 @@ const CalendarPage = () => {
           </View>
         </View>
 
-        <Calendar
-          markingType={"custom"}
-          onDayPress={handleDayPress}
-          style={style.calendar}
-          theme={{
-            backgroundColor: '#ffffff',
-            calendarBackground: '#ffffff',
-            textSectionTitleColor: '#000000',
-            selectedDayBackgroundColor: '#007AFF',
-            selectedDayTextColor: '#ffffff',
-            todayTextColor: '#007AFF',
-            dayTextColor: '#000000',
-            textDisabledColor: '#CCCCCC',
-            dotColor: '#007AFF',
-            selectedDotColor: '#ffffff',
-            arrowColor: '#007AFF',
-            monthTextColor: '#000000',
-            textDayFontWeight: '500',
-            textMonthFontWeight: '600',
-            textDayHeaderFontWeight: '500',
-            textDayFontSize: 14,
-            textMonthFontSize: 16,
-            textDayHeaderFontSize: 12
-          }}
-          minDate={new Date().toISOString().split('T')[0]}
-          markedDates={{
-            ...markedDates,
-          }}
-        />
+        <View style={style.calendarCard}>
+          <UnifiedCalendar
+            onDayPress={handleDayPress}
+            markedDates={markedDates}
+            minDate={minDate}
+          />
+        </View>
 
         <View style={style.instructionContainer}>
           <Ionicons name="cloud-done-outline" size={20} color="#34C759" />
@@ -304,7 +250,7 @@ const CalendarPage = () => {
 
         {isSaving && (
           <View style={style.savingOverlay}>
-            <ActivityIndicator size="small" color="#007AFF" />
+            <ActivityIndicator size="small" color="#800000" />
             <Text style={style.savingText}>Saving...</Text>
           </View>
         )}
@@ -313,7 +259,7 @@ const CalendarPage = () => {
   } else {
     return (
       <View style={style.container}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#800000" />
         <Text style={style.loadingText}>Loading Calendar...</Text>
       </View>
     );
@@ -390,16 +336,18 @@ const style = StyleSheet.create({
     color: '#1c1917',
     fontWeight: '500',
   },
-  calendar: {
+  calendarCard: {
     width: 350,
-    borderRadius: 16,
+    borderRadius: 24,
     backgroundColor: '#FFFFFF',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
     elevation: 4,
-    padding: 10,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(128, 0, 0, 0.06)',
   },
   instructionContainer: {
     flexDirection: 'row',

@@ -19,8 +19,8 @@ import {
   Text,
   View
 } from "react-native";
-import { Calendar } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import UnifiedCalendar from '@/components/UnifiedCalendar';
 
 type Event = {
   id: string;
@@ -79,48 +79,34 @@ const Home = () => {
       const storedCalendarDates = await getCalendarDates();
       setCalendarDates(storedCalendarDates);
 
-      // Create marked dates object for calendar
+      // Create marked dates object for UnifiedCalendar
       const marked: any = {};
 
-      // First, add events with dots
+      // First, add events with hasEvent flag and color
       allEvents.forEach((event: Event) => {
         const startDate = event.start_date?.split('T')[0];
 
         if (startDate) {
           marked[startDate] = {
-            marked: true,
-            dotColor: event.status === 'upcoming' ? '#007AFF' : event.status === 'ongoing' ? '#FF9500' : '#34C759',
+            hasEvent: true,
+            eventColor: event.status === 'upcoming' ? '#007AFF' : event.status === 'ongoing' ? '#FF9500' : '#34C759',
           };
         }
       });
 
-      // Then, add calendar availability dates with custom styling
+      // Then, add calendar availability dates
       storedCalendarDates.forEach((calDate: CalendarDate) => {
         if (calDate.status === 'unavailable') {
           // Unavailable dates: red text
           marked[calDate.date] = {
-            ...marked[calDate.date], // Preserve event dots if they exist
-            customStyles: {
-              text: {
-                color: '#FF3B30',
-                fontWeight: '700',
-              },
-            },
+            ...marked[calDate.date], // Preserve event markers if they exist
+            unavailable: true,
           };
         } else if (calDate.status === 'available') {
           // Available dates: black circle with white text
           marked[calDate.date] = {
-            ...marked[calDate.date], // Preserve event dots if they exist
-            customStyles: {
-              container: {
-                backgroundColor: '#000000',
-                borderRadius: 20,
-              },
-              text: {
-                color: '#FFFFFF',
-                fontWeight: '700',
-              },
-            },
+            ...marked[calDate.date], // Preserve event markers if they exist
+            available: true,
           };
         }
       });
@@ -251,34 +237,14 @@ const Home = () => {
               <Text style={styles.calendarLink}>Manage</Text>
             </Pressable>
           </View>
-          <Calendar
-            markingType={'custom'}
-            markedDates={markedDates}
-            onDayPress={(day) => {
-              setSelectedDate(day.dateString);
-            }}
-            theme={{
-              backgroundColor: '#ffffff',
-              calendarBackground: '#ffffff',
-              textSectionTitleColor: '#1c1917',
-              selectedDayBackgroundColor: '#800000',
-              selectedDayTextColor: '#ffffff',
-              todayTextColor: '#800000',
-              dayTextColor: '#1c1917',
-              textDisabledColor: '#e7e5e4',
-              dotColor: '#800000',
-              selectedDotColor: '#ffffff',
-              arrowColor: '#800000',
-              monthTextColor: '#1c1917',
-              textDayFontWeight: '500',
-              textMonthFontWeight: '700',
-              textDayHeaderFontWeight: '600',
-              textDayFontSize: 15,
-              textMonthFontSize: 18,
-              textDayHeaderFontSize: 12
-            }}
-            style={styles.calendar}
-          />
+          <View style={styles.calendarWrapper}>
+            <UnifiedCalendar
+              onDayPress={(day, dateString) => {
+                setSelectedDate(dateString);
+              }}
+              markedDates={markedDates}
+            />
+          </View>
         </View>
 
         {/* Manage Events Section */}
@@ -754,8 +720,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
-  calendar: {
-    borderRadius: 28,
+  calendarWrapper: {
+    paddingHorizontal: 28,
     paddingBottom: 24,
     paddingTop: 8,
   },
