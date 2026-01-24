@@ -355,40 +355,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#faf8f5",
-    paddingHorizontal: 20,
+    paddingHorizontal: 28,
   },
 
   headerRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 20,
-    marginBottom: 30,
+    marginTop: 24,
+    marginBottom: 32,
   },
 
   backIcon: {
-    marginRight: 10,
-  },
-
-  headerText: {
-    fontSize: 26,
-    fontWeight: "700",
+    marginRight: 12,
     color: '#800000',
   },
 
+  headerText: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: '#800000',
+    letterSpacing: -0.5,
+  },
+
   profileImageSection: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    backgroundColor: "rgba(255, 255, 255, 0.98)",
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(128, 0, 0, 0.06)',
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
   },
 
   avatarContainer: {
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 18,
   },
 
   avatarWrapper: {
@@ -401,27 +406,30 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     backgroundColor: "#E5E5E5",
     borderWidth: 3,
-    borderColor: "#FFF",
+    borderColor: "#faf8f5",
   },
 
   profileTextInfo: {
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 18,
   },
 
   companyName: {
     fontSize: 20,
     fontWeight: "700",
-    marginBottom: 4,
+    marginBottom: 6,
     textAlign: "center",
     width: "100%",
+    color: '#1c1917',
+    letterSpacing: -0.3,
   },
 
   tagline: {
     fontSize: 13,
-    color: "#666",
+    color: "#57534e",
     textAlign: "center",
     width: "100%",
+    fontWeight: '400',
   },
 
   imageButtonsContainer: {
@@ -435,37 +443,51 @@ const styles = StyleSheet.create({
   primaryBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 20,
     backgroundColor: "#800000",
     minWidth: 100,
     justifyContent: "center",
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 4,
   },
 
   primaryBtnText: {
     color: "white",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 
   uploadBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 20,
     backgroundColor: "#800000",
     minWidth: 100,
     justifyContent: "center",
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 4,
   },
 
   uploadBtnText: {
     color: "white",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 
   buttonDisabled: {
@@ -487,64 +509,80 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
-    marginBottom: 10,
+    marginBottom: 12,
+    color: '#1c1917',
+    letterSpacing: -0.3,
   },
 
   card: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 18,
-    marginTop: 10,
-    marginBottom: 40,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    backgroundColor: "rgba(255, 255, 255, 0.98)",
+    borderRadius: 24,
+    padding: 24,
+    marginTop: 12,
+    marginBottom: 48,
+    borderWidth: 1,
+    borderColor: 'rgba(128, 0, 0, 0.06)',
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
   },
 
   label: {
     fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 6,
-    marginTop: 15,
+    fontWeight: "700",
+    marginBottom: 8,
+    marginTop: 16,
+    color: "#1c1917",
+    letterSpacing: -0.1,
   },
 
   input: {
-    height: 45,
+    height: 48,
     borderWidth: 1,
-    borderColor: "#DADADA",
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderColor: "rgba(128, 0, 0, 0.15)",
+    borderRadius: 16,
+    paddingHorizontal: 16,
     fontSize: 14,
     backgroundColor: "#fff",
+    color: '#1c1917',
   },
 
   textarea: {
-    height: 90,
+    height: 100,
     borderWidth: 1,
-    borderColor: "#DADADA",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderColor: "rgba(128, 0, 0, 0.15)",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 14,
     textAlignVertical: "top",
     backgroundColor: "#fff",
+    color: '#1c1917',
   },
 
   saveButton: {
-    marginTop: 25,
+    marginTop: 28,
     backgroundColor: "#800000",
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 16,
+    borderRadius: 20,
     alignItems: "center",
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 6,
   },
 
   saveButtonText: {
     color: "white",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "700",
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 
   loadingContainer: {
@@ -553,9 +591,10 @@ const styles = StyleSheet.create({
   },
 
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: 16,
+    fontSize: 15,
     color: "#57534e",
+    fontWeight: '500',
   },
 
   saveButtonDisabled: {
@@ -568,7 +607,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(128, 0, 0, 0.7)',
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
