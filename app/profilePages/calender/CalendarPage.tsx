@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import Toast from 'react-native-toast-message';
 import UnifiedCalendar from "@/components/UnifiedCalendar";
+import { buildAvailabilityMarkedDates } from "@/utils/calendarAvailability";
 
 // Helper function to check if a date is in the past
 const isPastDate = (dateString: string): boolean => {
@@ -35,18 +36,8 @@ const CalendarPage = () => {
   };
 
   // Convert calendar dates to marked dates format for UnifiedCalendar
-  const markedDates: { [date: string]: any } = calendarDates.reduce((acc, calDate) => {
-    if (calDate.status === 'unavailable') {
-      acc[calDate.date] = {
-        unavailable: true,
-      };
-    } else if (calDate.status === 'available') {
-      acc[calDate.date] = {
-        available: true,
-      };
-    }
-    return acc;
-  }, {} as { [date: string]: any });
+  // Using shared utility - this is the SINGLE SOURCE OF TRUTH for availability logic
+  const markedDates = buildAvailabilityMarkedDates(calendarDates);
 
   useEffect(() => {
     getDates();

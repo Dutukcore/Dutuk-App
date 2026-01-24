@@ -6,6 +6,7 @@ import getCompanyInfo from "@/hooks/useGetCompanyInfo";
 import { useVendorReviews } from "@/hooks/useVendorReviews";
 import { getPendingInquiriesCount } from "@/hooks/useEventInquiries";
 import { CalendarDate, getCalendarDates } from '@/utils/calendarStorage';
+import { buildAvailabilityMarkedDates, mergeAvailabilityWithEvents, MarkedDatesMap } from '@/utils/calendarAvailability';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -39,7 +40,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
-  const [markedDates, setMarkedDates] = useState<any>({});
+  const [markedDates, setMarkedDates] = useState<MarkedDatesMap>({});
   const [selectedDate, setSelectedDate] = useState('');
   const [profileImageUrl, setProfileImageUrl] = useState<string>("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png");
   const [profileImageLoading, setProfileImageLoading] = useState(false);
@@ -79,39 +80,24 @@ const Home = () => {
       const storedCalendarDates = await getCalendarDates();
       setCalendarDates(storedCalendarDates);
 
-      // Create marked dates object for UnifiedCalendar
-      const marked: any = {};
+      // REUSE Calendar page logic - single source of truth for availability
+      const availabilityMarked = buildAvailabilityMarkedDates(storedCalendarDates);
 
-      // First, add events with hasEvent flag and color
+      // Create event markers separately
+      const eventMarked: MarkedDatesMap = {};
       allEvents.forEach((event: Event) => {
         const startDate = event.start_date?.split('T')[0];
-
         if (startDate) {
-          marked[startDate] = {
+          eventMarked[startDate] = {
             hasEvent: true,
             eventColor: event.status === 'upcoming' ? '#007AFF' : event.status === 'ongoing' ? '#FF9500' : '#34C759',
           };
         }
       });
 
-      // Then, add calendar availability dates
-      storedCalendarDates.forEach((calDate: CalendarDate) => {
-        if (calDate.status === 'unavailable') {
-          // Unavailable dates: red text
-          marked[calDate.date] = {
-            ...marked[calDate.date], // Preserve event markers if they exist
-            unavailable: true,
-          };
-        } else if (calDate.status === 'available') {
-          // Available dates: black circle with white text
-          marked[calDate.date] = {
-            ...marked[calDate.date], // Preserve event markers if they exist
-            available: true,
-          };
-        }
-      });
-
-      setMarkedDates(marked);
+      // Merge availability with events using utility function
+      const merged = mergeAvailabilityWithEvents(availabilityMarked, eventMarked);
+      setMarkedDates(merged);
     } catch (error) {
       console.error('Failed to load events:', error);
     }

@@ -5,6 +5,7 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ArrowLeft, Copy, Calendar as CalendarIcon } from 'react-native-feather';
 import { SafeAreaView } from "react-native-safe-area-context";
 import UnifiedCalendar from "../../components/UnifiedCalendar";
+import { buildOrderBookingMarkedDates } from "../../utils/calendarAvailability";
 
 const CustomerDetailsScreen = () => {
   const params = useLocalSearchParams<{
@@ -53,14 +54,9 @@ const CustomerDetailsScreen = () => {
   // Create the booked event date string
   const bookedEventDateString = `${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-${String(parsedEventDate.day).padStart(2, '0')}`;
   
-  // Marked dates for unavailable days and booked event (example data)
-  const markedDates = {
-    [`${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-22`]: { unavailable: true },
-    [`${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-23`]: { unavailable: true },
-    [`${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-26`]: { unavailable: true },
-    // Add the booked event date with maroon indicator
-    [bookedEventDateString]: { hasEvent: true, eventColor: '#800000' },
-  };
+  // Orders page: ONLY show the user-selected booking date with maroon indicator
+  // NO availability or unavailability information (that's for Calendar page only)
+  const markedDates = buildOrderBookingMarkedDates(bookedEventDateString);
 
   const handleDayPress = (day: number, dateString: string) => {
     setSelectedDate(day);
@@ -116,13 +112,14 @@ const CustomerDetailsScreen = () => {
         <Text style={styles.eventDateText}>{params.eventDate || 'Not specified'}</Text>
       </View>
 
-      {/* Calendar */}
+      {/* Calendar - Read-only, showing ONLY the user-selected booking date */}
       <View style={styles.calendarContainer}>
         <UnifiedCalendar
           initialDate={initialDate}
           selectedDate={selectedDate}
           onDayPress={handleDayPress}
           markedDates={markedDates}
+          disabled={true}
         />
       </View>
 
