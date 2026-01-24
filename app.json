@@ -11,7 +11,13 @@
     "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.vendorapp.dutuk"
+      "bundleIdentifier": "com.vendorapp.dutuk",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Access photos and videos to showcase your work",
+        "NSPhotoLibraryAddUsageDescription": "Save media to your photo library",
+        "NSCameraUsageDescription": "Take photos and videos of your work",
+        "NSMicrophoneUsageDescription": "Record audio for your videos"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +26,15 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.vendorapp.dutuk",
-      "versionCode": 6
+      "versionCode": 6,
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO",
+        "CAMERA",
+        "RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",

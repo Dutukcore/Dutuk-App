@@ -2,7 +2,7 @@ import { PortfolioItem, usePortfolio } from '@/hooks/usePortfolio';
 import { toast, Toasts } from '@backpackapp-io/react-native-toast';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
     ActionSheetIOS,
     ActivityIndicator,
@@ -20,6 +20,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 
 const { width } = Dimensions.get('window');
 const GRID_GAP = 12;
@@ -60,6 +61,12 @@ const PortfolioPage = () => {
     const [refreshing, setRefreshing] = useState(false);
     const [saving, setSaving] = useState(false);
 
+    // Video player state
+    const videoRef = useRef<Video>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [videoLoading, setVideoLoading] = useState(false);
+    const [videoError, setVideoError] = useState(false);
+
     // Edit form state
     const [editTitle, setEditTitle] = useState('');
     const [editDescription, setEditDescription] = useState('');
@@ -77,7 +84,54 @@ const PortfolioPage = () => {
         setEditTitle(item.title || '');
         setEditDescription(item.description || '');
         setEditEventType(item.event_type || '');
+        setVideoLoading(false);
+        setVideoError(false);
+        setIsPlaying(false);
         setShowDetailModal(true);
+    };
+
+    const handleVideoPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+        if (status.isLoaded) {
+            setIsPlaying(status.isPlaying);
+            setVideoLoading(false);
+            if (status.didJustFinish) {
+                setIsPlaying(false);
+            }
+        } else if (status.error) {
+            setVideoError(true);
+            setVideoLoading(false);
+            console.error('Video error:', status.error);
+        }
+    };
+
+    const toggleVideoPlayback = async () => {
+        if (!videoRef.current) return;
+
+        try {
+            const status = await videoRef.current.getStatusAsync();
+            if (status.isLoaded) {
+                if (status.isPlaying) {
+                    await videoRef.current.pauseAsync();
+                } else {
+                    await videoRef.current.playAsync();
+                }
+            }
+        } catch (error) {
+            console.error('Error toggling video playback:', error);
+            toast.error('Failed to play video');
+        }
+    };
+
+    const handleModalClose = async () => {
+        // Pause video if playing
+        if (videoRef.current && isPlaying) {
+            try {
+                await videoRef.current.pauseAsync();
+            } catch (error) {
+                console.error('Error pausing video:', error);
+            }
+        }
+        setShowDetailModal(false);
     };
 
     const handleAddMedia = () => {
@@ -171,9 +225,10 @@ const PortfolioPage = () => {
     const handleDelete = () => {
         if (!selectedItem) return;
 
+        const mediaType = isVideoUrl(selectedItem.image_url) ? 'video' : 'image';
         Alert.alert(
-            'Delete Image',
-            'Are you sure you want to delete this image?',
+            `Delete ${mediaType.charAt(0).toUpperCase() + mediaType.slice(1)}`,
+            `Are you sure you want to delete this ${mediaType}?`,
             [
                 { text: 'Cancel', style: 'cancel' },
                 {
@@ -182,10 +237,10 @@ const PortfolioPage = () => {
                     onPress: async () => {
                         const success = await deleteItem(selectedItem.id);
                         if (success) {
-                            toast.success('Image deleted');
-                            setShowDetailModal(false);
+                            toast.success(`${mediaType.charAt(0).toUpperCase() + mediaType.slice(1)} deleted`);
+                            handleModalClose();
                         } else {
-                            toast.error('Failed to delete image');
+                            toast.error(`Failed to delete ${mediaType}`);
                         }
                     },
                 },
@@ -239,9 +294,9 @@ const PortfolioPage = () => {
                 {!loading && items.length === 0 && (
                     <View style={styles.emptyContainer}>
                         <Ionicons name="images-outline" size={64} color="#800000" />
-                        <Text style={styles.emptyTitle}>No portfolio images</Text>
+                        <Text style={styles.emptyTitle}>No portfolio items</Text>
                         <Text style={styles.emptySubtitle}>
-                            Showcase your past work to attract more customers
+                            Showcase your past work with photos and videos to attract more customers
                         </Text>
                         <Pressable
                             style={[styles.emptyAddButton, uploading && styles.addButtonDisabled]}
@@ -253,7 +308,7 @@ const PortfolioPage = () => {
                             ) : (
                                 <>
                                     <Ionicons name="add" size={20} color="#fff" />
-                                    <Text style={styles.emptyAddButtonText}>Add Image</Text>
+                                    <Text style={styles.emptyAddButtonText}>Add Media</Text>
                                 </>
                             )}
                         </Pressable>
@@ -294,10 +349,12 @@ const PortfolioPage = () => {
             <Modal visible={showDetailModal} animationType="slide" presentationStyle="pageSheet">
                 <SafeAreaView style={styles.modalContainer}>
                     <View style={styles.modalHeader}>
-                        <Pressable onPress={() => setShowDetailModal(false)}>
+                        <Pressable onPress={handleModalClose}>
                             <Text style={styles.modalCancel}>Close</Text>
                         </Pressable>
-                        <Text style={styles.modalTitle}>Image Details</Text>
+                        <Text style={styles.modalTitle}>
+                            {selectedItem && isVideoUrl(selectedItem.image_url) ? 'Video' : 'Image'} Details
+                        </Text>
                         <Pressable onPress={handleSaveDetails} disabled={saving}>
                             {saving ? (
                                 <ActivityIndicator size="small" color="#800000" />
@@ -309,8 +366,61 @@ const PortfolioPage = () => {
 
                     {selectedItem && (
                         <ScrollView style={styles.modalContent}>
-                            {/* Image Preview */}
-                            <Image source={{ uri: selectedItem.image_url }} style={styles.previewImage} />
+                            {/* Media Preview */}
+                            {isVideoUrl(selectedItem.image_url) ? (
+                                <View style={styles.videoPreviewContainer}>
+                                    <Video
+                                        ref={videoRef}
+                                        source={{ uri: selectedItem.image_url }}
+                                        style={styles.previewImage}
+                                        resizeMode={ResizeMode.CONTAIN}
+                                        useNativeControls={false}
+                                        isLooping={false}
+                                        shouldPlay={false}
+                                        onPlaybackStatusUpdate={handleVideoPlaybackStatusUpdate}
+                                        onLoadStart={() => setVideoLoading(true)}
+                                        onError={(error) => {
+                                            console.error('Video playback error:', error);
+                                            setVideoError(true);
+                                            setVideoLoading(false);
+                                        }}
+                                    />
+                                    
+                                    {/* Video Overlay Controls */}
+                                    {!videoError && (
+                                        <Pressable 
+                                            style={styles.videoOverlay}
+                                            onPress={toggleVideoPlayback}
+                                        >
+                                            {videoLoading && (
+                                                <View style={styles.videoLoadingContainer}>
+                                                    <ActivityIndicator size="large" color="#fff" />
+                                                </View>
+                                            )}
+                                            {!videoLoading && !isPlaying && (
+                                                <View style={styles.videoPlayButton}>
+                                                    <Ionicons name="play" size={48} color="#fff" />
+                                                </View>
+                                            )}
+                                            {!videoLoading && isPlaying && (
+                                                <View style={styles.videoPauseButton}>
+                                                    <Ionicons name="pause" size={48} color="#fff" />
+                                                </View>
+                                            )}
+                                        </Pressable>
+                                    )}
+                                    
+                                    {/* Error State */}
+                                    {videoError && (
+                                        <View style={styles.videoErrorContainer}>
+                                            <Ionicons name="alert-circle-outline" size={48} color="#FF3B30" />
+                                            <Text style={styles.videoErrorText}>Failed to load video</Text>
+                                        </View>
+                                    )}
+                                </View>
+                            ) : (
+                                <Image source={{ uri: selectedItem.image_url }} style={styles.previewImage} />
+                            )}
 
                             {/* Quick Actions */}
                             <View style={styles.quickActions}>
@@ -667,6 +777,69 @@ const styles = StyleSheet.create({
     eventTypeButtonTextActive: {
         color: '#fff',
         fontWeight: '700',
+    },
+    // Video player styles
+    videoPreviewContainer: {
+        width: '100%',
+        height: 280,
+        backgroundColor: '#000',
+        position: 'relative',
+    },
+    videoOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    },
+    videoLoadingContainer: {
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    videoPlayButton: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(128, 0, 0, 0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
+    },
+    videoPauseButton: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(128, 0, 0, 0.8)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 6,
+    },
+    videoErrorContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    },
+    videoErrorText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
+        marginTop: 12,
     },
 });
 
