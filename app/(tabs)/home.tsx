@@ -237,15 +237,15 @@ const Home = () => {
               <Text style={styles.calendarLink}>Manage</Text>
             </Pressable>
           </View>
-          <View style={styles.calendarWrapper}>
+          <Pressable 
+            style={styles.calendarWrapper}
+            onPress={() => router.push("/profilePages/calender/CalendarPage")}
+          >
             <UnifiedCalendar
-              onDayPress={(day, dateString) => {
-                setSelectedDate(dateString);
-              }}
               markedDates={markedDates}
               disabled={true}
             />
-          </View>
+          </Pressable>
         </View>
 
         {/* Manage Events Section */}

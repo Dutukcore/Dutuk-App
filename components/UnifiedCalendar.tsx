@@ -167,6 +167,7 @@ const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
                     styles.dayCell,
                     isSelected && styles.selectedDay,
                     isAvailable && !isSelected && styles.availableDay,
+                    (disabled || isDisabled) && styles.nonInteractiveDay,
                   ]}
                   onPress={() => {
                     if (isCurrentMonth && !isDisabled && !disabled) {
@@ -175,6 +176,7 @@ const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
                     }
                   }}
                   disabled={disabled || isDisabled}
+                  activeOpacity={disabled ? 1 : 0.7}
                 >
                   <View style={styles.dayContent}>
                     <Text style={[
@@ -297,6 +299,9 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: "#d6d3d1",
+  },
+  nonInteractiveDay: {
+    opacity: 1, // Override default disabled opacity
   },
   eventDot: {
     width: 4,
