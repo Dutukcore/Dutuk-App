@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
-import useRegisterUser from "@/hooks/useRegisterUser";
+import registerUser from "@/hooks/useRegisterUser";
 
 const Register = () => {
   const [fullName, setFullName] = useState("");
@@ -20,8 +20,6 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  
-  const { registerUser } = useRegisterUser();
 
   const handleSignUp = async () => {
     if (!fullName.trim() || !email.trim() || !password.trim()) {
@@ -44,7 +42,7 @@ const Register = () => {
 
     setLoading(true);
     try {
-      await registerUser(email.trim().toLowerCase(), password, fullName.trim());
+      await registerUser(email.trim().toLowerCase(), password);
     } catch (error) {
       console.error('Registration error:', error);
     } finally {
