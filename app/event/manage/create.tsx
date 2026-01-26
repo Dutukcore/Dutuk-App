@@ -8,13 +8,13 @@ import {
     Alert,
     Image,
     Pressable,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
     View,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import KeyboardSafeView from "@/components/KeyboardSafeView";
 
 const CreateEventScreen = () => {
   const [saving, setSaving] = useState(false);
@@ -272,7 +272,11 @@ const CreateEventScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardSafeView 
+      scrollable={true}
+      style={styles.container} 
+      contentContainerStyle={styles.content}
+    >
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Create Event</Text>
 
@@ -420,7 +424,7 @@ const CreateEventScreen = () => {
         <Ionicons name="arrow-back" size={18} color="#007AFF" />
         <Text style={styles.backButtonText}>Cancel</Text>
       </Pressable>
-    </ScrollView>
+    </KeyboardSafeView>
   );
 };
 
@@ -611,4 +615,3 @@ const styles = StyleSheet.create({
 });
 
 export default CreateEventScreen;
-

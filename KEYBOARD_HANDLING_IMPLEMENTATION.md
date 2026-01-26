@@ -138,6 +138,10 @@ The following screens have been updated to use `KeyboardSafeView`:
 ### **Profile Screens:**
 - ✅ `/app/app/profilePages/editProfile.tsx` - Edit profile with multiple inputs
 
+### **Event Management Screens:**
+- ✅ `/app/app/event/manage/create.tsx` - Create new event form
+- ✅ `/app/app/event/manage/[eventId].tsx` - Edit existing event form
+
 ### **Other Screens:**
 All other screens with input fields will automatically benefit from the root-level `KeyboardProvider`. To add explicit keyboard handling, simply wrap content with `<KeyboardSafeView>`.
 
