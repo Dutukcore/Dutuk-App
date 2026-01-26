@@ -5,7 +5,7 @@ import getUser from "@/hooks/getUser";
 import getCompanyInfo from "@/hooks/useGetCompanyInfo";
 import { useVendorReviews } from "@/hooks/useVendorReviews";
 import { getPendingInquiriesCount } from "@/hooks/useEventInquiries";
-import { CalendarDate, getCalendarDates } from '@/utils/calendarStorage';
+import getStoredDates, { StoredDate } from "@/hooks/getStoredDates";
 import { buildAvailabilityMarkedDates, mergeAvailabilityWithEvents, MarkedDatesMap } from '@/utils/calendarAvailability';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from "expo-router";
@@ -45,7 +45,7 @@ const Home = () => {
   const [profileImageUrl, setProfileImageUrl] = useState<string>("https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png");
   const [profileImageLoading, setProfileImageLoading] = useState(false);
   const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({});
-  const [calendarDates, setCalendarDates] = useState<CalendarDate[]>([]);
+  const [calendarDates, setCalendarDates] = useState<StoredDate[]>([]);
   const [pendingInquiries, setPendingInquiries] = useState<number>(0);
 
   // Reviews data
@@ -76,12 +76,12 @@ const Home = () => {
       const allEvents = await getAllEvents();
       setEvents(allEvents);
 
-      // Load calendar dates from AsyncStorage
-      const storedCalendarDates = await getCalendarDates();
-      setCalendarDates(storedCalendarDates);
+      // Load calendar dates from Supabase (same source as CalendarPage)
+      const storedCalendarDates = await getStoredDates();
+      setCalendarDates(storedCalendarDates || []);
 
       // REUSE Calendar page logic - single source of truth for availability
-      const availabilityMarked = buildAvailabilityMarkedDates(storedCalendarDates);
+      const availabilityMarked = buildAvailabilityMarkedDates(storedCalendarDates || []);
 
       // Create event markers separately
       const eventMarked: MarkedDatesMap = {};
