@@ -16,7 +16,6 @@ export type RootStackParamList = {
   '(tabs)': undefined;
   'auth/UserLogin': undefined;
   'auth/register': undefined;
-  'auth/OtpPage': { email?: string };
   'auth/EmailAuth': undefined;
   'auth/callback': undefined;
   'orders': undefined;

@@ -30,7 +30,6 @@ export default function RootLayout() {
           {/* Auth Screens */}
           <Stack.Screen name="auth/UserLogin" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="auth/register" />
-          <Stack.Screen name="auth/OtpPage" />
           <Stack.Screen name="auth/EmailAuth" />
           <Stack.Screen name="auth/callback" />
 

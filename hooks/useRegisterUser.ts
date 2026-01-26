@@ -6,8 +6,8 @@ import setRole from "./setVendorAsRoleOnRegister";
 /**
  * Register a new user with email and password
  * Automatically assigns 'vendor' role on successful registration
- * Handles email verification via OTP if required
  * Creates entries in both user_profiles and companies tables
+ * MVP: No email verification required - direct signup and auto-login
  * 
  * @param userEmail - User's email address
  * @param password - User's password (minimum 6 characters)
@@ -109,56 +109,39 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
 
     console.log("User signed up successfully:", signUpData.user.id);
 
-    // Check if email confirmation is required
-    if (!signUpData.user.email_confirmed_at) {
-      console.log("Email confirmation required. OTP automatically sent by Supabase to:", trimmedEmail);
+    // MVP: Auto-login after registration (no email verification)
+    console.log("Proceeding to auto-login after registration");
+    
+    // Automatically sign in the user
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: trimmedEmail,
+      password: password,
+    });
+
+    if (signInError) {
+      console.error("Auto-login error after registration:", signInError);
+      Toast.show({
+        type: 'info',
+        text1: 'Registration Complete',
+        text2: 'Please log in with your credentials.'
+      });
+      router.replace('/auth/UserLogin');
+    } else {
+      console.log("Auto-login successful");
       
-      // Supabase automatically sends OTP during signup when email confirmation is enabled
-      // No need to send another OTP - it would cause rate limiting or duplicate sends
-      
+      // Set vendor role and create company entry for the new user
+      const roleSet = await setRole();
+      if (!roleSet) {
+        console.warn("Warning: Failed to set vendor role, but continuing login");
+      }
+
       Toast.show({
         type: 'success',
-        text1: 'Registration Successful!',
-        text2: 'Please check your email for the verification code.'
+        text1: 'Welcome!',
+        text2: 'Your vendor account has been created successfully!'
       });
       
-      // Navigate to OTP verification page
-      router.push(`/auth/OtpPage?email=${encodeURIComponent(trimmedEmail)}`);
-    } else {
-      // Email confirmation not required (auto-confirmed), proceed to login
-      console.log("Email auto-confirmed, proceeding to auto-login");
-      
-      // Automatically sign in the user
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: trimmedEmail,
-        password: password,
-      });
-
-      if (signInError) {
-        console.error("Auto-login error after registration:", signInError);
-        Toast.show({
-          type: 'info',
-          text1: 'Registration Complete',
-          text2: 'Please log in with your credentials.'
-        });
-        router.replace('/auth/UserLogin');
-      } else {
-        console.log("Auto-login successful");
-        
-        // Set vendor role and create company entry for the new user
-        const roleSet = await setRole();
-        if (!roleSet) {
-          console.warn("Warning: Failed to set vendor role, but continuing login");
-        }
-
-        Toast.show({
-          type: 'success',
-          text1: 'Welcome!',
-          text2: 'Your vendor account has been created successfully!'
-        });
-        
-        router.replace('/(tabs)/home');
-      }
+      router.replace('/(tabs)/home');
     }
   } catch (error) {
     console.error("Unexpected error during registration:", error);

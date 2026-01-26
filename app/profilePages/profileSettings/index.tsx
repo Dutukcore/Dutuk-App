@@ -35,7 +35,7 @@ const Index = () => {
         {
           isEmail &&
         <RouteAssist
-          path={"/profilePages/profileSettings/changePasswordOtp"}
+          path={"/profilePages/profileSettings/changePassword"}
           text={"Change Password"}
         />
 

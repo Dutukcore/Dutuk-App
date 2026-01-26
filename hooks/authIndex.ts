@@ -1,12 +1,12 @@
 /**
  * Authentication Hooks & Utilities Index
  * Central export point for all authentication-related functionality
+ * MVP: OTP verification removed for simplicity
  */
 
 // Core authentication functions
 export { default as registerUser } from './useRegisterUser';
 export { default as loginUser } from './useLoginUser';
-export { default as verifyOTP } from './useVerifyOTP';
 export { default as googleLogin } from './useGoogleAuth';
 export { default as setRole } from './setVendorAsRoleOnRegister';
 export { default as getUser } from './getUser';
@@ -32,6 +32,5 @@ export type { ValidationResult } from './authHelpers';
 
 // Other user-related hooks
 export { default as useLogoutUser } from './useLogoutUser';
-export { default as useSendOTP } from './useSendOTP';
 export { default as usePasswordChange } from './usePasswordChange';
 export { default as useGetUserEmail } from './useGetUserEmail';

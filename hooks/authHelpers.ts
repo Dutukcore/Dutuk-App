@@ -128,15 +128,6 @@ export const isAuthError = (error: any): boolean => {
 };
 
 /**
- * Generate a random OTP for testing purposes (development only)
- * @param length - Length of OTP
- * @returns string - Random numeric OTP
- */
-export const generateTestOTP = (length: number = 6): string => {
-  return Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
-};
-
-/**
  * Check if the current environment is development
  * @returns boolean
  */

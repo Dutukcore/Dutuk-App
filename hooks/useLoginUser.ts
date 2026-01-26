@@ -60,13 +60,12 @@ const loginUser = async (userEmail: string, userPassword: string): Promise<void>
           text2: "No account exists with this email. Please sign up first.",
         });
       } else if (msg.includes("email not confirmed") || msg.includes("not verified")) {
+        // MVP: Simplified message without OTP redirect
         Toast.show({
           type: "error",
           text1: "Email Not Verified",
-          text2: "Please verify your email before logging in.",
+          text2: "Please contact support if you cannot access your account.",
         });
-        // Redirect to OTP page for verification
-        router.push(`/auth/OtpPage?email=${encodeURIComponent(trimmedEmail)}`);
         return;
       } else if (msg.includes("too many requests") || msg.includes("rate limit")) {
         Toast.show({
