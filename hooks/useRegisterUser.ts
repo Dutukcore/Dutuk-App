@@ -141,7 +141,8 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
         text2: 'Your vendor account has been created successfully!'
       });
       
-      router.replace('/(tabs)/home');
+      // Redirect to onboarding flow for new users
+      router.replace('/auth/OnboardingGetStarted');
     }
   } catch (error) {
     console.error("Unexpected error during registration:", error);

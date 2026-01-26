@@ -106,7 +106,8 @@ const ProfileScreen = () => {
           text1: 'Success',
           text2: 'Logged out successfully'
         });
-        router.replace('/auth/UserLogin');
+        // Redirect to welcome screen (consistent entry point)
+        router.replace('/');
       }
     } catch (error) {
       Toast.show({

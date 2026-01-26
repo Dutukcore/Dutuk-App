@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,6 +11,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { supabase } from "@/utils/supabase";
+import Toast from "react-native-toast-message";
 
 const POPULAR_REGIONS = [
   'London, UK',
@@ -20,19 +23,44 @@ const POPULAR_REGIONS = [
   'Singapore',
 ];
 
-interface OnboardingLocationProps {
-  onContinue?: (location: string) => void;
-  onSkip?: () => void;
-}
-
-const OnboardingLocation = ({ onContinue, onSkip }: OnboardingLocationProps) => {
+const OnboardingLocation = () => {
   const [location, setLocation] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleContinue = () => {
-    if (location.trim()) {
-      onContinue?.(location.trim());
+  const handleContinue = async () => {
+    setLoading(true);
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user && location.trim()) {
+        // Update company location in the companies table
+        const { error } = await supabase
+          .from("companies")
+          .update({ location: location.trim() })
+          .eq("user_id", user.id);
+
+        if (error) {
+          console.error("Error updating location:", error);
+          // Continue anyway, location is optional
+        }
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Setup Complete!',
+        text2: 'Your vendor profile is ready.'
+      });
+
+      // Navigate to home - onboarding complete
+      router.replace('/(tabs)/home');
+    } catch (error) {
+      console.error("Error in onboarding:", error);
+      // Continue to home anyway
+      router.replace('/(tabs)/home');
+    } finally {
+      setLoading(false);
     }
-    router.push('/(tabs)/home');
   };
 
   const handleSelectRegion = (region: string) => {
@@ -40,8 +68,12 @@ const OnboardingLocation = ({ onContinue, onSkip }: OnboardingLocationProps) => 
   };
 
   const handleSkip = () => {
-    onSkip?.();
-    router.push('/(tabs)/home');
+    Toast.show({
+      type: 'success',
+      text1: 'Setup Complete!',
+      text2: 'You can update your location later in settings.'
+    });
+    router.replace('/(tabs)/home');
   };
 
   return (
@@ -138,15 +170,23 @@ const OnboardingLocation = ({ onContinue, onSkip }: OnboardingLocationProps) => 
           <Pressable
             style={({ pressed }) => [
               styles.continueButton,
-              pressed && styles.buttonPressed
+              pressed && styles.buttonPressed,
+              loading && styles.buttonDisabled
             ]}
             onPress={handleContinue}
+            disabled={loading}
           >
-            <Text style={styles.continueButtonText}>Continue</Text>
-            <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.5)" />
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <>
+                <Text style={styles.continueButtonText}>Continue</Text>
+                <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.5)" />
+              </>
+            )}
           </Pressable>
 
-          <Pressable onPress={handleSkip}>
+          <Pressable onPress={handleSkip} disabled={loading}>
             <Text style={styles.skipText}>I'll do this later</Text>
           </Pressable>
         </View>
@@ -362,6 +402,9 @@ const styles = StyleSheet.create({
   buttonPressed: {
     transform: [{ scale: 0.98 }],
     opacity: 0.9,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   skipText: {
     fontSize: 14,

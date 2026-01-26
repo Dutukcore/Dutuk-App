@@ -178,6 +178,9 @@ const googleLogin = async (): Promise<void> => {
         text1: 'Welcome to Dutuk!',
         text2: 'Your vendor account has been created.'
       });
+      
+      // Redirect new Google users to onboarding
+      router.replace("/auth/OnboardingGetStarted");
     } else {
       console.log("Existing Google OAuth user, skipping vendor profile creation");
       
@@ -187,10 +190,10 @@ const googleLogin = async (): Promise<void> => {
         text1: 'Welcome Back!',
         text2: 'Successfully signed in.'
       });
+      
+      // Existing users go directly to home
+      router.replace("/(tabs)/home");
     }
-
-    // Navigate to home
-    router.replace("/(tabs)/home");
   } catch (err) {
     console.error("Unexpected Google OAuth error:", err);
     Toast.show({

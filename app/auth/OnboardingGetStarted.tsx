@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,20 +11,57 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { supabase } from "@/utils/supabase";
+import Toast from "react-native-toast-message";
 
-interface OnboardingGetStartedProps {
-  onContinue?: (name: string) => void;
-}
-
-const OnboardingGetStarted = ({ onContinue }: OnboardingGetStartedProps) => {
+const OnboardingGetStarted = () => {
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleContinue = () => {
-    if (name.trim()) {
-      onContinue?.(name.trim());
-      // Navigate to next onboarding step or home
-      router.push('/profilePages/editProfile');
+  const handleContinue = async () => {
+    if (!name.trim()) return;
+
+    setLoading(true);
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Update company name in the companies table
+        const { error } = await supabase
+          .from("companies")
+          .update({ company: name.trim() })
+          .eq("user_id", user.id);
+
+        if (error) {
+          console.error("Error updating company name:", error);
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Failed to save your name. Please try again.'
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Navigate to location onboarding step
+      router.push('/auth/OnboardingLocation');
+    } catch (error) {
+      console.error("Error in onboarding:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Something went wrong. Please try again.'
+      });
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleSkip = () => {
+    // Skip to next step without saving
+    router.push('/auth/OnboardingLocation');
   };
 
   return (
@@ -83,19 +121,24 @@ const OnboardingGetStarted = ({ onContinue }: OnboardingGetStartedProps) => {
             style={({ pressed }) => [
               styles.continueButton,
               pressed && styles.buttonPressed,
-              !name.trim() && styles.buttonDisabled
+              (!name.trim() || loading) && styles.buttonDisabled
             ]}
             onPress={handleContinue}
-            disabled={!name.trim()}
+            disabled={!name.trim() || loading}
           >
-            <Text style={styles.continueButtonText}>Continue</Text>
-            <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.5)" />
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <>
+                <Text style={styles.continueButtonText}>Continue</Text>
+                <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.5)" />
+              </>
+            )}
           </Pressable>
 
-          <Text style={styles.termsText}>
-            By continuing, you agree to our{' '}
-            <Text style={styles.termsLink}>Terms of Service</Text>
-          </Text>
+          <Pressable onPress={handleSkip} disabled={loading}>
+            <Text style={styles.skipText}>I'll do this later</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
 
@@ -226,17 +269,12 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.5,
   },
-  termsText: {
-    fontSize: 13,
+  skipText: {
+    fontSize: 14,
+    fontWeight: '500',
     color: '#a8a29e',
     textAlign: 'center',
-    marginTop: 24,
-    lineHeight: 20,
-    paddingHorizontal: 16,
-  },
-  termsLink: {
-    color: '#57534e',
-    textDecorationLine: 'underline',
+    marginTop: 16,
   },
   homeIndicator: {
     position: 'absolute',

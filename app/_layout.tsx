@@ -32,6 +32,8 @@ export default function RootLayout() {
           <Stack.Screen name="auth/register" />
           <Stack.Screen name="auth/EmailAuth" />
           <Stack.Screen name="auth/callback" />
+          <Stack.Screen name="auth/OnboardingGetStarted" options={{ animation: 'slide_from_right' }} />
+          <Stack.Screen name="auth/OnboardingLocation" options={{ animation: 'slide_from_right' }} />
 
           {/* Modal/Overlay Screens */}
           <Stack.Screen

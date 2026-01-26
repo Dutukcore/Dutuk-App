@@ -2,8 +2,9 @@ import { supabase } from "@/utils/supabase";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
-export default function AuthCallback(): null {
+export default function AuthCallback() {
   const router = useRouter();
   const handledRef = useRef(false); // prevent double-handling
 
@@ -22,6 +23,8 @@ export default function AuthCallback(): null {
 
         if (error) {
           console.error("exchangeCodeForSession error:", error.message);
+          // Redirect to login on error
+          router.replace("/auth/UserLogin");
         } else {
           console.log("Session:", data.session);
           router.replace("/(tabs)/home");
@@ -46,5 +49,26 @@ export default function AuthCallback(): null {
     };
   }, [router]);
 
-  return null;
+  // Show loading indicator while processing callback
+  return (
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color="#800000" />
+      <Text style={styles.text}>Signing you in...</Text>
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+  },
+  text: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#57534e',
+    fontWeight: '500',
+  },
+});
