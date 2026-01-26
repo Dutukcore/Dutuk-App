@@ -1,5 +1,6 @@
 import AuthAssist from "@/components/AuthAssist";
 import AuthButton from "@/components/AuthButton";
+import KeyboardSafeView from "@/components/KeyboardSafeView";
 import authEmailPageStyle from "@/css/authEmailPageStyle";
 import authInputStyle from "@/css/authInputStyle";
 import authLableStyle from "@/css/authLableStyle";
@@ -27,41 +28,43 @@ const EmailAuth = () => {
 
   return (
     <SafeAreaView style={authEmailPageStyle.container}>
-      <View>
-        <Text style={authEmailPageStyle.headerText}>Let's get started</Text>
-      </View>
+      <KeyboardSafeView scrollable={true}>
+        <View>
+          <Text style={authEmailPageStyle.headerText}>Let's get started</Text>
+        </View>
 
-      <View style={authEmailPageStyle.inputSection}>
-        <Text style={authLableStyle.label}>E-mail</Text>
-        <TextInput
-          style={authInputStyle.inputField}
-          placeholder="Type your email"
-          onChangeText={setEmail}
-        />
-        <Text style={authLableStyle.label}>Password</Text>
-        <TextInput
-          style={authInputStyle.inputField}
-          placeholder="Type your password"
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <Text style={authLableStyle.label}>Confirm Password</Text>
-        <TextInput
-          style={authInputStyle.inputField}
-          placeholder="Type your password again"
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-        />
-        <AuthAssist
-          AssistText="Already have an account? "
-          LinkText="Login"
-          route="/auth/UserLogin"
-        />
-        <AuthButton
-          buttonText="Register"
-          onPress={() => useUserRegistration(email, password, confirmPassword)}
-        />
-      </View>
+        <View style={authEmailPageStyle.inputSection}>
+          <Text style={authLableStyle.label}>E-mail</Text>
+          <TextInput
+            style={authInputStyle.inputField}
+            placeholder="Type your email"
+            onChangeText={setEmail}
+          />
+          <Text style={authLableStyle.label}>Password</Text>
+          <TextInput
+            style={authInputStyle.inputField}
+            placeholder="Type your password"
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+          <Text style={authLableStyle.label}>Confirm Password</Text>
+          <TextInput
+            style={authInputStyle.inputField}
+            placeholder="Type your password again"
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+          />
+          <AuthAssist
+            AssistText="Already have an account? "
+            LinkText="Login"
+            route="/auth/UserLogin"
+          />
+          <AuthButton
+            buttonText="Register"
+            onPress={() => useUserRegistration(email, password, confirmPassword)}
+          />
+        </View>
+      </KeyboardSafeView>
     </SafeAreaView>
   );
 };

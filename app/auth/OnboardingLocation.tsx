@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "@/utils/supabase";
 import Toast from "react-native-toast-message";
+import KeyboardSafeView from "@/components/KeyboardSafeView";
 
 const POPULAR_REGIONS = [
   'London, UK',
@@ -102,7 +102,8 @@ const OnboardingLocation = () => {
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView 
+        <KeyboardSafeView 
+          scrollable={true}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -163,7 +164,7 @@ const OnboardingLocation = () => {
               <Text style={styles.locationCardText}>Use current location</Text>
             </View>
           </View>
-        </ScrollView>
+        </KeyboardSafeView>
 
         {/* Bottom Actions */}
         <View style={styles.bottomSection}>

@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "@/utils/supabase";
 import Toast from "react-native-toast-message";
+import KeyboardSafeView from "@/components/KeyboardSafeView";
 
 const OnboardingGetStarted = () => {
   const [name, setName] = useState("");
@@ -88,7 +88,8 @@ const OnboardingGetStarted = () => {
           </View>
         </View>
 
-        <ScrollView 
+        <KeyboardSafeView 
+          scrollable={true}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -113,7 +114,7 @@ const OnboardingGetStarted = () => {
               autoCapitalize="words"
             />
           </View>
-        </ScrollView>
+        </KeyboardSafeView>
 
         {/* Bottom Actions */}
         <View style={styles.bottomSection}>

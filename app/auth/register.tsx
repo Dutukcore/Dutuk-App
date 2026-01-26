@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
 import registerUser from "@/hooks/useRegisterUser";
+import KeyboardSafeView from "@/components/KeyboardSafeView";
 
 const Register = () => {
   const [fullName, setFullName] = useState("");
@@ -56,7 +56,8 @@ const Register = () => {
       <View style={styles.meshBackground} />
 
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView 
+        <KeyboardSafeView 
+          scrollable={true}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -174,7 +175,7 @@ const Register = () => {
           <View style={styles.footer}>
             <Text style={styles.footerText}>ELEVATE YOUR PRESENCE</Text>
           </View>
-        </ScrollView>
+        </KeyboardSafeView>
       </SafeAreaView>
 
       {/* Home Indicator */}

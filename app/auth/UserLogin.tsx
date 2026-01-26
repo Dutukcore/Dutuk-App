@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Image,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -16,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
 import { LinearGradient } from 'expo-linear-gradient';
+import KeyboardSafeView from "@/components/KeyboardSafeView";
 
 const UserLogin = () => {
   const [email, setEmail] = useState("");
@@ -69,7 +69,8 @@ const UserLogin = () => {
       />
 
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView 
+        <KeyboardSafeView 
+          scrollable={true}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -179,7 +180,7 @@ const UserLogin = () => {
               <Text style={styles.signupLink}>Sign Up here</Text>
             </Pressable>
           </View>
-        </ScrollView>
+        </KeyboardSafeView>
       </SafeAreaView>
 
       {/* Home Indicator */}

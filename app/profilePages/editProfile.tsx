@@ -1,11 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import getCompanyInfo from "@/hooks/useGetCompanyInfo";
 import useCompanyInfo from "@/hooks/useCompanyInfo";
 import useImageUpload from "@/hooks/useImageUpload";
 import Toast from "react-native-toast-message";
+import KeyboardSafeView from "@/components/KeyboardSafeView";
 
 const EditProfileScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -205,7 +206,11 @@ const EditProfileScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <KeyboardSafeView 
+      scrollable={true}
+      style={styles.container} 
+      showsVerticalScrollIndicator={false}
+    >
       {/* Header */}
       <View style={styles.headerRow}>
         
@@ -345,7 +350,7 @@ const EditProfileScreen = () => {
           </Text>
         </Pressable>
       </View>
-    </ScrollView>
+    </KeyboardSafeView>
   );
 };
 
