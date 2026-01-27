@@ -22,7 +22,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#FDFDFD"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.vendorapp.dutuk",
@@ -49,7 +49,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "backgroundColor": "#FDFDFD"
         }
       ],
       "expo-asset",
