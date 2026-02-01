@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -14,22 +15,9 @@ export default function Index() {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          // Check if user has completed onboarding (has company profile)
-          const { data: companyData } = await supabase
-            .from('companies')
-            .select('company_name')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          if (companyData?.company_name) {
-            // Existing user with profile, redirect to home
-            console.log("Existing session found with profile, redirecting to home");
-            router.replace("/(tabs)/home");
-          } else {
-            // User exists but hasn't completed onboarding
-            console.log("Existing session but no profile, redirecting to onboarding");
-            router.replace('/auth/OnboardingGetStarted');
-          }
+          // User is already logged in, redirect to home
+          console.log("Existing session found, redirecting to home");
+          router.replace("/(tabs)/home");
         } else {
           // No session, show welcome screen
           setIsCheckingAuth(false);
@@ -45,28 +33,18 @@ export default function Index() {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
-        // Check if this is a new user (needs onboarding) vs existing user (go to home)
-        // New users are identified by checking if they have a company profile set up
-        try {
-          const { data: companyData } = await supabase
-            .from('companies')
-            .select('company_name')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          // If user has no company name set, they need onboarding
-          if (!companyData?.company_name) {
-            console.log("New user detected, redirecting to onboarding");
-            router.replace('/auth/OnboardingGetStarted');
-          } else {
-            // Existing user with profile, redirect to home
-            console.log("Existing user detected, redirecting to home");
-            router.replace("/(tabs)/home");
-          }
-        } catch (error) {
-          // If there's an error (e.g., no company record), treat as new user
-          console.log("No company profile found, redirecting to onboarding");
+        // Check if this is a new user signup
+        const isNewUser = await AsyncStorage.getItem('isNewUserSignup');
+        
+        if (isNewUser === 'true') {
+          // Clear the flag and redirect to onboarding
+          await AsyncStorage.removeItem('isNewUserSignup');
+          console.log("New user signup, redirecting to onboarding");
           router.replace('/auth/OnboardingGetStarted');
+        } else {
+          // Existing user login, redirect to home
+          console.log("User logged in, redirecting to home");
+          router.replace("/(tabs)/home");
         }
       } else {
         // User logged out, stay on welcome screen
