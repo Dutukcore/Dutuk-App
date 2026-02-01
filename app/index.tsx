@@ -30,10 +30,31 @@ export default function Index() {
     checkSession();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
-        // User logged in, redirect to home
-        router.replace("/(tabs)/home");
+        // Check if this is a new user (needs onboarding) vs existing user (go to home)
+        // New users are identified by checking if they have a company profile set up
+        try {
+          const { data: companyData } = await supabase
+            .from('companies')
+            .select('company_name')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          // If user has no company name set, they need onboarding
+          if (!companyData?.company_name) {
+            console.log("New user detected, redirecting to onboarding");
+            router.replace('/auth/OnboardingGetStarted');
+          } else {
+            // Existing user with profile, redirect to home
+            console.log("Existing user detected, redirecting to home");
+            router.replace("/(tabs)/home");
+          }
+        } catch (error) {
+          // If there's an error (e.g., no company record), treat as new user
+          console.log("No company profile found, redirecting to onboarding");
+          router.replace('/auth/OnboardingGetStarted');
+        }
       } else {
         // User logged out, stay on welcome screen
         setIsCheckingAuth(false);
