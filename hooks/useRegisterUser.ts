@@ -37,8 +37,12 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
     }
 
     const trimmedEmail = userEmail.trim().toLowerCase();
-    
+
     console.log("Attempting to register user:", trimmedEmail);
+
+    // Set flag BEFORE signup so that onAuthStateChange in index.tsx
+    // always knows this is a new user when it fires.
+    await AsyncStorage.setItem('isNewUserSignup', 'true');
 
     // Attempt to sign up the user
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -55,9 +59,9 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
 
     if (signUpError) {
       const message = signUpError.message.toLowerCase();
-      
+
       console.error("Registration error:", signUpError);
-      
+
       // Handle specific error cases with user-friendly messages
       if (message.includes("user already registered") || message.includes("already registered")) {
         Toast.show({
@@ -65,7 +69,7 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
           text1: 'Account Already Exists',
           text2: 'An account with this email already exists. Please log in instead.'
         });
-        
+
         // Navigate to login page after a short delay
         setTimeout(() => {
           router.push('/auth/UserLogin');
@@ -95,7 +99,7 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
           text2: signUpError.message
         });
       }
-      
+
       throw signUpError;
     }
 
@@ -112,10 +116,10 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
 
     // MVP: Auto-login after registration (no email verification)
     console.log("Proceeding to auto-login after registration");
-    
+
     // Set flag to indicate this is a new user signup (for onboarding redirect)
     await AsyncStorage.setItem('isNewUserSignup', 'true');
-    
+
     // Automatically sign in the user
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email: trimmedEmail,
@@ -124,6 +128,8 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
 
     if (signInError) {
       console.error("Auto-login error after registration:", signInError);
+      // Clear flag since auto-login failed
+      await AsyncStorage.removeItem('isNewUserSignup');
       Toast.show({
         type: 'info',
         text1: 'Registration Complete',
@@ -132,21 +138,21 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
       router.replace('/auth/UserLogin');
     } else {
       console.log("Auto-login successful");
-      
+
       // Set vendor role and create company entry for the new user
       const roleSet = await setRole();
       if (!roleSet) {
         console.warn("Warning: Failed to set vendor role, but continuing login");
       }
 
+      // Do NOT manually redirect here. The onAuthStateChange listener in
+      // index.tsx will read the 'isNewUserSignup' flag and redirect to
+      // /auth/OnboardingGetStarted automatically.
       Toast.show({
         type: 'success',
         text1: 'Welcome!',
         text2: 'Your vendor account has been created successfully!'
       });
-      
-      // Redirect to onboarding flow for new users
-      router.replace('/auth/OnboardingGetStarted');
     }
   } catch (error) {
     console.error("Unexpected error during registration:", error);

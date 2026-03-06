@@ -1,3 +1,6 @@
+import KeyboardSafeView from "@/components/KeyboardSafeView";
+import registerUser from "@/hooks/useRegisterUser";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -9,10 +12,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
-import registerUser from "@/hooks/useRegisterUser";
-import KeyboardSafeView from "@/components/KeyboardSafeView";
 
 const Register = () => {
   const [fullName, setFullName] = useState("");
@@ -56,7 +56,7 @@ const Register = () => {
       <View style={styles.meshBackground} />
 
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardSafeView 
+        <KeyboardSafeView
           scrollable={true}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -132,14 +132,14 @@ const Register = () => {
                   autoCapitalize="none"
                   editable={!loading}
                 />
-                <Pressable 
+                <Pressable
                   style={styles.eyeButton}
                   onPress={() => setShowPassword(!showPassword)}
                 >
-                  <Ionicons 
-                    name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                    size={20} 
-                    color="#a8a29e" 
+                  <Ionicons
+                    name={showPassword ? "eye-outline" : "eye-off-outline"}
+                    size={20}
+                    color="#a8a29e"
                   />
                 </Pressable>
               </View>
@@ -262,16 +262,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   formCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    elevation: 2,
+    paddingVertical: 8,
   },
   inputGroup: {
     marginBottom: 16,

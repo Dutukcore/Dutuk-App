@@ -1,58 +1,134 @@
+import { supabase } from "@/utils/supabase";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
-  View,
-  ScrollView
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import Toast from "react-native-toast-message";
 
-const EVENT_CATEGORIES = [
-  { id: 'weddings', name: 'Weddings', icon: 'favorite' },
-  { id: 'corporate', name: 'Corporate Events', icon: 'apartment' },
-  { id: 'concerts', name: 'Concerts', icon: 'music-note' },
-  { id: 'parties', name: 'Private Parties', icon: 'celebration' },
-  { id: 'decorations', name: 'Decorations', icon: 'auto-awesome' },
-  { id: 'conferences', name: 'Conferences', icon: 'podium' },
-];
+// Map category icon names (from DB) to Ionicons equivalents
+const ICON_MAP: { [key: string]: string } = {
+  'Heart': 'heart-outline',
+  'Camera': 'camera-outline',
+  'Video': 'videocam-outline',
+  'UtensilsCrossed': 'restaurant-outline',
+  'Music': 'musical-notes-outline',
+  'Flower2': 'flower-outline',
+  'MapPin': 'location-outline',
+  'Speaker': 'volume-high-outline',
+  'Cake': 'gift-outline',
+  'Briefcase': 'briefcase-outline',
+};
+
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string | null;
+};
 
 const OnboardingCategories = () => {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
-  const toggleCategory = (categoryId: string) => {
+  // Fetch parent categories from Supabase on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("categories")
+          .select("id, name, slug, icon")
+          .is("parent_id", null)
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+
+        if (error) {
+          console.error("Error fetching categories:", error);
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Failed to load categories.'
+          });
+          return;
+        }
+
+        if (data) {
+          setCategories(data);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const toggleCategory = (categoryName: string) => {
     setSelectedCategories(prev => {
-      if (prev.includes(categoryId)) {
-        return prev.filter(id => id !== categoryId);
+      if (prev.includes(categoryName)) {
+        return prev.filter(name => name !== categoryName);
       } else {
-        return [...prev, categoryId];
+        return [...prev, categoryName];
       }
     });
   };
 
-  const handleContinue = () => {
-    // Navigate to location onboarding step
-    // Categories are UI-only for now, will integrate backend later
-    router.push('/auth/OnboardingLocation');
+  const handleContinue = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user && selectedCategories.length > 0) {
+        // Save selected category names as text[] in companies table
+        const { error } = await supabase
+          .from("companies")
+          .update({ category: selectedCategories })
+          .eq("user_id", user.id);
+
+        if (error) {
+          console.error("Error updating categories:", error);
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: 'Failed to save your categories. Please try again.'
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Navigate to location onboarding step
+      router.push('/auth/OnboardingLocation');
+    } catch (error) {
+      console.error("Error in onboarding:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Something went wrong. Please try again.'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSkip = () => {
     router.push('/auth/OnboardingLocation');
   };
 
-  // Map material icon names to Ionicons equivalents
-  const getIconName = (iconName: string): string => {
-    const iconMap: { [key: string]: string } = {
-      'favorite': 'heart-outline',
-      'apartment': 'business-outline',
-      'music-note': 'musical-notes-outline',
-      'celebration': 'sparkles-outline',
-      'auto-awesome': 'color-wand-outline',
-      'podium': 'mic-outline',
-    };
-    return iconMap[iconName] || 'ellipse-outline';
+  const getIconName = (dbIcon: string | null): string => {
+    if (!dbIcon) return 'ellipse-outline';
+    return ICON_MAP[dbIcon] || 'ellipse-outline';
   };
 
   return (
@@ -63,7 +139,7 @@ const OnboardingCategories = () => {
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
-          <Pressable 
+          <Pressable
             style={styles.backButton}
             onPress={() => router.back()}
           >
@@ -80,7 +156,7 @@ const OnboardingCategories = () => {
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView 
+        <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -95,36 +171,43 @@ const OnboardingCategories = () => {
           </View>
 
           {/* Categories Grid */}
-          <View style={styles.categoriesGrid}>
-            {EVENT_CATEGORIES.map((category) => {
-              const isSelected = selectedCategories.includes(category.id);
-              return (
-                <Pressable
-                  key={category.id}
-                  style={({ pressed }) => [
-                    styles.categoryCard,
-                    isSelected && styles.categoryCardSelected,
-                    pressed && styles.categoryCardPressed
-                  ]}
-                  onPress={() => toggleCategory(category.id)}
-                >
-                  <View style={styles.categoryIconContainer}>
-                    <Ionicons 
-                      name={getIconName(category.icon) as any} 
-                      size={28} 
-                      color="#800000" 
-                    />
-                  </View>
-                  <Text style={styles.categoryName}>{category.name}</Text>
-                  {isSelected && (
-                    <View style={styles.checkIcon}>
-                      <Ionicons name="checkmark-circle" size={20} color="#800000" />
+          {fetching ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#800000" />
+              <Text style={styles.loadingText}>Loading categories...</Text>
+            </View>
+          ) : (
+            <View style={styles.categoriesGrid}>
+              {categories.map((category) => {
+                const isSelected = selectedCategories.includes(category.name);
+                return (
+                  <Pressable
+                    key={category.id}
+                    style={({ pressed }) => [
+                      styles.categoryCard,
+                      isSelected && styles.categoryCardSelected,
+                      pressed && styles.categoryCardPressed
+                    ]}
+                    onPress={() => toggleCategory(category.name)}
+                  >
+                    <View style={styles.categoryIconContainer}>
+                      <Ionicons
+                        name={getIconName(category.icon) as any}
+                        size={28}
+                        color="#800000"
+                      />
                     </View>
-                  )}
-                </Pressable>
-              );
-            })}
-          </View>
+                    <Text style={styles.categoryName}>{category.name}</Text>
+                    {isSelected && (
+                      <View style={styles.checkIcon}>
+                        <Ionicons name="checkmark-circle" size={20} color="#800000" />
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
         </ScrollView>
 
         {/* Bottom Actions */}
@@ -132,15 +215,25 @@ const OnboardingCategories = () => {
           <Pressable
             style={({ pressed }) => [
               styles.continueButton,
-              pressed && styles.buttonPressed
+              pressed && styles.buttonPressed,
+              loading && styles.buttonDisabled
             ]}
             onPress={handleContinue}
+            disabled={loading}
           >
-            <Text style={styles.continueButtonText}>Continue</Text>
-            <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.5)" />
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <>
+                <Text style={styles.continueButtonText}>Continue</Text>
+                <Ionicons name="arrow-forward" size={20} color="rgba(255,255,255,0.5)" />
+              </>
+            )}
           </Pressable>
 
-          <Text style={styles.hintText}>YOU CAN CHANGE THESE LATER IN SETTINGS</Text>
+          <Pressable onPress={handleSkip} disabled={loading}>
+            <Text style={styles.hintText}>YOU CAN CHANGE THESE LATER IN SETTINGS</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
 
@@ -230,6 +323,17 @@ const styles = StyleSheet.create({
     marginTop: 16,
     maxWidth: 300,
   },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#a8a29e',
+    marginTop: 12,
+  },
   categoriesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -307,6 +411,9 @@ const styles = StyleSheet.create({
   buttonPressed: {
     transform: [{ scale: 0.98 }],
     opacity: 0.9,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   hintText: {
     fontSize: 11,

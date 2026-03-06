@@ -1,12 +1,14 @@
 import placeholderImage from "@/assets/avatar.jpg";
+import UnifiedCalendar from '@/components/UnifiedCalendar';
 import getCount from "@/hooks/companyRequests/getRequestsCount";
 import getAllEvents from "@/hooks/getAllEvents";
+import getStoredDates, { StoredDate } from "@/hooks/getStoredDates";
 import getUser from "@/hooks/getUser";
+import { getPendingInquiriesCount } from "@/hooks/useEventInquiries";
 import getCompanyInfo from "@/hooks/useGetCompanyInfo";
 import { useVendorReviews } from "@/hooks/useVendorReviews";
-import { getPendingInquiriesCount } from "@/hooks/useEventInquiries";
-import getStoredDates, { StoredDate } from "@/hooks/getStoredDates";
-import { buildAvailabilityMarkedDates, mergeAvailabilityWithEvents, MarkedDatesMap } from '@/utils/calendarAvailability';
+import { buildAvailabilityMarkedDates, MarkedDatesMap, mergeAvailabilityWithEvents } from '@/utils/calendarAvailability';
+import { supabase } from "@/utils/supabase";
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -21,7 +23,6 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
-import UnifiedCalendar from '@/components/UnifiedCalendar';
 
 type Event = {
   id: string;
@@ -129,8 +130,20 @@ const Home = () => {
 
   const loadInquiriesCount = async () => {
     try {
-      const count = await getPendingInquiriesCount();
-      setPendingInquiries(count);
+      const user = await getUser();
+      if (!user?.id) return;
+
+      // Look up vendor profile ID from user_profiles
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile?.id) {
+        const count = await getPendingInquiriesCount(profile.id);
+        setPendingInquiries(count);
+      }
     } catch (error) {
       console.error('Failed to load inquiries count:', error);
     }
@@ -223,7 +236,7 @@ const Home = () => {
               <Text style={styles.calendarLink}>Manage</Text>
             </Pressable>
           </View>
-          <Pressable 
+          <Pressable
             style={styles.calendarWrapper}
             onPress={() => router.push("/profilePages/calender/CalendarPage")}
           >
@@ -285,7 +298,7 @@ const Home = () => {
                           />
                           {isImageLoading && (
                             <View style={styles.imageLoadingOverlay}>
-                          <ActivityIndicator color="#800000" size="large" />
+                              <ActivityIndicator color="#800000" size="large" />
                             </View>
                           )}
                         </>
@@ -306,13 +319,13 @@ const Home = () => {
                         <Text style={styles.manageCardDescriptionMuted}>No description yet</Text>
                       )}
                       <View style={styles.manageCardFooter}>
-                        <View style={[styles.manageStatusBadge, 
-                          item.status === 'upcoming' && styles.statusUpcoming,
-                          item.status === 'ongoing' && styles.statusOngoing
+                        <View style={[styles.manageStatusBadge,
+                        item.status === 'upcoming' && styles.statusUpcoming,
+                        item.status === 'ongoing' && styles.statusOngoing
                         ]}>
                           <Text style={[styles.manageStatusText,
-                            item.status === 'upcoming' && styles.statusUpcomingText,
-                            item.status === 'ongoing' && styles.statusOngoingText
+                          item.status === 'upcoming' && styles.statusUpcomingText,
+                          item.status === 'ongoing' && styles.statusOngoingText
                           ]}>{item.status}</Text>
                         </View>
                         <Text style={styles.managePaymentText}>₹{item.payment?.toFixed(2) ?? "0.00"}</Text>

@@ -1,12 +1,21 @@
+import KeyboardSafeView from "@/components/KeyboardSafeView";
+import useCompanyInfo from "@/hooks/useCompanyInfo";
+import getCompanyInfo from "@/hooks/useGetCompanyInfo";
+import useImageUpload from "@/hooks/useImageUpload";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import getCompanyInfo from "@/hooks/useGetCompanyInfo";
-import useCompanyInfo from "@/hooks/useCompanyInfo";
-import useImageUpload from "@/hooks/useImageUpload";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import KeyboardSafeView from "@/components/KeyboardSafeView";
 
 const EditProfileScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -14,6 +23,7 @@ const EditProfileScreen = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectingImage, setSelectingImage] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
   const [companyData, setCompanyData] = useState({
     name: "",
     description: "",
@@ -21,7 +31,8 @@ const EditProfileScreen = () => {
     phone: "",
     website: "",
     mail: "",
-    logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png"
+    logoUrl:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png",
   });
 
   const { pickImage, uploadImage } = useImageUpload();
@@ -35,7 +46,7 @@ const EditProfileScreen = () => {
     try {
       setLoading(true);
       const data = await getCompanyInfo();
-      
+
       if (data) {
         setCompanyData({
           name: data.company || "",
@@ -44,15 +55,17 @@ const EditProfileScreen = () => {
           phone: data.phone || "",
           website: data.website || "",
           mail: data.mail || "",
-          logoUrl: data.logo_url || "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png"
+          logoUrl:
+            data.logo_url ||
+            "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png",
         });
       }
     } catch (error) {
       console.error("Failed to load company info:", error);
       Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to load company information.'
+        type: "error",
+        text1: "Error",
+        text2: "Failed to load company information.",
       });
     } finally {
       setLoading(false);
@@ -62,7 +75,7 @@ const EditProfileScreen = () => {
   const handleProfileImageSelect = async () => {
     try {
       setSelectingImage(true);
-      
+
       const imageUri = await pickImage({
         bucket: "profile-images",
         folder: "profile",
@@ -74,17 +87,17 @@ const EditProfileScreen = () => {
       if (imageUri) {
         setSelectedImageUri(imageUri);
         Toast.show({
-          type: 'success',
-          text1: 'Image Selected',
-          text2: 'Now click "Upload Image" to save it.'
+          type: "success",
+          text1: "Image Selected",
+          text2: 'Now click "Upload Image" to save it.',
         });
       }
     } catch (error: any) {
       console.error("Failed to select profile image:", error);
       Toast.show({
-        type: 'error',
-        text1: 'Selection Failed',
-        text2: error?.message || 'Failed to select image. Please try again.'
+        type: "error",
+        text1: "Selection Failed",
+        text2: error?.message || "Failed to select image. Please try again.",
       });
     } finally {
       setSelectingImage(false);
@@ -94,22 +107,22 @@ const EditProfileScreen = () => {
   const handleProfileImageUpload = async () => {
     if (!selectedImageUri) {
       Toast.show({
-        type: 'error',
-        text1: 'No Image Selected',
-        text2: 'Please select an image first.'
+        type: "error",
+        text1: "No Image Selected",
+        text2: "Please select an image first.",
       });
       return;
     }
 
     try {
       setUploadingImage(true);
-      
+
       Toast.show({
-        type: 'info',
-        text1: 'Uploading...',
-        text2: 'Uploading image to server...'
+        type: "info",
+        text1: "Uploading...",
+        text2: "Uploading image to server...",
       });
-      
+
       const imageUrl = await uploadImage(selectedImageUri, {
         bucket: "profile-images",
         folder: "profile",
@@ -118,7 +131,7 @@ const EditProfileScreen = () => {
       if (imageUrl) {
         // Update local state
         setCompanyData({ ...companyData, logoUrl: imageUrl });
-        
+
         // Update in database
         await useCompanyInfo({
           company: companyData.name,
@@ -134,17 +147,18 @@ const EditProfileScreen = () => {
         setSelectedImageUri(null);
 
         Toast.show({
-          type: 'success',
-          text1: 'Success',
-          text2: 'Profile image updated successfully!'
+          type: "success",
+          text1: "Success",
+          text2: "Profile image updated successfully!",
         });
       }
     } catch (error: any) {
       console.error("Failed to upload profile image:", error);
       Toast.show({
-        type: 'error',
-        text1: 'Upload Failed',
-        text2: error?.message || 'Failed to upload profile image. Please try again.'
+        type: "error",
+        text1: "Upload Failed",
+        text2:
+          error?.message || "Failed to upload profile image. Please try again.",
       });
     } finally {
       setUploadingImage(false);
@@ -154,13 +168,13 @@ const EditProfileScreen = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
-      
+
       // Validate required fields
       if (!companyData.name.trim()) {
         Toast.show({
-          type: 'error',
-          text1: 'Validation Error',
-          text2: 'Company name is required.'
+          type: "error",
+          text1: "Validation Error",
+          text2: "Company name is required.",
         });
         setSaving(false);
         return;
@@ -177,96 +191,153 @@ const EditProfileScreen = () => {
       });
 
       Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: 'Company information saved successfully!'
+        type: "success",
+        text1: "Success",
+        text2: "Company information saved successfully!",
       });
-      
+
       // Optionally go back after saving
       // router.back();
     } catch (error) {
       console.error("Failed to save company info:", error);
       Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to save company information.'
+        type: "error",
+        text1: "Error",
+        text2: "Failed to save company information.",
       });
     } finally {
       setSaving(false);
     }
   };
 
+  const handleUseCurrentLocation = async () => {
+    setGeoLoading(true);
+    try {
+      const EL = require("expo-location");
+      const { status } = await EL.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Toast.show({
+          type: "error",
+          text1: "Permission Denied",
+          text2: "Please enable location access in your device settings.",
+        });
+        setGeoLoading(false);
+        return;
+      }
+
+      const position = await EL.getCurrentPositionAsync({
+        accuracy: EL.Accuracy.High,
+      });
+
+      const [geocode] = await EL.reverseGeocodeAsync({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
+
+      if (geocode) {
+        const parts = [
+          geocode.name,
+          geocode.street,
+          geocode.district || geocode.subregion,
+          geocode.city,
+          geocode.region,
+          geocode.postalCode,
+        ].filter(Boolean);
+        const uniqueParts = [...new Set(parts)];
+        const locationString = uniqueParts.join(", ") || "Unknown location";
+        setCompanyData({ ...companyData, address: locationString });
+
+        Toast.show({
+          type: "success",
+          text1: "Location Found",
+          text2: locationString,
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Could not determine your location.",
+        });
+      }
+    } catch (error) {
+      console.error("Error getting location:", error);
+      Toast.show({
+        type: "error",
+        text1: "Location Error",
+        text2: "Failed to get your location. Please enter manually.",
+      });
+    } finally {
+      setGeoLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#000000" />
+        <ActivityIndicator size="large" color="#800000" />
         <Text style={styles.loadingText}>Loading profile...</Text>
       </View>
     );
   }
 
   return (
-    <KeyboardSafeView 
-      scrollable={true}
-      style={styles.container} 
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <View style={styles.headerRow}>
-        
-        <Pressable onPress={() => router.back()} >  
-          <Ionicons name="chevron-back" size={26} style={styles.backIcon} /> 
-        </Pressable>
-        
-        <Text style={styles.headerText}>Edit Profile</Text>
-      </View>
-
-      {/* Profile Image Section */}
-      <View style={styles.profileImageSection}>
-        <View style={styles.avatarContainer}>
-          <View style={styles.avatarWrapper}>
-            <Image 
-              source={{ uri: selectedImageUri || companyData.logoUrl }} 
-              style={styles.avatar} 
-            />
-            {(uploadingImage || selectingImage) && (
-              <View style={styles.uploadingOverlay}>
-                <ActivityIndicator color="#FFF" size="large" />
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.profileTextInfo}>
-          <Text style={styles.companyName} numberOfLines={1} ellipsizeMode="tail">
-            {companyData.name || "Company Name"}
-          </Text>
-          <Text style={styles.tagline} numberOfLines={1} ellipsizeMode="tail">
-            {companyData.mail || "No email set"}
-          </Text>
-        </View>
-
-        <View style={styles.imageButtonsContainer}>
-          <Pressable 
-            style={[styles.primaryBtn, (selectingImage || uploadingImage) && styles.buttonDisabled]} 
-            onPress={handleProfileImageSelect}
-            disabled={selectingImage || uploadingImage}
-          >
-            {selectingImage ? (
-              <ActivityIndicator color="#FFF" size="small" />
-            ) : (
-              <>
-                <Ionicons name="image-outline" size={16} color="#FFF" />
-                <Text style={styles.primaryBtnText}>
-                  {selectedImageUri ? "Change" : "Select"}
-                </Text>
-              </>
-            )}
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <KeyboardSafeView
+        scrollable={true}
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable style={styles.iconButton} onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={26} color="#1c1917" />
           </Pressable>
+          <Text style={styles.headerTitle}>Edit Profile</Text>
+          <View style={{ width: 52 }} />
+        </View>
+
+        {/* Profile Card */}
+        <View style={styles.profileSection}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatarWrapper}>
+              <Image
+                source={{ uri: selectedImageUri || companyData.logoUrl }}
+                style={styles.avatar}
+              />
+              {(uploadingImage || selectingImage) && (
+                <View style={styles.uploadingOverlay}>
+                  <ActivityIndicator color="#FFF" size="large" />
+                </View>
+              )}
+              <Pressable
+                style={styles.editBadge}
+                onPress={handleProfileImageSelect}
+              >
+                <Ionicons name="camera" size={18} color="#FFF" />
+              </Pressable>
+            </View>
+          </View>
+
+          <View style={styles.profileTextInfo}>
+            <Text
+              style={styles.companyName}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {companyData.name || "Company Name"}
+            </Text>
+            <Text style={styles.tagline} numberOfLines={1} ellipsizeMode="tail">
+              {companyData.mail || "No email set"}
+            </Text>
+          </View>
 
           {selectedImageUri && (
-            <Pressable 
-              style={[styles.uploadBtn, uploadingImage && styles.buttonDisabled]} 
+            <Pressable
+              style={[
+                styles.uploadButton,
+                uploadingImage && styles.buttonDisabled,
+              ]}
               onPress={handleProfileImageUpload}
               disabled={uploadingImage}
             >
@@ -274,347 +345,458 @@ const EditProfileScreen = () => {
                 <ActivityIndicator color="#FFF" size="small" />
               ) : (
                 <>
-                  <Ionicons name="cloud-upload-outline" size={16} color="#FFF" />
-                  <Text style={styles.uploadBtnText}>Upload</Text>
+                  <Ionicons name="cloud-upload-outline" size={18} color="#FFF" />
+                  <Text style={styles.uploadButtonText}>Upload New Logo</Text>
                 </>
               )}
             </Pressable>
           )}
         </View>
-      </View>
 
-      <Text style={styles.sectionTitle}>Basic Info</Text>
+        {/* Form Sections */}
+        <View style={styles.formContainer}>
+          <Text style={styles.sectionHeader}>Business Details</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Company Name *</Text>
-        <TextInput 
-          style={styles.input} 
-          value={companyData.name}
-          onChangeText={(text) => setCompanyData({...companyData, name: text})}
-          placeholder="Enter company name"
-        />
+          <View style={styles.premiumCard}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Company Name *</Text>
+              <View style={styles.inputWrapper}>
+                <Ionicons
+                  name="business-outline"
+                  size={20}
+                  color="#a8a29e"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  value={companyData.name}
+                  onChangeText={(text) =>
+                    setCompanyData({ ...companyData, name: text })
+                  }
+                  placeholder="Enter business name"
+                  placeholderTextColor="#a8a29e"
+                />
+              </View>
+            </View>
 
-        <Text style={styles.label}>Email</Text>
-        <TextInput 
-          style={styles.input} 
-          value={companyData.mail}
-          onChangeText={(text) => setCompanyData({...companyData, mail: text})}
-          placeholder="company@example.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email Address</Text>
+              <View style={styles.inputWrapper}>
+                <Ionicons
+                  name="mail-outline"
+                  size={20}
+                  color="#a8a29e"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  value={companyData.mail}
+                  onChangeText={(text) =>
+                    setCompanyData({ ...companyData, mail: text })
+                  }
+                  placeholder="business@example.com"
+                  placeholderTextColor="#a8a29e"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
 
-        <Text style={styles.label}>Description</Text>
-        <TextInput 
-          style={styles.textarea} 
-          value={companyData.description}
-          onChangeText={(text) => setCompanyData({...companyData, description: text})}
-          placeholder="Tell customers about your company..."
-          multiline 
-        />
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Description</Text>
+              <View style={[styles.inputWrapper, styles.textareaWrapper]}>
+                <TextInput
+                  style={styles.textarea}
+                  value={companyData.description}
+                  onChangeText={(text) =>
+                    setCompanyData({ ...companyData, description: text })
+                  }
+                  placeholder="Tell customers about your services..."
+                  placeholderTextColor="#a8a29e"
+                  multiline
+                  numberOfLines={4}
+                />
+              </View>
+            </View>
+          </View>
 
-        <Text style={styles.label}>Address</Text>
-        <TextInput 
-          style={styles.input} 
-          value={companyData.address}
-          onChangeText={(text) => setCompanyData({...companyData, address: text})}
-          placeholder="Company address"
-        />
+          <Text style={styles.sectionHeader}>Location & Contact</Text>
 
-        <Text style={styles.label}>Phone Number</Text>
-        <TextInput 
-          style={styles.input} 
-          value={companyData.phone}
-          onChangeText={(text) => setCompanyData({...companyData, phone: text})}
-          placeholder="+1 (555) 000-0000"
-          keyboardType="phone-pad"
-        />
+          <View style={styles.premiumCard}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Address</Text>
+              <View style={styles.addressRow}>
+                <View style={[styles.inputWrapper, styles.addressAreaWrapper]}>
+                  <TextInput
+                    style={[styles.input, styles.addressInput]}
+                    value={companyData.address}
+                    onChangeText={(text) =>
+                      setCompanyData({ ...companyData, address: text })
+                    }
+                    placeholder="Physical business location"
+                    placeholderTextColor="#a8a29e"
+                    multiline
+                  />
+                </View>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.geoIconButton,
+                    geoLoading && styles.geoIconButtonDisabled,
+                    pressed && styles.geoIconButtonPressed,
+                  ]}
+                  onPress={handleUseCurrentLocation}
+                  disabled={geoLoading}
+                >
+                  {geoLoading ? (
+                    <ActivityIndicator size="small" color="#800000" />
+                  ) : (
+                    <Ionicons name="navigate" size={20} color="#800000" />
+                  )}
+                </Pressable>
+              </View>
+            </View>
 
-        <Text style={styles.label}>Website</Text>
-        <TextInput 
-          style={styles.input} 
-          value={companyData.website}
-          onChangeText={(text) => setCompanyData({...companyData, website: text})}
-          placeholder="https://yourwebsite.com"
-          keyboardType="url"
-          autoCapitalize="none"
-        />
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Phone Number</Text>
+              <View style={styles.inputWrapper}>
+                <Ionicons
+                  name="call-outline"
+                  size={20}
+                  color="#a8a29e"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  value={companyData.phone}
+                  onChangeText={(text) =>
+                    setCompanyData({ ...companyData, phone: text })
+                  }
+                  placeholder="+91 00000 00000"
+                  placeholderTextColor="#a8a29e"
+                  keyboardType="phone-pad"
+                />
+              </View>
+            </View>
 
-        <Pressable 
-          style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
-          onPress={handleSave}
-          disabled={saving}
-        >
-          <Text style={styles.saveButtonText}>
-            {saving ? "Saving..." : "Save"}
-          </Text>
-        </Pressable>
-      </View>
-    </KeyboardSafeView>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Website</Text>
+              <View style={styles.inputWrapper}>
+                <Ionicons
+                  name="globe-outline"
+                  size={20}
+                  color="#a8a29e"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  value={companyData.website}
+                  onChangeText={(text) =>
+                    setCompanyData({ ...companyData, website: text })
+                  }
+                  placeholder="https://yourwebsite.com"
+                  placeholderTextColor="#a8a29e"
+                  keyboardType="url"
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
+          </View>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.saveButton,
+              saving && styles.saveButtonDisabled,
+              pressed && styles.saveButtonPressed,
+            ]}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <>
+                <Text style={styles.saveButtonText}>Save Profile Changes</Text>
+                <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+              </>
+            )}
+          </Pressable>
+        </View>
+      </KeyboardSafeView>
+    </SafeAreaView>
   );
 };
 
 export default EditProfileScreen;
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: "#faf8f5",
-    paddingHorizontal: 28,
   },
-
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 24,
-    marginBottom: 32,
+  container: {
+    flex: 1,
   },
-
-  backIcon: {
-    marginRight: 12,
-    color: '#800000',
+  scrollContent: {
+    paddingBottom: 40,
   },
-
-  headerText: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: '#800000',
-    letterSpacing: -0.5,
-  },
-
-  profileImageSection: {
-    backgroundColor: "rgba(255, 255, 255, 0.98)",
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(128, 0, 0, 0.06)',
-    shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-
-  avatarContainer: {
-    alignItems: "center",
-    marginBottom: 18,
-  },
-
-  avatarWrapper: {
-    position: 'relative',
-  },
-
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "#E5E5E5",
-    borderWidth: 3,
-    borderColor: "#faf8f5",
-  },
-
-  profileTextInfo: {
-    alignItems: "center",
-    marginBottom: 18,
-  },
-
-  companyName: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 6,
-    textAlign: "center",
-    width: "100%",
-    color: '#1c1917',
-    letterSpacing: -0.3,
-  },
-
-  tagline: {
-    fontSize: 13,
-    color: "#57534e",
-    textAlign: "center",
-    width: "100%",
-    fontWeight: '400',
-  },
-
-  imageButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 12,
-    flexWrap: "wrap",
-  },
-
-  primaryBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    backgroundColor: "#800000",
-    minWidth: 100,
-    justifyContent: "center",
-    shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-
-  primaryBtnText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "700",
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-
-  uploadBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    backgroundColor: "#800000",
-    minWidth: 100,
-    justifyContent: "center",
-    shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-
-  uploadBtnText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "700",
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-
-  outlinedBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "black",
-  },
-
-  outlinedBtnText: {
-    color: "black",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 12,
-    color: '#1c1917',
-    letterSpacing: -0.3,
-  },
-
-  card: {
-    backgroundColor: "rgba(255, 255, 255, 0.98)",
-    borderRadius: 24,
-    padding: 24,
-    marginTop: 12,
-    marginBottom: 48,
-    borderWidth: 1,
-    borderColor: 'rgba(128, 0, 0, 0.06)',
-    shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-
-  label: {
-    fontSize: 14,
-    fontWeight: "700",
-    marginBottom: 8,
-    marginTop: 16,
-    color: "#1c1917",
-    letterSpacing: -0.1,
-  },
-
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: "rgba(128, 0, 0, 0.15)",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    fontSize: 14,
-    backgroundColor: "#fff",
-    color: '#1c1917',
-  },
-
-  textarea: {
-    height: 100,
-    borderWidth: 1,
-    borderColor: "rgba(128, 0, 0, 0.15)",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 14,
-    textAlignVertical: "top",
-    backgroundColor: "#fff",
-    color: '#1c1917',
-  },
-
-  saveButton: {
-    marginTop: 28,
-    backgroundColor: "#800000",
-    paddingVertical: 16,
-    borderRadius: 20,
-    alignItems: "center",
-    shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 6,
-  },
-
-  saveButtonText: {
-    color: "white",
-    fontSize: 15,
-    fontWeight: "700",
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-
   loadingContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#faf8f5",
   },
-
   loadingText: {
     marginTop: 16,
-    fontSize: 15,
+    fontSize: 16,
     color: "#57534e",
-    fontWeight: '500',
+    fontWeight: "500",
   },
-
-  saveButtonDisabled: {
-    opacity: 0.6,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 28,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
-
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1c1917",
+    letterSpacing: -0.5,
+  },
+  iconButton: {
+    width: 52,
+    height: 52,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(128, 0, 0, 0.08)",
+    shadowColor: "#800000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  profileSection: {
+    alignItems: "center",
+    paddingHorizontal: 28,
+    marginBottom: 32,
+  },
+  avatarContainer: {
+    marginBottom: 20,
+  },
+  avatarWrapper: {
+    position: "relative",
+    shadowColor: "#800000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "#FFF",
+    borderWidth: 4,
+    borderColor: "#FFFFFF",
+  },
+  editBadge: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    width: 38,
+    height: 38,
+    backgroundColor: "#800000",
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
+    elevation: 4,
+  },
   uploadingOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(128, 0, 0, 0.7)',
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(128, 0, 0, 0.4)",
+    borderRadius: 60,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  profileTextInfo: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  companyName: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1c1917",
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  tagline: {
+    fontSize: 14,
+    color: "#78716c",
+    fontWeight: "500",
+  },
+  uploadButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#800000",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 28,
+    gap: 8,
+    elevation: 4,
+    shadowColor: "#800000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  uploadButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  formContainer: {
+    paddingHorizontal: 28,
+  },
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#a8a29e",
+    textTransform: "uppercase",
+    letterSpacing: 1.5,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  premiumCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 28,
+    padding: 24,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: "rgba(128, 0, 0, 0.04)",
+    shadowColor: "#800000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 20,
+    elevation: 2,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#44403c",
+    marginBottom: 10,
+    marginLeft: 4,
+  },
+  labelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+    paddingRight: 4,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fafaf9",
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: "#f5f5f4",
+    paddingHorizontal: 16,
+    minHeight: 56,
+  },
+  textareaWrapper: {
+    height: 120,
+    alignItems: "flex-start",
+    paddingTop: 12,
+  },
+  addressAreaWrapper: {
+    flex: 1,
+    minHeight: 56,
+    paddingVertical: 8,
+  },
+  addressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: "#1c1917",
+    fontWeight: "500",
+  },
+  addressInput: {
+    textAlignVertical: "top",
+    paddingVertical: 12,
+    flex: 1,
+  },
+  textarea: {
+    flex: 1,
+    fontSize: 15,
+    color: "#1c1917",
+    fontWeight: "500",
+    textAlignVertical: "top",
+  },
+  geoIconButton: {
+    backgroundColor: "rgba(128, 0, 0, 0.08)",
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  geoIconButtonDisabled: {
+    opacity: 0.5,
+  },
+  geoIconButtonPressed: {
+    backgroundColor: "rgba(128, 0, 0, 0.15)",
+    transform: [{ scale: 0.96 }],
+  },
+  saveButton: {
+    backgroundColor: "#800000",
+    height: 64,
+    borderRadius: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 8,
+    shadowColor: "#800000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  saveButtonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  saveButtonPressed: {
+    transform: [{ scale: 0.98 }],
+    opacity: 0.9,
+  },
+  saveButtonDisabled: {
+    backgroundColor: "#a8a29e",
+    shadowOpacity: 0.1,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });
