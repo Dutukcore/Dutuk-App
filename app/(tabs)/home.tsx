@@ -34,35 +34,35 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-const OrderPreviewCard = ({ order }: { order: any }) => (
-  <Pressable
-    style={styles.orderPreviewCard}
-    onPress={() => router.push({
-      pathname: order.status === 'pending'
-        ? '/orders/customerApproval'
-        : '/orders/customerDetails',
-      params: { orderId: order.id }
-    })}
-  >
-    <View style={styles.orderCardHeader}>
-      <Text style={styles.orderIdText}>#{order.id.substring(0, 8).toUpperCase()}</Text>
-      <StatusBadge status={order.status} />
-    </View>
-
-    <Text style={styles.orderTitleText} numberOfLines={1}>{order.title}</Text>
-    <Text style={styles.orderCustomerText} numberOfLines={1}>{order.customerName}</Text>
-
-    <View style={styles.orderCardFooter}>
-      <View style={styles.orderDateContainer}>
-        <Ionicons name="calendar-outline" size={14} color="#57534e" />
-        <Text style={styles.orderDateText}>{order.date}</Text>
+const OrderPreviewCard = ({ order }: { order: any }) => {
+  return (
+    <Pressable
+      style={styles.orderPreviewCard}
+      onPress={() => router.push({
+        pathname: order.status === 'pending'
+          ? '/orders/customerApproval'
+          : '/orders/customerDetails',
+        params: { orderId: order.id }
+      })}
+    >
+      <View style={styles.orderCardHeader}>
+        <Text style={styles.orderIdText}>#{order.id.substring(0, 8).toUpperCase()}</Text>
+        <StatusBadge status={order.status} />
       </View>
-      {order.amount && (
-        <Text style={styles.orderAmountText}>₹{order.amount}</Text>
-      )}
-    </View>
-  </Pressable>
-);
+      <Text style={styles.orderTitleText} numberOfLines={1}>{order.title}</Text>
+      <Text style={styles.orderCustomerText} numberOfLines={1}>{order.customerName}</Text>
+      <View style={styles.orderCardFooter}>
+        <View style={styles.orderDateContainer}>
+          <Ionicons name="calendar-outline" size={14} color="#57534e" />
+          <Text style={styles.orderDateText}>{order.date}</Text>
+        </View>
+        {order.amount && (
+          <Text style={styles.orderAmountText}>₹{order.amount}</Text>
+        )}
+      </View>
+    </Pressable>
+  );
+};
 
 const Home = () => {
   // Store state
@@ -310,7 +310,7 @@ const Home = () => {
         <View style={styles.createEventSection}>
           <Pressable
             style={styles.createEventCTA}
-            onPress={() => router.push('/event/manage/create')}
+            onPress={() => router.push('/event/manage/createStepOne')}
           >
             <View style={styles.createEventIconCircle}>
               <Ionicons name="add-circle" size={56} color="#800000" />

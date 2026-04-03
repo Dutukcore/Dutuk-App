@@ -6,10 +6,10 @@ import {
   Text,
   View
 } from 'react-native';
-import { FileText, Home, User } from 'react-native-feather';
+import { Calendar, Home, MessageCircle, Plus, User } from 'react-native-feather';
 
 interface BottomNavigationProps {
-  activeTab: 'home' | 'orders' | 'profile';
+  activeTab: 'home' | 'orders' | 'chat' | 'profile' | 'calendar';
 }
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
@@ -20,56 +20,69 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
   const handleProfile = () => {
     if (activeTab !== 'profile') router.replace('/(tabs)/profile' as any);
   };
+  const handleCreateEvent = () => {
+    router.push('/event/manage/createStepOne' as any);
+  };
 
   return (
     <View style={styles.bottomNavbar}>
-      <Pressable 
-        style={styles.navItem} 
-        onPress={handleHome}
-      >
-        <Home 
-          width={24} 
-          height={24} 
-          stroke={activeTab === 'home' ? "#800000" : "#a8a29e"} 
+      {/* Home */}
+      <Pressable style={styles.navItem} onPress={handleHome}>
+        <Home
+          width={24}
+          height={24}
+          stroke={activeTab === 'home' ? "#800000" : "#a8a29e"}
         />
-        <Text style={[
-          styles.navLabel, 
-          { color: activeTab === 'home' ? '#800000' : '#a8a29e' }
-        ]}>
+        <Text style={[styles.navLabel, { color: activeTab === 'home' ? '#800000' : '#a8a29e' }]}>
           Home
         </Text>
       </Pressable>
-      
-      <Pressable 
-        style={styles.navItem} 
-        onPress={handleOrders}
-      >
-        <FileText 
-          width={24} 
-          height={24} 
-          stroke={activeTab === 'orders' ? "#800000" : "#a8a29e"} 
+
+      {/* Chat */}
+      <Pressable style={styles.navItem} onPress={() => router.replace('/(tabs)/chat' as any)}>
+        <MessageCircle
+          width={24}
+          height={24}
+          stroke={activeTab === 'chat' ? "#800000" : "#a8a29e"}
         />
-        <Text style={[
-          styles.navLabel, 
-          { color: activeTab === 'orders' ? '#800000' : '#a8a29e' }
-        ]}>
-          Orders
+        <Text style={[styles.navLabel, { color: activeTab === 'chat' ? '#800000' : '#a8a29e' }]}>
+          Chat
         </Text>
       </Pressable>
-      
-      <Pressable 
-        style={styles.navItem} 
-        onPress={handleProfile}
-      >
-        <User 
-          width={24} 
-          height={24} 
-          stroke={activeTab === 'profile' ? "#800000" : "#a8a29e"} 
+
+      {/* CENTER PLUS BUTTON - ELEVATED via FLEX */}
+      <View style={styles.plusContainer}>
+        <Pressable
+          style={styles.centerPlusButton}
+          onPress={handleCreateEvent}
+          data-testid="create-event-plus-button"
+        >
+          <View style={styles.plusIconContainer}>
+            <Plus width={28} height={28} stroke="#FFFFFF" strokeWidth={3} />
+          </View>
+        </Pressable>
+      </View>
+
+      {/* Calendar */}
+      <Pressable style={styles.navItem} onPress={() => router.replace('/(tabs)/calendar' as any)}>
+        <Calendar
+          width={24}
+          height={24}
+          stroke={activeTab === 'calendar' ? "#800000" : "#a8a29e"}
         />
-        <Text style={[
-          styles.navLabel, 
-          { color: activeTab === 'profile' ? '#800000' : '#a8a29e' }
-        ]}>
+        <Text style={[styles.navLabel, { color: activeTab === 'calendar' ? '#800000' : '#a8a29e' }]}>
+          Calendar
+        </Text>
+      </Pressable>
+
+      {/* Profile */}
+      <Pressable style={styles.navItem} onPress={handleProfile}>
+        <User
+          width={24}
+          height={24}
+          stroke={activeTab === 'profile' ? "#800000" : "#a8a29e"}
+        />
+        <Text style={[styles.navLabel, { color: activeTab === 'profile' ? '#800000' : '#a8a29e' }]}>
           Profile
         </Text>
       </Pressable>
@@ -90,7 +103,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-evenly',
     paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8, // Reduced padding for better item spacing
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
@@ -103,13 +116,42 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
     paddingVertical: 8,
-    paddingHorizontal: 4,
   },
   navLabel: {
-    fontSize: 12.701,
+    fontSize: 12,
     fontWeight: '400',
     color: '#a8a29e',
     marginTop: 4,
+  },
+  plusContainer: {
+    width: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  centerPlusButton: {
+    marginTop: -48, // Elevate it above the bar
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#800000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 999,
+  },
+  plusIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#800000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 4,
+    borderColor: '#FFFFFF',
   },
 });
 
