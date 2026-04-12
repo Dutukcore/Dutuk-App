@@ -37,6 +37,8 @@ export interface Conversation {
     customer_id: string;
     vendor_id: string;
     event_id: string | null;
+    order_id: string | null;
+    booking_status: string | null;
     terms_accepted_by_customer: boolean;
     terms_accepted_at: string | null;
     payment_completed: boolean;

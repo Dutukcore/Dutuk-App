@@ -34,13 +34,14 @@ export default function ConversationScreen() {
         orderId?: string;
     }>();
 
-    const { conversationId, customerName, customerId, paymentCompleted: paymentCompletedParam, orderId } = params;
+    const { conversationId, customerName, customerId, paymentCompleted: paymentCompletedParam, orderId: orderIdParam } = params;
     const paymentCompleted = paymentCompletedParam === 'true';
 
     const [message, setMessage] = useState('');
     const [requestingCompletion, setRequestingCompletion] = useState(false);
     const [completionRequestedAt, setCompletionRequestedAt] = useState<string | null>(null);
     const [orderStatus, setOrderStatus] = useState<string | null>(null);
+    const [resolvedOrderId, setResolvedOrderId] = useState<string | null>(orderIdParam || null);
     const currentUserId = useAuthStore((state) => state.userId);
     const flatListRef = useRef<FlatList>(null);
 
@@ -64,13 +65,39 @@ export default function ConversationScreen() {
         clearAttachment
     } = useAttachments();
 
+    // Resolve orderId: use param if available, otherwise look it up from the conversation record
+    useEffect(() => {
+        if (orderIdParam) {
+            setResolvedOrderId(orderIdParam);
+            return;
+        }
+        // Fallback: look up order_id from the conversation data
+        if (conversation?.order_id) {
+            setResolvedOrderId(conversation.order_id);
+            return;
+        }
+        // Last resort: query the conversations table directly
+        if (conversationId && !resolvedOrderId) {
+            supabase
+                .from('conversations')
+                .select('order_id')
+                .eq('id', conversationId)
+                .single()
+                .then(({ data }) => {
+                    if (data?.order_id) {
+                        setResolvedOrderId(data.order_id);
+                    }
+                });
+        }
+    }, [orderIdParam, conversation?.order_id, conversationId]);
+
     // Load order state for completion button
     useEffect(() => {
-        if (!orderId) return;
+        if (!resolvedOrderId) return;
         supabase
             .from('orders')
             .select('status, completion_requested_at')
-            .eq('id', orderId)
+            .eq('id', resolvedOrderId)
             .single()
             .then(({ data }) => {
                 if (data) {
@@ -78,12 +105,12 @@ export default function ConversationScreen() {
                     setCompletionRequestedAt(data.completion_requested_at);
                 }
             });
-    }, [orderId]);
+    }, [resolvedOrderId]);
 
     // Show button for approved orders where completion hasn't been requested yet
     const canRequestCompletion = useMemo(() =>
-        !!orderId && orderStatus === 'approved' && !completionRequestedAt,
-        [orderId, orderStatus, completionRequestedAt]
+        !!resolvedOrderId && orderStatus === 'approved' && !completionRequestedAt,
+        [resolvedOrderId, orderStatus, completionRequestedAt]
     );
 
     const completionAlreadyRequested = useMemo(() =>
@@ -144,7 +171,7 @@ export default function ConversationScreen() {
     };
 
     const handleRequestCompletion = useCallback(async () => {
-        if (!conversationId || !customerId || !orderId) return;
+        if (!conversationId || !customerId || !resolvedOrderId) return;
         Alert.alert(
             'Request Event Completion',
             'This will notify the customer that you consider the event complete. They must confirm to finalise.',
@@ -154,7 +181,7 @@ export default function ConversationScreen() {
                     text: 'Send Request', style: 'default',
                     onPress: async () => {
                         setRequestingCompletion(true);
-                        const result = await requestCompletion({ conversationId, customerId, orderId });
+                        const result = await requestCompletion({ conversationId, customerId, orderId: resolvedOrderId });
                         setRequestingCompletion(false);
                         if (!result.success) {
                             Toast.show({ type: 'error', text1: 'Failed to send completion request', text2: result.error, position: 'top' });
@@ -166,7 +193,7 @@ export default function ConversationScreen() {
                 },
             ]
         );
-    }, [conversationId, customerId, orderId, requestCompletion]);
+    }, [conversationId, customerId, resolvedOrderId, requestCompletion]);
 
     const handleSend = async () => {
         if ((!message.trim() && !attachment) || !conversationId || !customerId) return;
