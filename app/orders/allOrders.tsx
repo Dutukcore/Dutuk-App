@@ -103,7 +103,16 @@ const AllOrdersScreen = () => {
                         style={styles.orderCard}
                         onPress={() => router.push({
                             pathname: item.status === 'pending' ? '/orders/customerApproval' : '/orders/customerDetails',
-                            params: { orderId: item.id }
+                            params: {
+                                orderId: item.id,
+                                title: item.title,
+                                customerName: item.customerName,
+                                packageType: item.packageType,
+                                customerEmail: item.customerEmail,
+                                customerPhone: item.customerPhone,
+                                eventDate: item.date,
+                                notes: item.notes ?? '',
+                            }
                         })}
                     >
                         <View style={styles.cardHeader}>

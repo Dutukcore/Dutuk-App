@@ -1,47 +1,37 @@
 import logger from '@/utils/logger';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
   Text,
   View
 } from 'react-native';
-import { Bell, Calendar, Clock, Edit, FileText, User } from 'react-native-feather';
+import { Bell, Calendar, FileText, RefreshCw, User } from 'react-native-feather';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomNavigation from '../../components/BottomNavigation';
+import { useOrders } from '../../hooks/useOrders';
 
 const OrdersScreen = () => {
   const insets = useSafeAreaInsets();
-  // No artificial delays; render immediately
-  // Demo orders in state - set to [] to show empty state
-  const [orders] = useState([
-    {
-      id: '55D90',
-      title: 'Birthday Party',
-      customerName: 'Bodhi Dharmar',
-      status: 'pending',
-      date: '15-10-2025',
-      time: '7:00am - 4pm'
-    },
-    {
-      id: '55D90',
-      title: 'Birthday Party',
-      customerName: 'Praveen Kumar',
-      status: 'approved',
-      date: '13-10-2025',
-      time: '7:00am - 4pm'
-    },
-    {
-      id: '55D90',
-      title: 'Marriage Function',
-      customerName: 'Mohan Raj',
-      status: 'done',
-      date: '11-10-2025',
-      time: '7:00am - 4pm'
+  const { orders, loading, getOrders } = useOrders();
+
+  useEffect(() => {
+    getOrders();
+  }, []);
+
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'pending': return { badge: styles.pendingBadge, text: styles.pendingText, label: 'Pending' };
+      case 'approved': return { badge: styles.approvedBadge, text: styles.approvedText, label: 'Approved' };
+      case 'completed': return { badge: styles.doneBadge, text: styles.doneText, label: 'Done' };
+      case 'rejected': return { badge: styles.rejectedBadge, text: styles.rejectedText, label: 'Rejected' };
+      case 'cancelled': return { badge: styles.rejectedBadge, text: styles.rejectedText, label: 'Cancelled' };
+      default: return { badge: styles.pendingBadge, text: styles.pendingText, label: status };
     }
-  ]);
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -49,24 +39,16 @@ const OrdersScreen = () => {
       <View style={styles.header}>
         {/* Left Icons Group */}
         <View style={styles.leftIconsGroup}>
-          {/* Notification Bell */}
           <Pressable
             style={styles.headerIcon}
-            onPress={() => {
-              // Navigate to notifications or show notification panel
-              logger.log('Notifications pressed');
-            }}
+            onPress={() => logger.log('Notifications pressed')}
           >
             <Bell width={24} height={24} stroke="#000000" />
           </Pressable>
 
-          {/* Calendar Icon */}
           <Pressable
             style={styles.headerIcon}
-            onPress={() => {
-              // Navigate to calendar page
-              router.push('/profilePages/calendar/CalendarPage');
-            }}
+            onPress={() => router.push('/profilePages/calendar/CalendarPage')}
           >
             <Calendar width={24} height={24} stroke="#000000" />
           </Pressable>
@@ -75,10 +57,7 @@ const OrdersScreen = () => {
         {/* Profile Icon */}
         <Pressable
           style={styles.profileIcon}
-          onPress={() => {
-            // Navigate to profile page
-            router.push('/profilePages/profile');
-          }}
+          onPress={() => router.push('/profilePages/profile')}
         >
           <View style={styles.profileImagePlaceholder}>
             <User width={24} height={24} stroke="#CCCCCC" />
@@ -88,9 +67,11 @@ const OrdersScreen = () => {
 
       <FlatList
         data={orders}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
+        keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]}
+        onRefresh={getOrders}
+        refreshing={loading}
         ListHeaderComponent={(
           <View style={styles.titleContainer}>
             <View style={styles.titleRow}>
@@ -99,65 +80,73 @@ const OrdersScreen = () => {
             </View>
           </View>
         )}
-        ListEmptyComponent={(
-          <View style={styles.emptyStateContainer}>
-            <View style={styles.emptyStatePlaceholder}>
-              <FileText width={60} height={60} stroke="#CCCCCC" />
-              <Text style={styles.emptyStateTitle}>No Orders Yet</Text>
-              <Text style={styles.emptyStateSubtitle}>
-                Your orders will appear here once customers start booking your services
-              </Text>
+        ListEmptyComponent={
+          loading ? (
+            <View style={styles.emptyStateContainer}>
+              <ActivityIndicator size="large" color="#800000" />
+              <Text style={styles.loadingText}>Loading orders...</Text>
             </View>
-          </View>
-        )}
+          ) : (
+            <View style={styles.emptyStateContainer}>
+              <View style={styles.emptyStatePlaceholder}>
+                <FileText width={60} height={60} stroke="#CCCCCC" />
+                <Text style={styles.emptyStateTitle}>No Orders Yet</Text>
+                <Text style={styles.emptyStateSubtitle}>
+                  Your orders will appear here once customers start booking your services
+                </Text>
+                <Pressable style={styles.refreshButton} onPress={getOrders}>
+                  <RefreshCw width={16} height={16} stroke="#800000" />
+                  <Text style={styles.refreshText}>Refresh</Text>
+                </Pressable>
+              </View>
+            </View>
+          )
+        }
         renderItem={({ item }) => {
           const goTo = item.status === 'pending' ? '/orders/customerApproval' : '/orders/customerDetails';
+          const statusStyle = getStatusStyle(item.status);
+
           return (
             <Pressable
               style={styles.orderCard}
-
               onPress={() => router.push({
                 pathname: goTo,
                 params: {
                   orderId: item.id,
                   title: item.title,
                   customerName: item.customerName,
-                  packageType: item.status === 'approved' ? 'Business Package' : 'Premium Package',
-                  customerEmail: 'example@example.com',
-                  customerPhone: '+1 (555) 000-0000'
+                  packageType: item.packageType,
+                  customerEmail: item.customerEmail,
+                  customerPhone: item.customerPhone,
+                  eventDate: item.date,
+                  notes: item.notes ?? '',
                 }
               })}
             >
               <View style={styles.cardHeader}>
-                <Text style={styles.orderId}>#{item.id}</Text>
+                <Text style={styles.orderId}>#{item.id.slice(-6).toUpperCase()}</Text>
                 <View style={styles.headerActions}>
-                  {item.status === 'pending' && (
-                    <View style={styles.pendingBadge}><Text style={styles.pendingText}>Pending</Text></View>
-                  )}
-                  {item.status === 'approved' && (
-                    <View style={styles.approvedBadge}><Text style={styles.approvedText}>Approved</Text></View>
-                  )}
-                  {item.status === 'done' && (
-                    <View style={styles.doneBadge}><Text style={styles.doneText}>Done</Text></View>
-                  )}
-                  <Pressable style={styles.editButton}>
-                    <Edit width={16} height={16} stroke="#FFFFFF" />
-                  </Pressable>
+                  <View style={statusStyle.badge}>
+                    <Text style={statusStyle.text}>{statusStyle.label}</Text>
+                  </View>
                 </View>
               </View>
 
               <Text style={styles.eventTitle}>{item.title}</Text>
-              <Text style={styles.customerName} numberOfLines={1} ellipsizeMode="tail">{item.customerName}</Text>
+              <Text style={styles.customerName} numberOfLines={1} ellipsizeMode="tail">
+                {item.customerName}
+              </Text>
 
               <View style={styles.cardFooter}>
                 <View style={styles.dateContainer}>
                   <Calendar width={16} height={16} stroke="#666666" />
                   <Text style={styles.dateText}>{item.date}</Text>
                 </View>
-                <View style={styles.timeContainer}>
-                  <Clock width={16} height={16} stroke="#666666" />
-                  <Text style={styles.timeText}>{item.time}</Text>
-                </View>
+                {item.amount != null && (
+                  <Text style={styles.amountText}>
+                    ₹{Number(item.amount).toLocaleString('en-IN')}
+                  </Text>
+                )}
               </View>
             </Pressable>
           );
@@ -186,9 +175,6 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     backgroundColor: 'transparent',
     zIndex: 10,
-  },
-  scrollView: {
-    flex: 1,
   },
   scrollContent: {
     paddingBottom: 20,
@@ -261,6 +247,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     paddingVertical: 40,
   },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 15,
+    color: '#57534e',
+    fontFamily: 'Inter',
+  },
   emptyStatePlaceholder: {
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.98)',
@@ -292,21 +284,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
-  ordersContainer: {
+  refreshButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+    marginTop: 20,
     paddingHorizontal: 20,
-    paddingBottom: 0,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(128, 0, 0, 0.06)',
+    borderRadius: 20,
   },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1c1917',
-    marginBottom: 20,
+  refreshText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#800000',
     fontFamily: 'Inter',
-    letterSpacing: -0.4,
   },
   orderCard: {
-    width: 353,
     backgroundColor: 'rgba(255, 255, 255, 0.98)',
     borderRadius: 24,
     padding: 24,
@@ -319,7 +313,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 4,
-    justifyContent: 'space-between',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -328,17 +321,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   orderId: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#a8a29e',
     fontFamily: 'Inter',
+    letterSpacing: 1,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    minHeight: 32,
-    justifyContent: 'flex-end',
   },
   pendingBadge: {
     backgroundColor: 'rgba(255, 149, 0, 0.15)',
@@ -382,18 +374,19 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  editButton: {
-    width: 36,
-    height: 36,
-    backgroundColor: '#800000',
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
+  rejectedBadge: {
+    backgroundColor: 'rgba(255, 59, 48, 0.15)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  rejectedText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FF3B30',
+    fontFamily: 'Inter',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   eventTitle: {
     fontSize: 22,
@@ -431,15 +424,10 @@ const styles = StyleSheet.create({
     color: '#57534e',
     fontFamily: 'Inter',
   },
-  timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  timeText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#57534e',
+  amountText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#800000',
     fontFamily: 'Inter',
   },
 });

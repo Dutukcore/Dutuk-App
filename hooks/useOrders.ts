@@ -163,12 +163,12 @@ export const useOrders = () => {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        logger.error('Authentication error');
+        logger.error('Authentication error in updateOrderStatus:', authError);
         setLoading(false);
         return false;
       }
 
-      // First, get the order details (we need customer_id)
+      // First, get the order details (we need customer_id for conversation creation)
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select('*')
@@ -177,12 +177,12 @@ export const useOrders = () => {
         .single();
 
       if (orderError || !orderData) {
-        logger.error('Order not found');
+        logger.error('Order not found or vendor mismatch:', orderError, { orderId, userId: user.id });
         setLoading(false);
         return false;
       }
 
-      // Update order status and verify vendor ownership
+      // Update order status
       const { data, error } = await supabase
         .from('orders')
         .update({
@@ -194,57 +194,57 @@ export const useOrders = () => {
         .select();
 
       if (error) {
-        logger.error('Failed to update order status');
+        logger.error('Supabase update error:', error.message, error.code, error.details);
         setLoading(false);
         return false;
       }
 
-      // Check if order was found and updated
       if (!data || data.length === 0) {
-        logger.error('Order not found or insufficient permissions');
+        logger.error('Order update returned empty — RLS may be blocking the write');
         setLoading(false);
         return false;
       }
 
-      // If approved, create a conversation STRICTLY linked to this order
+      // If approved, create a conversation linked to this order (non-blocking)
       if (status === 'approved') {
-        // BUG FIX: Look up by order_id only — NOT by (customer_id, vendor_id)
-        // This prevents chat state collision when a customer books the same vendor twice
-        const { data: existingConv } = await supabase
-          .from('conversations')
-          .select('id')
-          .eq('order_id', orderId)
-          .maybeSingle();
-
-        if (!existingConv) {
-          // Create a new conversation per-order (never reuse old conversations)
-          const { error: convError } = await supabase
+        try {
+          const { data: existingConv } = await supabase
             .from('conversations')
-            .insert({
-              customer_id: orderData.customer_id,
-              vendor_id: user.id,
-              order_id: orderId,
-              booking_status: 'accepted',
-              terms_accepted_by_customer: false,
-            });
+            .select('id')
+            .eq('order_id', orderId)
+            .maybeSingle();
 
-          if (convError) {
-            logger.error('Failed to create conversation');
-          }
-        } else {
-          // Conversation exists for this order — just update status
-          const { error: updateConvError } = await supabase
-            .from('conversations')
-            .update({ booking_status: 'accepted' })
-            .eq('id', existingConv.id);
+          if (!existingConv) {
+            const { error: convError } = await supabase
+              .from('conversations')
+              .insert({
+                customer_id: orderData.customer_id,
+                vendor_id: user.id,
+                order_id: orderId,
+                booking_status: 'accepted',
+                terms_accepted_by_customer: false,
+              });
 
-          if (updateConvError) {
-            logger.error('Failed to update conversation');
+            if (convError) {
+              logger.error('Failed to create conversation (non-blocking):', convError.message, convError.code);
+            }
+          } else {
+            const { error: updateConvError } = await supabase
+              .from('conversations')
+              .update({ booking_status: 'accepted' })
+              .eq('id', existingConv.id);
+
+            if (updateConvError) {
+              logger.error('Failed to update conversation (non-blocking):', updateConvError.message);
+            }
           }
+        } catch (convException) {
+          // Conversation failure must NOT block the order approval
+          logger.error('Conversation create exception (non-blocking):', convException);
         }
       }
 
-      // Update order status in local state (real-time will also trigger this)
+      // Update local state
       setOrders(prevOrders =>
         prevOrders.map(order =>
           order.id === orderId ? { ...order, status } : order
@@ -253,8 +253,8 @@ export const useOrders = () => {
 
       setLoading(false);
       return true;
-    } catch (error) {
-      logger.error('Failed to update order status');
+    } catch (err: any) {
+      logger.error('updateOrderStatus exception:', err?.message, err?.code, err);
       setLoading(false);
       return false;
     }
