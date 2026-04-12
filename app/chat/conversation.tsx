@@ -117,6 +117,8 @@ export default function ConversationScreen() {
         !!completionRequestedAt,
         [completionRequestedAt]
     );
+
+    const isOrderCompleted = orderStatus === 'completed';
     // Mark messages as read when entering conversation
     useEffect(() => {
         if (conversationId) {
@@ -286,19 +288,39 @@ export default function ConversationScreen() {
 
     const renderCompletionRequestMessage = (item: Message, isOwn: boolean) => {
         return (
-            <View style={[styles.completionCard, isOwn ? styles.completionCardOwn : styles.completionCardOther]}>
+            <View style={[
+                styles.completionCard, 
+                isOwn ? styles.completionCardOwn : styles.completionCardOther,
+                isOrderCompleted ? { borderColor: '#22c55e', backgroundColor: '#f0fdf4' } : {}
+            ]}>
                 <View style={styles.completionCardHeader}>
-                    <Clock width={16} height={16} stroke={isOwn ? '#FFFFFF' : '#7C2A2A'} />
-                    <Text style={[styles.completionCardTitle, isOwn && styles.completionCardTitleOwn]}>
-                        Completion Request
+                    {isOrderCompleted ? (
+                        <CheckCircle width={16} height={16} stroke="#22c55e" />
+                    ) : (
+                        <Clock width={16} height={16} stroke={isOwn ? '#FFFFFF' : '#7C2A2A'} />
+                    )}
+                    <Text style={[
+                        styles.completionCardTitle, 
+                        isOwn && styles.completionCardTitleOwn,
+                        isOrderCompleted && { color: '#166534' }
+                    ]}>
+                        {isOrderCompleted ? 'Completion Confirmed' : 'Completion Request'}
                     </Text>
                 </View>
-                <Text style={[styles.completionCardBody, isOwn && styles.completionCardBodyOwn]}>
+                <Text style={[
+                    styles.completionCardBody, 
+                    isOwn && styles.completionCardBodyOwn,
+                    isOrderCompleted && { color: '#15803d' }
+                ]}>
                     {isOwn
-                        ? 'You requested the customer confirm event completion.'
-                        : 'Vendor has requested you confirm event completion.'}
+                        ? isOrderCompleted 
+                            ? 'Customer has confirmed event completion.' 
+                            : 'You requested the customer confirm event completion.'
+                        : isOrderCompleted 
+                            ? 'You have confirmed the event completion.' 
+                            : 'Vendor has requested you confirm event completion.'}
                 </Text>
-                {!isOwn && (
+                {!isOrderCompleted && !isOwn && (
                     <View style={styles.completionCardBadge}>
                         <Text style={styles.completionCardBadgeText}>Awaiting customer confirmation</Text>
                     </View>
@@ -401,17 +423,20 @@ export default function ConversationScreen() {
                     )}
                 </View>
                 {/* Request Completion Button */}
-                {(canRequestCompletion || completionAlreadyRequested) && (
+                {(canRequestCompletion || completionAlreadyRequested || isOrderCompleted) && (
                     <Pressable
                         style={[
                             styles.completeBtn,
-                            completionAlreadyRequested && styles.completeBtnSent,
+                            (completionAlreadyRequested || isOrderCompleted) && styles.completeBtnSent,
+                            isOrderCompleted && { backgroundColor: '#f0fdf4', borderColor: '#22c55e', borderWidth: 1 }
                         ]}
                         onPress={canRequestCompletion ? handleRequestCompletion : undefined}
-                        disabled={requestingCompletion || completionAlreadyRequested}
+                        disabled={requestingCompletion || completionAlreadyRequested || isOrderCompleted}
                     >
                         {requestingCompletion ? (
                             <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : isOrderCompleted ? (
+                            <Text style={[styles.completeBtnText, { color: '#15803d' }]}>Confirmed ✓</Text>
                         ) : completionAlreadyRequested ? (
                             <Text style={styles.completeBtnText}>Awaiting Confirm</Text>
                         ) : (
