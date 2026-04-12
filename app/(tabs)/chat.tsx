@@ -47,7 +47,7 @@ export default function ChatScreen() {
                 customerName: conversation.customer_name || 'Customer',
                 customerId: conversation.customer_id,
                 paymentCompleted: conversation.payment_completed ? 'true' : 'false',
-                eventId: conversation.event_id ?? '',
+                orderId: conversation.order_id ?? '',
             },
         });
     };

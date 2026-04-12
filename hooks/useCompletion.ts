@@ -1,5 +1,4 @@
 import { useAuthStore } from '@/store/useAuthStore';
-import { useVendorStore } from '@/store/useVendorStore';
 import logger from '@/utils/logger';
 import { supabase } from '@/utils/supabase';
 import { useCallback, useState } from 'react';
@@ -7,6 +6,7 @@ import { useCallback, useState } from 'react';
 // =====================================================
 // HOOK: useRequestCompletion
 // Vendor-side: send a completion request through chat
+// Now uses the `orders` table (events table is deprecated)
 // =====================================================
 
 interface RequestCompletionParams {
@@ -14,18 +14,17 @@ interface RequestCompletionParams {
     conversationId: string;
     /** The customer's user ID (message receiver) */
     customerId: string;
-    /** The event being completed */
-    eventId: string;
+    /** The order being completed */
+    orderId: string;
 }
 
 export function useRequestCompletion() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const updateEventInStore = useVendorStore((s) => s.updateEventInStore);
 
     const requestCompletion = useCallback(
         async (params: RequestCompletionParams): Promise<{ success: boolean; error?: string }> => {
-            const { conversationId, customerId, eventId } = params;
+            const { conversationId, customerId, orderId } = params;
             const vendorId = useAuthStore.getState().userId;
 
             if (!vendorId) {
@@ -45,31 +44,21 @@ export function useRequestCompletion() {
                     receiver_id: customerId,
                     message_text: '📋 Completion Request',
                     message_type: 'completion_request',
-                    event_id: eventId,
                     has_attachment: false,
                 });
 
                 if (msgError) throw msgError;
 
-                // 2. Transition event status to completion_requested
-                const { error: eventError } = await supabase
-                    .from('events')
+                // 2. Mark order as completion_requested via the orders table
+                const { error: orderError } = await supabase
+                    .from('orders')
                     .update({
-                        status: 'completion_requested',
                         completion_requested_at: now,
-                        completion_requested_by: vendorId,
                     })
-                    .eq('id', eventId)
-                    .eq('vendor_id', vendorId); // vendor can only update their own events
+                    .eq('id', orderId)
+                    .eq('vendor_id', vendorId);
 
-                if (eventError) throw eventError;
-
-                // 3. Optimistically update the local store
-                updateEventInStore(eventId, {
-                    status: 'completion_requested',
-                    completion_requested_at: now,
-                    completion_requested_by: vendorId,
-                });
+                if (orderError) throw orderError;
 
                 return { success: true };
             } catch (err: any) {
@@ -81,7 +70,7 @@ export function useRequestCompletion() {
                 setLoading(false);
             }
         },
-        [updateEventInStore]
+        []
     );
 
     return { requestCompletion, loading, error };
@@ -89,8 +78,7 @@ export function useRequestCompletion() {
 
 // =====================================================
 // HOOK: useConfirmCompletion
-// Customer-side: confirm via SECURITY DEFINER RPC
-// (used in customer app — included here for completeness)
+// Customer-side: confirm completion
 // =====================================================
 
 export function useConfirmCompletion() {
@@ -98,16 +86,20 @@ export function useConfirmCompletion() {
     const [error, setError] = useState<string | null>(null);
 
     const confirmCompletion = useCallback(
-        async (eventId: string): Promise<{ success: boolean; error?: string }> => {
+        async (orderId: string): Promise<{ success: boolean; error?: string }> => {
             try {
                 setLoading(true);
                 setError(null);
 
-                const { error: rpcError } = await supabase.rpc('confirm_event_completion', {
-                    event_id_param: eventId,
-                });
+                const { error: updateError } = await supabase
+                    .from('orders')
+                    .update({
+                        status: 'completed',
+                        completed_at: new Date().toISOString(),
+                    })
+                    .eq('id', orderId);
 
-                if (rpcError) throw rpcError;
+                if (updateError) throw updateError;
 
                 return { success: true };
             } catch (err: any) {
