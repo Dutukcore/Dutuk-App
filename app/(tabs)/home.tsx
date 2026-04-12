@@ -127,41 +127,36 @@ const Home = () => {
     return mergeAvailabilityWithEvents(availabilityMarked, eventMarked);
   }, [allEvents, calendarDates]);
 
-  // Analytics Calculation
+  // Analytics Calculation — derived from real orders data
   const analytics = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    // Past earnings calculation
-    const completedEvents = allEvents.filter(e => e.status === 'completed');
-    const totalEarnings = completedEvents.reduce((sum, e) => sum + (e.payment || 0), 0);
+    // Earnings from completed OR approved orders (approved = confirmed booking)
+    const earnableOrders = orders.filter(o => o.status === 'completed' || o.status === 'approved');
+    const totalEarnings = earnableOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
 
-    // This month's earnings
-    const thisMonthEvents = completedEvents.filter(e => {
-      const eventDate = new Date(e.start_date);
-      return eventDate.getMonth() === currentMonth &&
-        eventDate.getFullYear() === currentYear;
+    // This month: filter by event date in current calendar month
+    const thisMonthOrders = earnableOrders.filter(o => {
+      if (!o.rawEventDate) return false;
+      const d = new Date(o.rawEventDate);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     });
-    const thisMonthEarnings = thisMonthEvents.reduce((sum, e) => sum + (e.payment || 0), 0);
+    const thisMonthEarnings = thisMonthOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
 
-    // Past events count
-    const pastEventsCount = completedEvents.length;
-    const thisMonthEventsCount = thisMonthEvents.length;
-
-    // Average rating
-    const avgRating = reviewStats.averageRating || 0;
-    const totalReviews = reviewStats.totalReviews || 0;
+    // Counts
+    const completedCount = orders.filter(o => o.status === 'completed').length;
 
     return {
       totalEarnings,
       thisMonthEarnings,
-      pastEventsCount,
-      thisMonthEventsCount,
-      avgRating,
-      totalReviews
+      pastEventsCount: completedCount,
+      thisMonthEventsCount: thisMonthOrders.length,
+      avgRating: reviewStats.averageRating || 0,
+      totalReviews: reviewStats.totalReviews || 0,
     };
-  }, [allEvents, reviewStats]);
+  }, [orders, reviewStats]);
 
   const handleImageLoadStart = (eventId: string) => {
     setImageLoadingStates(prev => ({ ...prev, [eventId]: true }));
@@ -207,7 +202,7 @@ const Home = () => {
           <View style={styles.headerIcons}>
             {/* Left group */}
             <View style={styles.leftIcons}>
-              <Pressable style={styles.iconButton}>
+                          <Pressable style={styles.iconButton} onPress={() => router.push('/notifications' as any)}>
                 <Ionicons name="notifications-outline" size={26} color="#1c1917" />
               </Pressable>
               <Pressable style={styles.iconButton} onPress={() => router.push("/calendar" as any)}>

@@ -357,40 +357,33 @@ export const useVendorStore = create<VendorState>()(
                 const userId = useAuthStore.getState().userId;
                 if (!userId) return;
 
-                // 1. Get company name
+                // Count pending orders as "requests awaiting action"
+                const { count: pendingCount } = await supabase
+                    .from('orders')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('vendor_id', userId)
+                    .eq('status', 'pending');
+
+                // Count new quotation requests
                 const { data: companyData } = await supabase
                     .from('companies')
-                    .select('company')
-                    .eq('user_id', userId)
-                    .single();
-
-                let reqCount = 0;
-                if (companyData?.company) {
-                    const { count } = await supabase
-                        .from('requests')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('company_name', companyData.company);
-                    reqCount = count || 0;
-                }
-
-                // 2. Get pending inquiries (via user profile)
-                const { data: profile } = await supabase
-                    .from('user_profiles')
                     .select('id')
                     .eq('user_id', userId)
                     .single();
 
-                let inquiriesCount = 0;
-                if (profile?.id) {
-                    const { count: iCount } = await supabase
-                        .from('event_inquiry_items')
+                let quoteCount = 0;
+                if (companyData?.id) {
+                    const { count } = await supabase
+                        .from('quotation_requests')
                         .select('*', { count: 'exact', head: true })
-                        .eq('vendor_id', profile.id)
-                        .eq('status', 'PENDING');
-                    inquiriesCount = iCount || 0;
+                        .eq('status', 'open');
+                    quoteCount = count || 0;
                 }
 
-                set({ requestsCount: reqCount, pendingInquiries: inquiriesCount });
+                set({
+                    requestsCount: (pendingCount || 0) + quoteCount,
+                    pendingInquiries: pendingCount || 0,
+                });
             },
 
             fetchReviews: async (limit?: number) => {

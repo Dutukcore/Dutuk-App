@@ -206,18 +206,18 @@ export const useOrders = () => {
         return false;
       }
 
-      // If approved, create a conversation linked to this order
+      // If approved, create a conversation STRICTLY linked to this order
       if (status === 'approved') {
-        // Check if conversation already exists
-        const { data: existingConv, error: checkError } = await supabase
+        // BUG FIX: Look up by order_id only — NOT by (customer_id, vendor_id)
+        // This prevents chat state collision when a customer books the same vendor twice
+        const { data: existingConv } = await supabase
           .from('conversations')
           .select('id')
-          .eq('customer_id', orderData.customer_id)
-          .eq('vendor_id', user.id)
-          .single();
+          .eq('order_id', orderId)
+          .maybeSingle();
 
         if (!existingConv) {
-          // Create new conversation linked to the order
+          // Create a new conversation per-order (never reuse old conversations)
           const { error: convError } = await supabase
             .from('conversations')
             .insert({
@@ -230,16 +230,12 @@ export const useOrders = () => {
 
           if (convError) {
             logger.error('Failed to create conversation');
-            // Don't fail the whole operation - order was still approved
           }
         } else {
-          // Update existing conversation with order link and status
+          // Conversation exists for this order — just update status
           const { error: updateConvError } = await supabase
             .from('conversations')
-            .update({
-              order_id: orderId,
-              booking_status: 'accepted',
-            })
+            .update({ booking_status: 'accepted' })
             .eq('id', existingConv.id);
 
           if (updateConvError) {

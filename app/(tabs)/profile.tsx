@@ -35,10 +35,28 @@ const ProfileScreen = () => {
       onPress: () => router.push('/profilePages/editProfile')
     },
     {
+      icon: 'layers-outline',
+      title: 'My Services',
+      subtitle: 'Manage your service catalogue',
+      onPress: () => router.push('/profilePages/services' as any)
+    },
+    {
       icon: 'briefcase-outline',
       title: 'Portfolio',
       subtitle: 'Showcase your work',
       onPress: () => router.push('/profilePages/portfolio')
+    },
+    {
+      icon: 'calendar-outline',
+      title: 'Calendar & Availability',
+      subtitle: 'Manage your schedule',
+      onPress: () => router.push('/profilePages/calendar/CalendarPage' as any)
+    },
+    {
+      icon: 'notifications-outline',
+      title: 'Notifications',
+      subtitle: 'View your activity feed',
+      onPress: () => router.push('/notifications' as any)
     },
     {
       icon: 'document-text-outline',

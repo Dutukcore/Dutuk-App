@@ -40,6 +40,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="quotations"
+        options={{
+          title: 'Quotations',
+        }}
+      />
+      <Tabs.Screen
         name="orders"
         options={{
           title: 'Orders',

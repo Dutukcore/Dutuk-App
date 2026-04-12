@@ -1,7 +1,7 @@
 import { useVendorStore } from '@/store/useVendorStore';
 import logger from '@/utils/logger';
 import { router } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -14,6 +14,9 @@ import {
 import { Bell, Calendar, FileText } from 'react-native-feather';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '@/constants/theme';
+
+type FilterType = 'all' | 'pending' | 'approved' | 'completed';
 
 const OrdersScreen = () => {
   const insets = useSafeAreaInsets();
@@ -22,10 +25,23 @@ const OrdersScreen = () => {
   const company = useVendorStore((s) => s.company);
   const fetchAll = useVendorStore((s) => s.fetchAll);
 
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
 
   const FALLBACK_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png";
   const profileImageUrl = company?.logo_url || FALLBACK_IMAGE;
+
+  const filteredOrders = useMemo(() => {
+    if (activeFilter === 'all') return orders;
+    return orders.filter(o => o.status === activeFilter);
+  }, [orders, activeFilter]);
+
+  const counts = useMemo(() => ({
+    all: orders.length,
+    pending: orders.filter(o => o.status === 'pending').length,
+    approved: orders.filter(o => o.status === 'approved').length,
+    completed: orders.filter(o => o.status === 'completed').length,
+  }), [orders]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -85,7 +101,7 @@ const OrdersScreen = () => {
       </View>
 
       <FlatList
-        data={orders}
+      data={filteredOrders}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -96,9 +112,26 @@ const OrdersScreen = () => {
             <View style={styles.titleRow}>
               <Text style={styles.headerTitle}>Orders</Text>
             </View>
-            <Text style={styles.headerSubtitle}>
-              Manage your bookings and requests
-            </Text>
+            <Text style={styles.headerSubtitle}>Manage your bookings and requests</Text>
+            {/* Filter tabs */}
+            <View style={styles.filterRow}>
+              {(['all', 'pending', 'approved', 'completed'] as FilterType[]).map((f) => (
+                <Pressable
+                  key={f}
+                  style={[styles.filterTab, activeFilter === f && styles.filterTabActive]}
+                  onPress={() => setActiveFilter(f)}
+                >
+                  <Text style={[styles.filterTabText, activeFilter === f && styles.filterTabTextActive]}>
+                    {f.charAt(0).toUpperCase() + f.slice(1)}
+                  </Text>
+                  {counts[f] > 0 && (
+                    <View style={[styles.filterBadge, activeFilter === f && styles.filterBadgeActive]}>
+                      <Text style={[styles.filterBadgeText, activeFilter === f && styles.filterBadgeTextActive]}>{counts[f]}</Text>
+                    </View>
+                  )}
+                </Pressable>
+              ))}
+            </View>
           </View>
         )}
         ListEmptyComponent={(
@@ -446,6 +479,54 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#57534e',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 16,
+  },
+  filterTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: 'rgba(79,0,0,0.1)',
+  },
+  filterTabActive: {
+    backgroundColor: '#4F0000',
+    borderColor: '#4F0000',
+  },
+  filterTabText: {
+    fontSize: TYPOGRAPHY.xs,
+    fontWeight: TYPOGRAPHY.bold,
+    color: '#57534e',
+  },
+  filterTabTextActive: {
+    color: '#FFFFFF',
+  },
+  filterBadge: {
+    backgroundColor: 'rgba(79,0,0,0.08)',
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    minWidth: 18,
+    alignItems: 'center',
+  },
+  filterBadgeActive: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  filterBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#4F0000',
+  },
+  filterBadgeTextActive: {
+    color: '#FFFFFF',
   },
 });
 

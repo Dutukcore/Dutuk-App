@@ -11,7 +11,7 @@ import {
 import { Calendar, Home, MessageCircle, Plus, User } from 'react-native-feather';
 
 interface BottomNavigationProps {
-  activeTab: 'home' | 'orders' | 'chat' | 'profile' | 'calendar';
+  activeTab: 'home' | 'orders' | 'chat' | 'profile' | 'calendar' | 'quotations';
 }
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
@@ -81,15 +81,15 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
           </Pressable>
         </View>
 
-        {/* Calendar */}
-        <Pressable style={styles.navItem} onPress={() => navigateToTab('calendar')}>
-          <Calendar
-            width={24}
-            height={24}
-            stroke={activeTab === 'calendar' ? PRIMARY_MAROON : "#a8a29e"}
+        {/* Quotations */}
+        <Pressable style={styles.navItem} onPress={() => navigateToTab('quotations')}>
+          <Ionicons
+            name="document-text-outline"
+            size={24}
+            color={activeTab === 'quotations' ? PRIMARY_MAROON : '#a8a29e'}
           />
-          <Text style={[styles.navLabel, { color: activeTab === 'calendar' ? PRIMARY_MAROON : '#a8a29e' }]}>
-            Calendar
+          <Text style={[styles.navLabel, { color: activeTab === 'quotations' ? PRIMARY_MAROON : '#a8a29e' }]}>
+            Quotes
           </Text>
         </Pressable>
 
