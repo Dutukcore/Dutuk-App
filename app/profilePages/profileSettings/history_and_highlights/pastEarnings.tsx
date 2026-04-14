@@ -1,4 +1,4 @@
-import DisplayEarnings from "@/components/DisplayEarnings";
+import DisplayEarnings from "@/features/profile/components/DisplayEarnings";
 import { useVendorStore } from "@/store/useVendorStore";
 import { View } from "react-native";
 

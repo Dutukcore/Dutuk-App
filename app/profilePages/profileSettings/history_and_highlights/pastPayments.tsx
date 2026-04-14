@@ -1,4 +1,4 @@
-import DisplayPayments from "@/components/DisplayPayments";
+import DisplayPayments from "@/features/profile/components/DisplayPayments";
 import { useVendorStore } from "@/store/useVendorStore";
 import { View } from "react-native";
 

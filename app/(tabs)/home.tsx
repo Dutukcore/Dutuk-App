@@ -1,7 +1,7 @@
-import placeholderImage from "@/assets/avatar.jpg";
+import placeholderImage from "../../assets/avatar.jpg";
 import { useVendorStore } from '@/store/useVendorStore';
-import { buildAvailabilityMarkedDates, MarkedDatesMap, mergeAvailabilityWithEvents } from '@/utils/calendarAvailability';
-import logger from '@/utils/logger';
+import { buildAvailabilityMarkedDates, MarkedDatesMap, mergeAvailabilityWithEvents } from '@/features/calendar/utils/calendarAvailability';
+import logger from '@/lib/logger';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from "expo-router";

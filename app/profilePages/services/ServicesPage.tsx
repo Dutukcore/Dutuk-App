@@ -1,4 +1,4 @@
-import { CreateServiceParams, Service, useServices } from '@/hooks/useServices';
+import { CreateServiceParams, Service, useServices } from '@/features/profile/hooks/useServices';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';

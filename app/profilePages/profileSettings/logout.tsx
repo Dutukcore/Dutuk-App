@@ -1,5 +1,5 @@
-import AuthButton from "@/components/AuthButton";
-import logoutUser from "@/hooks/useLogoutUser";
+import AuthButton from "@/features/auth/components/AuthButton";
+import logoutUser from "@/features/auth/hooks/useLogoutUser";
 import { View } from "react-native";
 
 

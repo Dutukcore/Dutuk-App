@@ -1,5 +1,5 @@
-import UserCard from "@/components/UserCard";
-import chatUserData from "@/dummy_data/chatUserData";
+import UserCard from "@/features/profile/components/UserCard";
+import chatUserData from "@/__mocks__/chatUserData";
 import { useNavigation } from "expo-router";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { User } from "react-native-gifted-chat";

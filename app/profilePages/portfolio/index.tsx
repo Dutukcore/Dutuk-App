@@ -1,5 +1,5 @@
-import { PortfolioItem, usePortfolio } from '@/hooks/usePortfolio';
-import logger from '@/utils/logger';
+import { PortfolioItem, usePortfolio } from '@/features/profile/hooks/usePortfolio';
+import logger from '@/lib/logger';
 import { Ionicons } from '@expo/vector-icons';
 import { AVPlaybackStatus, ResizeMode, Video } from 'expo-av';
 import { router, useLocalSearchParams } from 'expo-router';

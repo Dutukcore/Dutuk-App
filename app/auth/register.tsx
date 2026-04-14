@@ -1,6 +1,6 @@
-import logger from '@/utils/logger';
-import KeyboardSafeView from "@/components/KeyboardSafeView";
-import registerUser from "@/hooks/useRegisterUser";
+import logger from '@/lib/logger';
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
+import registerUser from "@/features/auth/hooks/useRegisterUser";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";

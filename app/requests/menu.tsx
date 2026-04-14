@@ -1,6 +1,6 @@
-import getReqs from "@/hooks/companyRequests/getRequests";
+import getReqs from "@/features/orders/services/getRequests";
 import { useAuthStore } from '@/store/useAuthStore';
-import logger from '@/utils/logger';
+import logger from '@/lib/logger';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";

@@ -1,5 +1,5 @@
-import KeyboardSafeView from "@/components/KeyboardSafeView";
-import useImageUpload from "@/hooks/useImageUpload";
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
+import useImageUpload from "@/features/profile/hooks/useImageUpload";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";

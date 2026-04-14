@@ -1,7 +1,7 @@
-import KeyboardSafeView from "@/components/KeyboardSafeView";
-import PricingItemEditor from "@/components/PricingItemEditor";
-import createEvent from "@/hooks/createEvent";
-import useImageUpload from "@/hooks/useImageUpload";
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
+import PricingItemEditor from "@/features/events/components/PricingItemEditor";
+import createEvent from "@/features/events/services/createEvent";
+import useImageUpload from "@/features/profile/hooks/useImageUpload";
 import { createEmptyPricingItem, PricingItem } from "@/types/pricing";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";

@@ -1,5 +1,5 @@
-import resetPasswordStyles from "@/css/resetPasswordStyle";
-import usePasswordChange from "@/hooks/usePasswordChange";
+import resetPasswordStyles from "../../../src/css/resetPasswordStyle";
+import usePasswordChange from "@/features/auth/hooks/usePasswordChange";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {

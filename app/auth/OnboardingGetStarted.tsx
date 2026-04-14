@@ -1,4 +1,4 @@
-import logger from '@/utils/logger';
+import logger from '@/lib/logger';
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -11,9 +11,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { supabase } from "@/utils/supabase";
+import { supabase } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
-import KeyboardSafeView from "@/components/KeyboardSafeView";
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
 
 const OnboardingGetStarted = () => {
   const [name, setName] = useState("");

@@ -1,4 +1,4 @@
-import PricingBadges from "@/components/PricingBadges";
+import PricingBadges from "@/features/events/components/PricingBadges";
 import { useCompletedEvents, useVendorStore } from "@/store/useVendorStore";
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useState } from "react";

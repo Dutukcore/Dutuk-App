@@ -1,5 +1,5 @@
-import logger from '@/utils/logger';
-import { supabase } from "@/utils/supabase";
+import logger from '@/lib/logger';
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";

@@ -1,6 +1,6 @@
-import logger from '@/utils/logger';
-import getCompanyInfo from "@/hooks/useGetCompanyInfo";
-import { supabase } from "@/utils/supabase";
+import logger from '@/lib/logger';
+import getCompanyInfo from "@/features/profile/hooks/useGetCompanyInfo";
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
-import BottomNavigation from '../../components/BottomNavigation';
+import BottomNavigation from '@/components/layout/BottomNavigation';
 
 const ProfileScreen = () => {
   const insets = useSafeAreaInsets();

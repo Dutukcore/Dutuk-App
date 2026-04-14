@@ -1,6 +1,6 @@
-import logger from '@/utils/logger';
-import googleLogin from "@/hooks/useGoogleAuth";
-import loginUser from "@/hooks/useLoginUser";
+import logger from '@/lib/logger';
+import googleLogin from "@/features/auth/hooks/useGoogleAuth";
+import loginUser from "@/features/auth/hooks/useLoginUser";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
 import { LinearGradient } from 'expo-linear-gradient';
-import KeyboardSafeView from "@/components/KeyboardSafeView";
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
 
 const UserLogin = () => {
   const [email, setEmail] = useState("");

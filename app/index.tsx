@@ -1,9 +1,9 @@
-import logger from '@/utils/logger';
-import { supabase } from "@/utils/supabase";
+import logger from '@/lib/logger';
+import { supabase } from "@/lib/supabase";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import WelcomeScreen from "../components/WelcomeScreen";
+import WelcomeScreen from "@/features/auth/components/WelcomeScreen";
 
 export default function Index() {
   const router = useRouter();

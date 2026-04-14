@@ -1,10 +1,10 @@
-import { getFileIcon, isImageType, useAttachments } from '@/hooks/chat/useAttachments';
-import { useConversation } from '@/hooks/chat/useConversations';
-import { Message, useMarkAsRead, useMessages, useSendMessage } from '@/hooks/chat/useMessages';
-import { useTypingIndicator } from '@/hooks/chat/useTypingIndicator';
-import { useRequestCompletion } from '@/hooks/useCompletion';
+import { getFileIcon, isImageType, useAttachments } from '@/features/chat/hooks/useAttachments';
+import { useConversation } from '@/features/chat/hooks/useConversations';
+import { Message, useMarkAsRead, useMessages, useSendMessage } from '@/features/chat/hooks/useMessages';
+import { useTypingIndicator } from '@/features/chat/hooks/useTypingIndicator';
+import { useRequestCompletion } from '@/features/orders/hooks/useCompletion';
 import { useAuthStore } from '@/store/useAuthStore';
-import { supabase } from '@/utils/supabase';
+import { supabase } from '@/lib/supabase';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {

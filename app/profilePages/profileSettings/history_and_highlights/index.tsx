@@ -1,4 +1,4 @@
-import RouteAssist from '@/components/RouteAssist';
+import RouteAssist from '@/components/ui/RouteAssist';
 import { StyleSheet, Text, View } from 'react-native';
 const HistoryMenu = ()=>{
     return(

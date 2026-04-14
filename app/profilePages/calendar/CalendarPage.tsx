@@ -1,8 +1,8 @@
 // BACKEND INTEGRATION ENABLED - USING SUPABASE FOR DATABASE SYNC
-import UnifiedCalendar from "@/components/UnifiedCalendar";
-import { DateStatus, removeDate, storeDateWithStatus } from "@/hooks/useStoreDates";
+import UnifiedCalendar from "@/features/calendar/components/UnifiedCalendar";
+import { DateStatus, removeDate, storeDateWithStatus } from "@/features/calendar/hooks/useStoreDates";
 import { useVendorStore } from '@/store/useVendorStore';
-import { buildAvailabilityMarkedDates } from "@/utils/calendarAvailability";
+import { buildAvailabilityMarkedDates } from "@/features/calendar/utils/calendarAvailability";
 import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import { useState } from "react";

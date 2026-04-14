@@ -1,6 +1,6 @@
-import logger from '@/utils/logger';
-import KeyboardSafeView from "@/components/KeyboardSafeView";
-import { supabase } from "@/utils/supabase";
+import logger from '@/lib/logger';
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from 'expo-location';
 import { router } from "expo-router";

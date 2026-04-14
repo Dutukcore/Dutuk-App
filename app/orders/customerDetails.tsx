@@ -21,9 +21,9 @@ import {
 } from 'react-native-feather';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import UnifiedCalendar from "../../components/UnifiedCalendar";
-import { buildOrderBookingMarkedDates } from "../../utils/calendarAvailability";
-import { supabase } from "../../utils/supabase";
+import UnifiedCalendar from "@/features/calendar/components/UnifiedCalendar";
+import { buildOrderBookingMarkedDates } from "@/features/calendar/utils/calendarAvailability";
+import { supabase } from "@/lib/supabase";
 
 const CustomerDetailsScreen = () => {
   const params = useLocalSearchParams<{

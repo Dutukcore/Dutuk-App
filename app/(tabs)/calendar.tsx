@@ -1,4 +1,4 @@
-import CalendarPage from '@/app/profilePages/calendar/CalendarPage';
+import CalendarPage from '../profilePages/calendar/CalendarPage';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

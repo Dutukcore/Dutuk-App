@@ -1,4 +1,4 @@
-import DisplayEvents from "@/components/DisplayEvents";
+import DisplayEvents from "@/features/events/components/DisplayEvents";
 import { useCompletedEvents } from "@/store/useVendorStore";
 import { View } from "react-native";
 

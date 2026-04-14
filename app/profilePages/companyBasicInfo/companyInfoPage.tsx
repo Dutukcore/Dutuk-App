@@ -1,6 +1,6 @@
-import AuthButton from "@/components/AuthButton";
-import EditableInputField from "@/components/EditableInputField";
-import useCompanyInfo from "@/hooks/useCompanyInfo";
+import AuthButton from "@/features/auth/components/AuthButton";
+import EditableInputField from "@/components/ui/EditableInputField";
+import useCompanyInfo from "@/features/profile/hooks/useCompanyInfo";
 import { useVendorStore } from "@/store/useVendorStore";
 import React, { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";

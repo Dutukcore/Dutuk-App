@@ -1,8 +1,8 @@
-import KeyboardSafeView from "@/components/KeyboardSafeView";
-import useCompanyInfo from "@/hooks/useCompanyInfo";
-import useImageUpload from "@/hooks/useImageUpload";
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
+import useCompanyInfo from "@/features/profile/hooks/useCompanyInfo";
+import useImageUpload from "@/features/profile/hooks/useImageUpload";
 import { useVendorStore } from "@/store/useVendorStore";
-import logger from '@/utils/logger';
+import logger from '@/lib/logger';
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";

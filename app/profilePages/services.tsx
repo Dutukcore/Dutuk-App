@@ -23,7 +23,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, RADIUS, SHADOW, SPACING, TYPOGRAPHY } from '@/constants/theme';
-import { useServices, Service, CreateServiceParams } from '@/hooks/useServices';
+import { useServices, Service, CreateServiceParams } from '@/features/profile/hooks/useServices';
 
 type PricingModel = 'starting' | 'range' | 'quote';
 

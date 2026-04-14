@@ -1,5 +1,5 @@
-import RouteAssist from "@/components/RouteAssist";
-import logoutUser from "@/hooks/useLogoutUser";
+import RouteAssist from "@/components/ui/RouteAssist";
+import logoutUser from "@/features/auth/hooks/useLogoutUser";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 

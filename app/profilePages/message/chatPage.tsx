@@ -1,4 +1,4 @@
-import chatMessages from '@/dummy_data/chatMessages';
+import chatMessages from '@/__mocks__/chatMessages';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';

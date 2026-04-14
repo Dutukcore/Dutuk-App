@@ -1,10 +1,10 @@
-import AuthAssist from "@/components/AuthAssist";
-import AuthButton from "@/components/AuthButton";
-import KeyboardSafeView from "@/components/KeyboardSafeView";
-import authEmailPageStyle from "@/css/authEmailPageStyle";
-import authInputStyle from "@/css/authInputStyle";
-import authLableStyle from "@/css/authLableStyle";
-import registerUser from "@/hooks/useRegisterUser";
+import AuthAssist from "@/features/auth/components/AuthAssist";
+import AuthButton from "@/features/auth/components/AuthButton";
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
+import authEmailPageStyle from "../../src/css/authEmailPageStyle";
+import authInputStyle from "../../src/css/authInputStyle";
+import authLableStyle from "../../src/css/authLableStyle";
+import registerUser from "@/features/auth/hooks/useRegisterUser";
 import React, { useState } from "react";
 import { Alert, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";

@@ -1,4 +1,4 @@
-import logger from '@/utils/logger';
+import logger from '@/lib/logger';
 import { router } from 'expo-router';
 import React, { useEffect } from 'react';
 import {
@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { Bell, Calendar, FileText, RefreshCw, User } from 'react-native-feather';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import BottomNavigation from '../../components/BottomNavigation';
-import { useOrders } from '../../hooks/useOrders';
+import BottomNavigation from '@/components/layout/BottomNavigation';
+import { useOrders } from '@/features/orders/hooks/useOrders';
 
 const OrdersScreen = () => {
   const insets = useSafeAreaInsets();

@@ -1,5 +1,5 @@
 import { useVendorStore } from '@/store/useVendorStore';
-import logger from '@/utils/logger';
+import logger from '@/lib/logger';
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import {

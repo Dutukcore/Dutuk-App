@@ -1,12 +1,12 @@
-import logger from '@/utils/logger';
+import logger from '@/lib/logger';
 import {
     acceptInquiry,
     EventInquiry,
     getPendingInquiries,
     getVendorInquiries,
     rejectInquiry
-} from "@/hooks/useEventInquiries";
-import { supabase } from "@/utils/supabase";
+} from "@/features/events/hooks/useEventInquiries";
+import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";

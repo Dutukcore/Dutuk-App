@@ -1,8 +1,8 @@
-import customStyle from "@/assets/customStyle";
-import acceptCustomerRequest from "@/hooks/companyRequests/acceptCustomerOffer";
-import getReqMini from "@/hooks/companyRequests/getRequestFromId";
-import removeRequest from "@/hooks/companyRequests/removeRequestFromId";
-import storeMultipleDates from "@/hooks/companyRequests/storeMultipleDates";
+import customStyle from "@/css/customStyle";
+import acceptCustomerRequest from "@/features/orders/services/acceptCustomerOffer";
+import getReqMini from "@/features/orders/services/getRequestFromId";
+import removeRequest from "@/features/orders/services/removeRequestFromId";
+import storeMultipleDates from "@/features/orders/services/storeMultipleDates";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import {

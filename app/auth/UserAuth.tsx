@@ -1,5 +1,5 @@
 import React from "react";
-import WelcomeScreen from "../../components/WelcomeScreen";
+import WelcomeScreen from "@/features/auth/components/WelcomeScreen";
 
 const UserAuth = () => {
   return <WelcomeScreen />;

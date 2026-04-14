@@ -1,13 +1,13 @@
-import logger from '@/utils/logger';
+import logger from '@/lib/logger';
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ArrowLeft, Calendar as CalendarIcon } from 'react-native-feather';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import { useOrders } from "../../hooks/useOrders";
-import UnifiedCalendar from "../../components/UnifiedCalendar";
-import { buildOrderBookingMarkedDates } from "../../utils/calendarAvailability";
+import { useOrders } from "@/features/orders/hooks/useOrders";
+import UnifiedCalendar from "@/features/calendar/components/UnifiedCalendar";
+import { buildOrderBookingMarkedDates } from "@/features/calendar/utils/calendarAvailability";
 
 const CustomerApprovalScreen = () => {
   const params = useLocalSearchParams<{

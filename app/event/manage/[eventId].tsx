@@ -1,9 +1,9 @@
-import KeyboardSafeView from "@/components/KeyboardSafeView";
-import PricingItemEditor from "@/components/PricingItemEditor";
-import deleteEvent from "@/hooks/deleteEvent";
-import updateEvent, { UpdateEventPayload } from "@/hooks/updateEvent";
-import { getEventPricing } from "@/hooks/useEventPricing";
-import useImageUpload from "@/hooks/useImageUpload";
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
+import PricingItemEditor from "@/features/events/components/PricingItemEditor";
+import deleteEvent from "@/features/events/services/deleteEvent";
+import updateEvent, { UpdateEventPayload } from "@/features/events/services/updateEvent";
+import { getEventPricing } from "@/features/events/hooks/useEventPricing";
+import useImageUpload from "@/features/profile/hooks/useImageUpload";
 import { useVendorStore } from "@/store/useVendorStore";
 import { createEmptyPricingItem, PricingItem } from "@/types/pricing";
 import { Ionicons } from "@expo/vector-icons";

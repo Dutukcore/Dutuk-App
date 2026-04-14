@@ -1,5 +1,5 @@
 import { useVendorStore } from '@/store/useVendorStore';
-import logger from '@/utils/logger';
+import logger from '@/lib/logger';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';

@@ -1,5 +1,5 @@
-import logger from "@/utils/logger";
-import { supabase } from "@/utils/supabase";
+import logger from "@/lib/logger";
+import { supabase } from "@/lib/supabase";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";

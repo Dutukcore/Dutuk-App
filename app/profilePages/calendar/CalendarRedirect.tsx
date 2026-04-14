@@ -1,13 +1,13 @@
-import logger from '@/utils/logger';
+import logger from '@/lib/logger';
 // BACKEND INTEGRATION COMMENTED OUT - USING ASYNCSTORAGE FOR LOCAL STORAGE
-import AuthButton from "@/components/AuthButton";
-import EditableInputField from "@/components/EditableInputField";
-// import getStoreDatesInfo from "@/hooks/getStoredDatesInfo";
-// import storeDatesInfo from "@/hooks/storeDatesInfo";
+import AuthButton from "@/features/auth/components/AuthButton";
+import EditableInputField from "@/components/ui/EditableInputField";
+// import getStoreDatesInfo from "@/features/calendar/hooks/getStoredDatesInfo";
+// import storeDatesInfo from "@/features/calendar/hooks/storeDatesInfo";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
-import { getCalendarDate, setCalendarDate } from "@/utils/calendarStorage";
+import { getCalendarDate, setCalendarDate } from "@/features/calendar/utils/calendarStorage";
 import Toast from 'react-native-toast-message';
 
 type prop = {

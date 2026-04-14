@@ -1,4 +1,4 @@
-import DisplayReviews from "@/components/DisplayReviews";
+import DisplayReviews from "@/features/profile/components/DisplayReviews";
 import { useVendorStore } from "@/store/useVendorStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";

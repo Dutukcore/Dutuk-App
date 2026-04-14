@@ -1,6 +1,6 @@
-import KeyboardSafeView from "@/components/KeyboardSafeView";
-import PricingItemEditor from "@/components/PricingItemEditor";
-import createEvent from "@/hooks/createEvent";
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
+import PricingItemEditor from "@/features/events/components/PricingItemEditor";
+import createEvent from "@/features/events/services/createEvent";
 import { useVendorStore } from "@/store/useVendorStore";
 import { createEmptyPricingItem, PricingItem } from "@/types/pricing";
 import { Ionicons } from "@expo/vector-icons";
