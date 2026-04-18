@@ -81,8 +81,8 @@ const googleLogin = async (): Promise<void> => {
     }
 
     // Extract authorization code from redirect URL
-    const url = new URL(result.url);
-    const code = url.searchParams.get("code");
+    const parsedUrl = Linking.parse(result.url);
+    const code = parsedUrl.queryParams?.code as string | undefined;
 
     if (!code) {
       logger.error("No auth code returned in redirect URL");

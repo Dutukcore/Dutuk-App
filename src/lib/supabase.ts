@@ -9,9 +9,7 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 // Validate that environment variables are set
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    "Missing Supabase environment variables. Please check your .env file."
-  );
+  logger.error("FATAL: Missing Supabase environment variables. Please check your eas.json or EAS Secrets.");
 }
 
 // Check if we're in a server-side rendering context
@@ -76,46 +74,50 @@ const createCustomFetch = () => (url: RequestInfo | URL, options: RequestInit = 
 // Singleton instance - only created on client side
 let supabaseInstance: SupabaseClient | null = null;
 
+// Mock client for SSR and missing credentials
+const createMockClient = (): SupabaseClient => {
+  return new Proxy({} as SupabaseClient, {
+    get: (target, prop) => {
+      // For auth methods, return safe async functions
+      if (prop === 'auth') {
+        return new Proxy({}, {
+          get: () => async () => ({ data: null, error: null }),
+        });
+      }
+      // For database methods (from, rpc, etc.)
+      if (prop === 'from' || prop === 'rpc') {
+        return () => new Proxy({}, {
+          get: () => () => new Proxy({}, {
+            get: () => () => Promise.resolve({ data: null, error: null }),
+          }),
+        });
+      }
+      // For storage methods
+      if (prop === 'storage') {
+        return new Proxy({}, {
+          get: () => () => new Proxy({}, {
+            get: () => () => Promise.resolve({ data: null, error: null }),
+          }),
+        });
+      }
+      return undefined;
+    },
+  });
+};
+
 /**
  * Creates or returns the Supabase client instance.
- * Returns a no-op client during SSR to prevent hydration issues.
+ * Returns a no-op client during SSR or if credentials are missing.
  */
 const getSupabaseClient = (): SupabaseClient => {
-  // During SSR, return a mock client that does nothing
-  if (isServerSide) {
-    // Return a proxy that returns safe defaults for any property access
-    return new Proxy({} as SupabaseClient, {
-      get: (target, prop) => {
-        // For auth methods, return safe async functions
-        if (prop === 'auth') {
-          return new Proxy({}, {
-            get: () => async () => ({ data: null, error: null }),
-          });
-        }
-        // For database methods (from, rpc, etc.)
-        if (prop === 'from' || prop === 'rpc') {
-          return () => new Proxy({}, {
-            get: () => () => new Proxy({}, {
-              get: () => () => Promise.resolve({ data: null, error: null }),
-            }),
-          });
-        }
-        // For storage methods
-        if (prop === 'storage') {
-          return new Proxy({}, {
-            get: () => () => new Proxy({}, {
-              get: () => () => Promise.resolve({ data: null, error: null }),
-            }),
-          });
-        }
-        return undefined;
-      },
-    });
+  // During SSR or if credentials are missing, return a mock client
+  if (isServerSide || !supabaseUrl || !supabaseAnonKey) {
+    return createMockClient();
   }
 
   // Create singleton instance on client
   if (!supabaseInstance) {
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    supabaseInstance = createClient(supabaseUrl as string, supabaseAnonKey as string, {
       auth: {
         storage: createSafeStorage(),
         autoRefreshToken: true,

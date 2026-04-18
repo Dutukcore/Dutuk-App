@@ -13,19 +13,20 @@ import { useVendorStore } from '@/store/useVendorStore';
 
 WebBrowser.maybeCompleteAuthSession();
 
+// Prevent splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync().catch(() => { });
+
 export default function RootLayout() {
   const initialize = useAuthStore((s) => s.initialize);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const fetchCritical = useVendorStore((s) => s.fetchCritical);
 
   useEffect(() => {
-    // Hide splash screen immediately to prevent hanging
-    SplashScreen.hideAsync().catch(() => {
-      // Ignore errors if splash screen is already hidden
-    });
-
     // Initialize auth state from MMKV/Supabase session
-    initialize();
+    initialize().finally(() => {
+      // Hide splash screen after initialization attempt
+      SplashScreen.hideAsync().catch(() => { });
+    });
   }, []);
 
   // When user authenticates, fetch critical vendor data + setup unified realtime channel

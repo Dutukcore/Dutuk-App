@@ -1,7 +1,6 @@
-import placeholderImage from "../../assets/avatar.jpg";
-import { useVendorStore } from '@/store/useVendorStore';
 import { buildAvailabilityMarkedDates, MarkedDatesMap, mergeAvailabilityWithEvents } from '@/features/calendar/utils/calendarAvailability';
 import logger from '@/lib/logger';
+import { useVendorStore } from '@/store/useVendorStore';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from "expo-router";
@@ -202,7 +201,7 @@ const Home = () => {
           <View style={styles.headerIcons}>
             {/* Left group */}
             <View style={styles.leftIcons}>
-                          <Pressable style={styles.iconButton} onPress={() => router.push('/notifications' as any)}>
+              <Pressable style={styles.iconButton} onPress={() => router.push('/notifications' as any)}>
                 <Ionicons name="notifications-outline" size={26} color="#1c1917" />
               </Pressable>
               <Pressable style={styles.iconButton} onPress={() => router.push("/calendar" as any)}>
@@ -215,7 +214,6 @@ const Home = () => {
               <Image
                 source={{ uri: profileImageUrl }}
                 style={styles.profileImage}
-                placeholder={placeholderImage}
                 cachePolicy="disk"
                 onLoadStart={() => setProfileImageLoading(true)}
                 onLoadEnd={() => setProfileImageLoading(false)}
@@ -381,9 +379,8 @@ const Home = () => {
                     onPress={() => router.push(`/event/manage/${item.id}`)}
                   >
                     <Image
-                      source={imageUri ? { uri: imageUri } : placeholderImage}
+                      source={imageUri ? { uri: imageUri } : { uri: FALLBACK_IMAGE }}
                       style={styles.manageCardImageSmall}
-                      placeholder={placeholderImage}
                       cachePolicy="disk"
                     />
                     <Text style={styles.manageCardTitleSmall} numberOfLines={1}>{item.event}</Text>
