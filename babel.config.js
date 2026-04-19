@@ -1,4 +1,4 @@
-module.exports = function(api) {
+module.exports = function (api) {
   api.cache(true);
   return {
     presets: ['babel-preset-expo'],
@@ -13,8 +13,8 @@ module.exports = function(api) {
           extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
         },
       ],
-      // react-native-reanimated/plugin must be the last plugin
-      'react-native-reanimated/plugin',
+      // NOTE: react-native-reanimated/plugin is NOT added here.
+      // babel-preset-expo already includes it for SDK 53+.
     ],
   };
 };

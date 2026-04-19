@@ -1,3 +1,4 @@
+import { maskEmail } from '@/features/auth/hooks/authHelpers';
 import logger from '@/lib/logger';
 import { supabase } from "@/lib/supabase";
 
@@ -27,25 +28,25 @@ const checkUserExists = async (
 
     if (error) {
       const message = error.message.toLowerCase();
-      
+
       // If error mentions "invalid login credentials", user exists but password was wrong
       if (message.includes("invalid login credentials") || message.includes("invalid password")) {
-        logger.log("User exists (invalid credentials error):", trimmedEmail);
+        logger.log("User exists (invalid credentials error):", maskEmail(trimmedEmail));
         return { exists: true, error: null };
       }
-      
+
       // If error mentions "user not found" or "email not found", user doesn't exist
       if (message.includes("user not found") || message.includes("not found")) {
-        logger.log("User does not exist:", trimmedEmail);
+        logger.log("User does not exist:", maskEmail(trimmedEmail));
         return { exists: false, error: null };
       }
-      
+
       // For "email not confirmed", user exists but hasn't verified email
       if (message.includes("email not confirmed") || message.includes("not verified")) {
-        logger.log("User exists but email not confirmed:", trimmedEmail);
+        logger.log("User exists but email not confirmed:", maskEmail(trimmedEmail));
         return { exists: true, error: null };
       }
-      
+
       // Other errors - assume user doesn't exist to allow registration attempt
       logger.log("Ambiguous error, assuming user doesn't exist:", error);
       return { exists: false, error: null };

@@ -1,6 +1,7 @@
 import logger from '@/lib/logger';
 import { zustandMMKVStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
+import { Subscription } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -10,6 +11,7 @@ interface AuthState {
     isAuthenticated: boolean;
     provider: string | null;
     isLoading: boolean;
+    _authSub: Subscription | null; // internal – auth listener cleanup ref
 
     // Actions
     initialize: () => Promise<void>;
@@ -29,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             provider: null,
             isLoading: true,
+            _authSub: null,
 
             initialize: async () => {
                 try {
@@ -54,8 +57,12 @@ export const useAuthStore = create<AuthState>()(
                     set({ isLoading: false });
                 }
 
-                // Listen for auth changes (login/logout)
-                supabase.auth.onAuthStateChange((event, session) => {
+                // Unsubscribe any previous listener before creating a new one
+                // (guards against React 19 strict-mode double-invoke)
+                get()._authSub?.unsubscribe();
+
+                // Listen for auth changes (login/logout) – single subscription
+                const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
                     logger.log(`Auth event: ${event}`);
                     set({
                         user: session?.user ?? null,
@@ -65,6 +72,8 @@ export const useAuthStore = create<AuthState>()(
                         isLoading: false,
                     });
                 });
+
+                set({ _authSub: subscription });
             },
 
             setUser: (user) => {
@@ -78,8 +87,10 @@ export const useAuthStore = create<AuthState>()(
 
             logout: async () => {
                 try {
+                    // Clean up auth listener before signing out
+                    get()._authSub?.unsubscribe();
                     await supabase.auth.signOut();
-                    set({ user: null, userId: null, provider: null, isAuthenticated: false });
+                    set({ user: null, userId: null, provider: null, isAuthenticated: false, _authSub: null });
                     logger.log('User logged out from store');
                 } catch (err) {
                     logger.error('Error during logout');
@@ -89,6 +100,14 @@ export const useAuthStore = create<AuthState>()(
         {
             name: 'dutuk-auth-storage',
             storage: createJSONStorage(() => zustandMMKVStorage),
+            // Exclude internal subscription ref from persistence
+            partialize: (state) => ({
+                user: state.user,
+                userId: state.userId,
+                isAuthenticated: state.isAuthenticated,
+                provider: state.provider,
+                isLoading: state.isLoading,
+            }),
         }
     )
 );

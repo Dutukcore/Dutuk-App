@@ -1,6 +1,10 @@
-import logger from '@/lib/logger';
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
+import { maskEmail } from '@/features/auth/hooks/authHelpers';
 import googleLogin from "@/features/auth/hooks/useGoogleAuth";
 import loginUser from "@/features/auth/hooks/useLoginUser";
+import logger from '@/lib/logger';
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -13,10 +17,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 import Toast from 'react-native-toast-message';
-import { LinearGradient } from 'expo-linear-gradient';
-import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
 
 const UserLogin = () => {
   const [email, setEmail] = useState("");
@@ -36,7 +37,7 @@ const UserLogin = () => {
 
     setLoading(true);
     try {
-      logger.log('Attempting login with:', email.trim().toLowerCase());
+      logger.log('Attempting login with:', maskEmail(email));
       await loginUser(email.trim().toLowerCase(), password.trim());
     } catch (error) {
       logger.error('Login error in component:', error);
@@ -70,7 +71,7 @@ const UserLogin = () => {
       />
 
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardSafeView 
+        <KeyboardSafeView
           scrollable={true}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -119,14 +120,14 @@ const UserLogin = () => {
                   autoCapitalize="none"
                   editable={!loading}
                 />
-                <Pressable 
+                <Pressable
                   style={styles.eyeButton}
                   onPress={() => setShowPassword(!showPassword)}
                 >
-                  <Ionicons 
-                    name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                    size={20} 
-                    color="#a8a29e" 
+                  <Ionicons
+                    name={showPassword ? "eye-outline" : "eye-off-outline"}
+                    size={20}
+                    color="#a8a29e"
                   />
                 </Pressable>
               </View>
@@ -166,7 +167,7 @@ const UserLogin = () => {
               onPress={handleGoogleAuth}
               disabled={loading}
             >
-              <Image 
+              <Image
                 source={{ uri: 'https://www.google.com/favicon.ico' }}
                 style={styles.googleIcon}
               />

@@ -78,11 +78,40 @@ let supabaseInstance: SupabaseClient | null = null;
 const createMockClient = (): SupabaseClient => {
   return new Proxy({} as SupabaseClient, {
     get: (target, prop) => {
-      // For auth methods, return safe async functions
+      // For auth methods
       if (prop === 'auth') {
-        return new Proxy({}, {
-          get: () => async () => ({ data: null, error: null }),
+        const authProxy = new Proxy({}, {
+          get: (authTarget, authProp) => {
+            if (authProp === 'onAuthStateChange') {
+              return () => ({
+                data: {
+                  subscription: {
+                    unsubscribe: () => { }
+                  }
+                },
+                error: null
+              });
+            }
+            if (authProp === 'getSession') {
+              return async () => ({
+                data: { session: null },
+                error: null
+              });
+            }
+            if (authProp === 'getUser') {
+              return async () => ({
+                data: { user: null },
+                error: null
+              });
+            }
+            if (authProp === 'signOut') {
+              return async () => ({ error: null });
+            }
+            // Fallback for other auth methods
+            return async () => ({ data: null, error: null });
+          },
         });
+        return authProxy;
       }
       // For database methods (from, rpc, etc.)
       if (prop === 'from' || prop === 'rpc') {

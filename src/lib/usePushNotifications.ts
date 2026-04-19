@@ -1,6 +1,6 @@
-import { useAuthStore } from '@/store/useAuthStore';
 import logger from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
@@ -108,7 +108,7 @@ export function usePushNotifications() {
             }
 
             setExpoPushToken(token);
-            logger.log('Push notification token obtained');
+            logger.log('Push notification token obtained:', !!token);
             return token;
         } catch (err: any) {
             logger.error('Error registering for push notifications');
@@ -205,9 +205,22 @@ export function usePushNotifications() {
         };
     }, []);
 
-    // Auto-register on mount
+    // Auto-register only once the user is authenticated.
+    // Registering before auth means (a) the permission dialog fires before the
+    // user knows what the app is, and (b) storePushToken gets called with a null user.
     useEffect(() => {
-        registerForPushNotifications();
+        const unsub = useAuthStore.subscribe((state) => {
+            if (state.isAuthenticated) {
+                registerForPushNotifications();
+                unsub(); // Only register once per session
+            }
+        });
+        // If already authenticated when hook mounts, register immediately
+        if (useAuthStore.getState().isAuthenticated) {
+            registerForPushNotifications();
+            unsub();
+        }
+        return unsub;
     }, [registerForPushNotifications]);
 
     return {

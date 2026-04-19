@@ -1,84 +1,47 @@
+import WelcomeScreen from "@/features/auth/components/WelcomeScreen";
 import logger from '@/lib/logger';
-import { supabase } from "@/lib/supabase";
+import { useAuthStore } from '@/store/useAuthStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
-import WelcomeScreen from "@/features/auth/components/WelcomeScreen";
+import React, { useEffect } from "react";
 
+/**
+ * Landing screen – reads auth state from the Zustand store (single source of truth).
+ * The store's onAuthStateChange listener (in useAuthStore.initialize) handles all
+ * auth transitions; this screen simply reacts to the resulting state changes.
+ */
 export default function Index() {
   const router = useRouter();
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  // Prevent duplicate routing if multiple auth events fire during signup
-  const handlingAuth = useRef(false);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isLoading = useAuthStore((s) => s.isLoading);
 
   useEffect(() => {
-    // Check for existing session on app startup
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
+    if (isLoading) return; // Still initialising – wait
 
-        if (session) {
-          // User is already logged in, redirect to home.
-          // The onAuthStateChange listener will NOT be active yet
-          // for this initial check, so a dedicated flag check isn't needed here.
-          logger.log("Existing session found, redirecting to home");
-          router.replace("/(tabs)/home");
+    if (isAuthenticated) {
+      // Check if this is a new user who needs onboarding
+      AsyncStorage.getItem('isNewUserSignup').then((isNewUser) => {
+        if (isNewUser === 'true') {
+          AsyncStorage.removeItem('isNewUserSignup');
+          logger.log('New user signup, redirecting to onboarding');
+          router.replace('/auth/OnboardingGetStarted');
         } else {
-          // No session, show welcome screen
-          setIsCheckingAuth(false);
+          logger.log('User logged in, redirecting to home');
+          router.replace('/(tabs)/home');
         }
-      } catch (error) {
-        logger.error("Error checking session:", error);
-        setIsCheckingAuth(false);
-      }
-    };
+      }).catch(() => {
+        // Fallback: just go home if AsyncStorage fails
+        router.replace('/(tabs)/home');
+      });
+    }
+    // If !isAuthenticated, show the welcome screen (rendered below)
+  }, [isAuthenticated, isLoading, router]);
 
-    checkSession();
+  // While initialising show nothing (splash screen is still up)
+  if (isLoading) return null;
 
-    // Listen for auth state changes (login, signup, logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
-        // Guard against multiple firings during the signup flow
-        // (supabase fires both a SIGNED_UP and a SIGNED_IN event)
-        if (handlingAuth.current) return;
-        handlingAuth.current = true;
-
-        try {
-          // Check if this is a new user signup
-          const isNewUser = await AsyncStorage.getItem('isNewUserSignup');
-
-          if (isNewUser === 'true') {
-            // Clear the flag and redirect to onboarding
-            await AsyncStorage.removeItem('isNewUserSignup');
-            logger.log("New user signup, redirecting to onboarding");
-            router.replace('/auth/OnboardingGetStarted');
-          } else {
-            // Existing user login, redirect to home
-            logger.log("User logged in, redirecting to home");
-            router.replace("/(tabs)/home");
-          }
-        } finally {
-          // Reset the guard after a short delay to allow future logins/logouts
-          setTimeout(() => {
-            handlingAuth.current = false;
-          }, 2000);
-        }
-      } else {
-        // User logged out, stay on welcome screen
-        handlingAuth.current = false;
-        setIsCheckingAuth(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [router]);
-
-  // Show welcome screen if no session is found
-  if (isCheckingAuth) {
-    return null; // Or a loading screen
-  }
+  // Authenticated users are being redirected above; show welcome to guests
+  if (isAuthenticated) return null;
 
   return <WelcomeScreen />;
 }

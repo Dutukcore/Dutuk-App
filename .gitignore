@@ -46,3 +46,6 @@ app-example
 # Environment files
 *.env
 *.env.*
+
+# Play Console service-account key (DO NOT COMMIT)
+google-services.json

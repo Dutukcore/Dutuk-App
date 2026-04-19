@@ -1,5 +1,6 @@
 import logger from '@/lib/logger';
 import { storage } from '@/lib/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type CalendarDateStatus = 'available' | 'unavailable';
 
@@ -12,28 +13,54 @@ export interface CalendarDate {
 
 const CALENDAR_STORAGE_KEY = '@dutuk_calendar_dates';
 
+// ─── Low-level helpers that transparently handle MMKV vs AsyncStorage ────────
+
+const readRaw = async (): Promise<string | null> => {
+  if (storage) {
+    return storage.getString(CALENDAR_STORAGE_KEY) ?? null;
+  }
+  return AsyncStorage.getItem(CALENDAR_STORAGE_KEY);
+};
+
+const writeRaw = async (value: string): Promise<void> => {
+  if (storage) {
+    storage.set(CALENDAR_STORAGE_KEY, value);
+  } else {
+    await AsyncStorage.setItem(CALENDAR_STORAGE_KEY, value);
+  }
+};
+
+const deleteRaw = async (): Promise<void> => {
+  if (storage) {
+    storage.remove(CALENDAR_STORAGE_KEY);
+  } else {
+    await AsyncStorage.removeItem(CALENDAR_STORAGE_KEY);
+  }
+};
+
+// ─── Public API ───────────────────────────────────────────────────────────────
+
 /**
- * Get all stored calendar dates from MMKV
+ * Get all stored calendar dates
  */
 export const getCalendarDates = async (): Promise<CalendarDate[]> => {
   try {
-    const jsonValue = storage.getString(CALENDAR_STORAGE_KEY);
+    const jsonValue = await readRaw();
     return jsonValue != null ? JSON.parse(jsonValue) : [];
   } catch (error) {
-    logger.error('Error reading calendar dates from MMKV:', error);
+    logger.error('Error reading calendar dates:', error);
     return [];
   }
 };
 
 /**
- * Save calendar dates to MMKV
+ * Save calendar dates
  */
 export const saveCalendarDates = async (dates: CalendarDate[]): Promise<void> => {
   try {
-    const jsonValue = JSON.stringify(dates);
-    storage.set(CALENDAR_STORAGE_KEY, jsonValue);
+    await writeRaw(JSON.stringify(dates));
   } catch (error) {
-    logger.error('Error saving calendar dates to MMKV:', error);
+    logger.error('Error saving calendar dates:', error);
   }
 };
 
@@ -51,10 +78,8 @@ export const setCalendarDate = async (
     const existingIndex = dates.findIndex((d) => d.date === date);
 
     if (existingIndex >= 0) {
-      // Update existing date
       dates[existingIndex] = { date, status, event, description };
     } else {
-      // Add new date
       dates.push({ date, status, event, description });
     }
 
@@ -98,13 +123,11 @@ export const toggleDateStatus = async (date: string): Promise<CalendarDateStatus
     const existingDate = await getCalendarDate(date);
 
     if (existingDate) {
-      // Toggle status
       const newStatus: CalendarDateStatus =
         existingDate.status === 'available' ? 'unavailable' : 'available';
       await setCalendarDate(date, newStatus, existingDate.event, existingDate.description);
       return newStatus;
     } else {
-      // New date, default to unavailable
       await setCalendarDate(date, 'unavailable');
       return 'unavailable';
     }
@@ -125,12 +148,12 @@ export const isPastDate = (dateString: string): boolean => {
 };
 
 /**
- * Clear all calendar dates (for testing/reset purposes)
+ * Clear all calendar dates (for testing/reset)
  */
 export const clearAllCalendarDates = async (): Promise<void> => {
   try {
-    storage.delete(CALENDAR_STORAGE_KEY);
+    await deleteRaw();
   } catch (error) {
-    logger.error('Error clearing calendar dates from MMKV:', error);
+    logger.error('Error clearing calendar dates:', error);
   }
 };
