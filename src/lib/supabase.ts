@@ -161,6 +161,23 @@ const getSupabaseClient = (): SupabaseClient => {
         fetch: createCustomFetch(),
       },
     });
+
+    // Wire auth JWT to the realtime socket so RLS `auth.uid()` evaluates
+    // correctly for postgres_changes event payloads.
+    //
+    // We eagerly call getSession() so the token is set BEFORE the first
+    // channel.subscribe() call — onAuthStateChange fires async and would
+    // leave the socket as `anon` for the first connection window.
+    supabaseInstance.auth.getSession().then(({ data: { session } }) => {
+      if (session?.access_token) {
+        supabaseInstance!.realtime.setAuth(session.access_token);
+      }
+    }).catch(() => { /* ignore — onAuthStateChange will still set the token */ });
+
+    // Also keep updating the token on every refresh / login / logout
+    supabaseInstance.auth.onAuthStateChange((_event, session) => {
+      supabaseInstance!.realtime.setAuth(session?.access_token ?? null);
+    });
   }
 
   return supabaseInstance;

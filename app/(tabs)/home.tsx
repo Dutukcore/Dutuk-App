@@ -1,4 +1,5 @@
 import { buildAvailabilityMarkedDates, MarkedDatesMap, mergeAvailabilityWithEvents } from '@/features/calendar/utils/calendarAvailability';
+import { useOrdersPolling } from '@/features/orders/hooks/useOrdersPolling';
 import logger from '@/lib/logger';
 import { useVendorStore } from '@/store/useVendorStore';
 import { Ionicons } from '@expo/vector-icons';
@@ -79,6 +80,7 @@ const Home = () => {
     orders,
     ordersLoading,
     newOrderCount,
+    realtimeStatus,
   } = useVendorStore(
     useShallow((s) => ({
       allEvents: s.allEvents,
@@ -93,8 +95,12 @@ const Home = () => {
       orders: s.orders,
       ordersLoading: s.ordersLoading,
       newOrderCount: s.newOrderCount,
+      realtimeStatus: s.realtimeStatus,
     }))
   );
+
+  // Activate fallback polling when realtime is unhealthy
+  useOrdersPolling();
 
   // Local UI state
   const [refreshing, setRefreshing] = useState(false);
@@ -240,6 +246,22 @@ const Home = () => {
                 <Text style={[styles.orderCountText, newOrderCount > 0 && styles.newOrderText]}>{orders.length}</Text>
               </View>
               {newOrderCount > 0 && <View style={styles.redDot} />}
+              {/* Live status indicator */}
+              <View style={[
+                styles.liveIndicator,
+                realtimeStatus === 'SUBSCRIBED' ? styles.liveIndicatorActive : styles.liveIndicatorReconnecting
+              ]}>
+                <View style={[
+                  styles.liveDot,
+                  realtimeStatus === 'SUBSCRIBED' ? styles.liveDotActive : styles.liveDotReconnecting
+                ]} />
+                <Text style={[
+                  styles.liveText,
+                  realtimeStatus === 'SUBSCRIBED' ? styles.liveTextActive : styles.liveTextReconnecting
+                ]}>
+                  {realtimeStatus === 'SUBSCRIBED' ? 'Live' : 'Reconnecting…'}
+                </Text>
+              </View>
             </View>
             <Pressable onPress={() => router.push('/orders/allOrders' as any)}>
               <Text style={styles.viewAllLink}>View All</Text>
@@ -1087,6 +1109,44 @@ const styles = StyleSheet.create({
     color: '#34C759',
     fontWeight: '600',
     marginLeft: 5,
+  },
+
+  // Live status indicator styles
+  liveIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    gap: 4,
+  },
+  liveIndicatorActive: {
+    backgroundColor: 'rgba(52, 199, 89, 0.1)',
+  },
+  liveIndicatorReconnecting: {
+    backgroundColor: 'rgba(255, 149, 0, 0.1)',
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  liveDotActive: {
+    backgroundColor: '#34C759',
+  },
+  liveDotReconnecting: {
+    backgroundColor: '#FF9500',
+  },
+  liveText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  liveTextActive: {
+    color: '#34C759',
+  },
+  liveTextReconnecting: {
+    color: '#FF9500',
   },
 });
 

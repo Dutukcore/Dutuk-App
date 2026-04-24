@@ -104,6 +104,9 @@ interface VendorState {
     conversations: ConversationWithUnread[];
     conversationsLoading: boolean;
 
+    // Realtime health
+    realtimeStatus: 'SUBSCRIBED' | 'CHANNEL_ERROR' | 'TIMED_OUT' | 'CLOSED' | null;
+
     // Actions
     fetchAll: () => Promise<void>;
     fetchCritical: () => Promise<void>;
@@ -122,7 +125,9 @@ interface VendorState {
     incrementNewOrderCount: () => void;
     resetNewOrderCount: () => void;
     updateOrderInStore: (orderId: string, updates: Partial<Order>) => void;
+    removeOrderFromStore: (orderId: string) => void;
     updateEventInStore: (eventId: string, updates: Partial<any>) => void;
+    setRealtimeStatus: (status: 'SUBSCRIBED' | 'CHANNEL_ERROR' | 'TIMED_OUT' | 'CLOSED' | null) => void;
 }
 
 // =====================================================
@@ -176,6 +181,7 @@ export const useVendorStore = create<VendorState>()(
             paymentsLoading: false,
             conversations: [],
             conversationsLoading: false,
+            realtimeStatus: null,
 
             fetchEarnings: async () => {
                 const userId = useAuthStore.getState().userId;
@@ -433,7 +439,7 @@ export const useVendorStore = create<VendorState>()(
                 set({ reviews: reviewsList, reviewStats: stats });
             },
 
-            setOrders: (orders) => set({ orders }),
+            setOrders: (orders) => set({ orders: [...orders] }),
             incrementNewOrderCount: () => set((s) => ({ newOrderCount: s.newOrderCount + 1 })),
             resetNewOrderCount: () => set({ newOrderCount: 0 }),
             addEvent: (event) => set((s) => ({
@@ -448,13 +454,34 @@ export const useVendorStore = create<VendorState>()(
                 orders: s.orders.map((o: Order) => o.id === orderId ? { ...o, ...updates } : o),
             })),
 
+            removeOrderFromStore: (orderId) => set((s) => ({
+                orders: s.orders.filter((o: Order) => o.id !== orderId),
+            })),
+
             updateEventInStore: (eventId, updates) => set((s) => ({
                 allEvents: s.allEvents.map((e: any) => e.id === eventId ? { ...e, ...updates } : e),
             })),
+
+            setRealtimeStatus: (status) => set({ realtimeStatus: status }),
         }),
         {
             name: 'dutuk-vendor-data-storage',
             storage: createJSONStorage(() => zustandMMKVStorage),
+            // IMPORTANT: Only persist expensive-to-fetch stable data.
+            // Exclude live/volatile state so realtime mutations are never
+            // overwritten by a stale MMKV snapshot on hydration.
+            partialize: (state) => ({
+                company: state.company,
+                allEvents: state.allEvents,
+                calendarDates: state.calendarDates,
+                reviews: state.reviews,
+                reviewStats: state.reviewStats,
+                earnings: state.earnings,
+                payments: state.payments,
+                lastFetchedAt: state.lastFetchedAt,
+                // Excluded: orders, conversations, realtimeStatus, newOrderCount
+                // These must always be fetched fresh to reflect the live state.
+            }),
         }
     )
 );

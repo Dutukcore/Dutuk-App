@@ -9,8 +9,8 @@ import Toast from 'react-native-toast-message';
 // Performance Stores
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { installGlobalErrorHandler } from '@/lib/globalErrorHandler';
+import { useRealtimeLifecycle } from '@/lib/useRealtimeLifecycle';
 import { useAuthStore } from '@/store/useAuthStore';
-import { setupRealtimeSubscriptions, teardownRealtimeSubscriptions } from '@/store/useRealtimeStore';
 import { useVendorStore } from '@/store/useVendorStore';
 
 // Install global error handler before anything else runs
@@ -43,15 +43,16 @@ export default function RootLayout() {
     })();
   }, [initialize]);
 
-  // When user authenticates (and app is ready), fetch critical vendor data
-  // + setup unified realtime channel.
+  // Mount the realtime lifecycle hook once at root.
+  // It observes isAuthenticated + AppState to manage subscriptions.
+  // appReady gates setup so we don't connect before initialize() loads the session.
+  useRealtimeLifecycle(appReady);
+
+  // When user authenticates (and app is ready), fetch critical vendor data.
   useEffect(() => {
     if (!appReady) return;
     if (isAuthenticated) {
       fetchCritical();
-      setupRealtimeSubscriptions();
-    } else {
-      teardownRealtimeSubscriptions();
     }
   }, [appReady, isAuthenticated, fetchCritical]);
 

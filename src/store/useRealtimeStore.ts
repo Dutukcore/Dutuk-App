@@ -4,16 +4,41 @@ import { useAuthStore } from './useAuthStore';
 import { Order, useVendorStore } from './useVendorStore';
 
 let channel: any = null;
+let currentUserId: string | null = null;
 
 /**
  * Unified Realtime Subscription Manager
  * Replaces duplicate subscriptions in OrderNotificationContext and useOrders
  */
-export function setupRealtimeSubscriptions() {
+export async function setupRealtimeSubscriptions() {
     const userId = useAuthStore.getState().userId;
     if (!userId) {
         logger.log('Realtime setup skipped: No userId');
         return;
+    }
+
+    // ─── Eagerly set the JWT on the realtime socket before subscribing ─────────
+    // onAuthStateChange fires asynchronously; without this the socket connects
+    // as `anon` and RLS drops all postgres_changes payloads silently.
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+            supabase.realtime.setAuth(session.access_token);
+            logger.log('Realtime: auth token eagerly set');
+        } else {
+            logger.warn('Realtime setup: no session token available — events may not arrive');
+        }
+    } catch (e) {
+        logger.warn('Realtime setup: could not fetch session token', e);
+    }
+
+    // If the user has changed (e.g. logout → login as different vendor),
+    // tear down the stale channel before creating a new one.
+    if (channel && currentUserId !== userId) {
+        logger.log(`Realtime: user changed (${currentUserId} → ${userId}). Re-subscribing.`);
+        supabase.removeChannel(channel);
+        channel = null;
+        currentUserId = null;
     }
 
     if (channel) {
@@ -22,6 +47,7 @@ export function setupRealtimeSubscriptions() {
     }
 
     logger.log(`Setting up unified realtime subscriptions for vendor: ${userId}`);
+    currentUserId = userId;
 
     channel = supabase
         .channel(`vendor-all-${userId}`)
@@ -67,6 +93,17 @@ export function setupRealtimeSubscriptions() {
             useVendorStore.getState().updateOrderInStore(payload.new.id, payload.new);
         })
         .on('postgres_changes', {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'orders',
+            filter: `vendor_id=eq.${userId}`,
+        }, (payload) => {
+            logger.log('Order delete received via realtime');
+            if (payload.old?.id) {
+                useVendorStore.getState().removeOrderFromStore(payload.old.id);
+            }
+        })
+        .on('postgres_changes', {
             event: 'INSERT',
             schema: 'public',
             table: 'reviews',
@@ -99,6 +136,21 @@ export function setupRealtimeSubscriptions() {
         })
         .subscribe((status) => {
             logger.log(`Unified realtime status: ${status}`);
+
+            // Propagate health status to store for UI indicator
+            const store = useVendorStore.getState();
+            if (
+                status === 'SUBSCRIBED' ||
+                status === 'CHANNEL_ERROR' ||
+                status === 'TIMED_OUT' ||
+                status === 'CLOSED'
+            ) {
+                store.setRealtimeStatus(status);
+            }
+
+            if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                logger.warn(`Realtime channel unhealthy: ${status}`);
+            }
         });
 }
 
@@ -107,5 +159,7 @@ export function teardownRealtimeSubscriptions() {
         logger.log('Tearing down realtime subscriptions');
         supabase.removeChannel(channel);
         channel = null;
+        currentUserId = null;
+        useVendorStore.getState().setRealtimeStatus('CLOSED');
     }
 }
