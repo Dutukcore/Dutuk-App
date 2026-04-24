@@ -4,7 +4,7 @@ import logger from '@/lib/logger';
 import { useVendorStore } from '@/store/useVendorStore';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -101,6 +101,17 @@ const Home = () => {
 
   // Activate fallback polling when realtime is unhealthy
   useOrdersPolling();
+
+  // Re-hydrate orders on tab focus to ensure data is fresh
+  // even if realtime payloads were missed while backgrounded or due to race.
+  useFocusEffect(
+    useCallback(() => {
+      logger.log('Home tab focused — refreshing orders');
+      useVendorStore.getState().fetchOrders().catch(e =>
+        logger.warn('Focus refetch failed:', e)
+      );
+    }, [])
+  );
 
   // Local UI state
   const [refreshing, setRefreshing] = useState(false);

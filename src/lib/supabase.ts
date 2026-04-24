@@ -175,8 +175,15 @@ const getSupabaseClient = (): SupabaseClient => {
     }).catch(() => { /* ignore — onAuthStateChange will still set the token */ });
 
     // Also keep updating the token on every refresh / login / logout
-    supabaseInstance.auth.onAuthStateChange((_event, session) => {
-      supabaseInstance!.realtime.setAuth(session?.access_token ?? null);
+    supabaseInstance.auth.onAuthStateChange((event, session) => {
+      // Never call setAuth(null) on transient refresh failures — only on real sign-out.
+      if (event === 'SIGNED_OUT') {
+        supabaseInstance!.realtime.setAuth(null);
+        return;
+      }
+      if (session?.access_token) {
+        supabaseInstance!.realtime.setAuth(session.access_token);
+      }
     });
   }
 

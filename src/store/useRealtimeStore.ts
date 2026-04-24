@@ -32,10 +32,9 @@ export async function setupRealtimeSubscriptions() {
         logger.warn('Realtime setup: could not fetch session token', e);
     }
 
-    // If the user has changed (e.g. logout → login as different vendor),
-    // tear down the stale channel before creating a new one.
-    if (channel && currentUserId !== userId) {
-        logger.log(`Realtime: user changed (${currentUserId} → ${userId}). Re-subscribing.`);
+    // If the channel exists but is for a different user or is unhealthy, tear it down.
+    if (channel && (currentUserId !== userId || channel.state !== 'joined')) {
+        logger.log(`Realtime: channel stale or user changed (${currentUserId} → ${userId}). Re-subscribing.`);
         supabase.removeChannel(channel);
         channel = null;
         currentUserId = null;
@@ -46,18 +45,28 @@ export async function setupRealtimeSubscriptions() {
         return;
     }
 
-    logger.log(`Setting up unified realtime subscriptions for vendor: ${userId}`);
+    logger.log(`Setting up unified realtime subscriptions for vendor: ${userId}`, {
+        socketAccessTokenSet: !!(supabase as any).realtime?.accessToken,
+    });
     currentUserId = userId;
 
     channel = supabase
         .channel(`vendor-all-${userId}`)
+        // NOTE: We intentionally DO NOT use the `filter` option on postgres_changes.
+        // Supabase Realtime's server-side filter silently drops events when the row
+        // was inserted by a *different* user (e.g. customer → orders), even if RLS
+        // passes. We filter client-side below instead.
         .on('postgres_changes', {
             event: 'INSERT',
             schema: 'public',
             table: 'orders',
-            filter: `vendor_id=eq.${userId}`,
         }, (payload) => {
-            logger.log('New order received via realtime');
+            if (payload.new.vendor_id !== userId) return; // client-side guard
+            logger.log('[RT] INSERT payload arrived for orders', {
+                vendor_id: payload.new.vendor_id,
+                expected: userId,
+                match: payload.new.vendor_id === userId,
+            });
             const store = useVendorStore.getState();
 
             // Transform incoming order
@@ -87,8 +96,8 @@ export async function setupRealtimeSubscriptions() {
             event: 'UPDATE',
             schema: 'public',
             table: 'orders',
-            filter: `vendor_id=eq.${userId}`,
         }, (payload) => {
+            if (payload.new.vendor_id !== userId) return; // client-side guard
             logger.log('Order update received via realtime');
             useVendorStore.getState().updateOrderInStore(payload.new.id, payload.new);
         })
@@ -96,8 +105,9 @@ export async function setupRealtimeSubscriptions() {
             event: 'DELETE',
             schema: 'public',
             table: 'orders',
-            filter: `vendor_id=eq.${userId}`,
         }, (payload) => {
+            const oldRow = payload.old as any;
+            if (oldRow?.vendor_id && oldRow.vendor_id !== userId) return; // client-side guard
             logger.log('Order delete received via realtime');
             if (payload.old?.id) {
                 useVendorStore.getState().removeOrderFromStore(payload.old.id);
@@ -107,8 +117,8 @@ export async function setupRealtimeSubscriptions() {
             event: 'INSERT',
             schema: 'public',
             table: 'reviews',
-            filter: `vendor_id=eq.${userId}`,
         }, (payload) => {
+            if (payload.new.vendor_id !== userId) return; // client-side guard
             logger.log('New review received via realtime');
             useVendorStore.getState().fetchReviews(10);
         })
@@ -116,8 +126,9 @@ export async function setupRealtimeSubscriptions() {
             event: '*',
             schema: 'public',
             table: 'conversations',
-            filter: `vendor_id=eq.${userId}`,
         }, (payload) => {
+            const row = (payload.new as any)?.vendor_id ? payload.new as any : payload.old as any;
+            if (!row?.vendor_id || row.vendor_id !== userId) return; // client-side guard
             logger.log('Conversation update received via realtime');
             useVendorStore.getState().fetchConversations();
         })
@@ -149,7 +160,9 @@ export async function setupRealtimeSubscriptions() {
             }
 
             if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-                logger.warn(`Realtime channel unhealthy: ${status}`);
+                logger.warn(`Realtime channel unhealthy: ${status}. Scheduling recovery.`);
+                // If the channel is broken, tear it down so the next check can re-establish it.
+                teardownRealtimeSubscriptions();
             }
         });
 }

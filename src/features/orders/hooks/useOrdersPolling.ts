@@ -17,13 +17,13 @@ export function useOrdersPolling() {
     useEffect(() => {
         if (realtimeStatus === 'SUBSCRIBED') return;
 
-        logger.log(`Realtime is ${realtimeStatus} — polling fallback will activate in 10s`);
+        logger.log(`Realtime is ${realtimeStatus} — polling fallback will activate in 3s`);
 
-        // Wait 10s before starting the polling loop (give realtime time to recover)
+        // Wait 3s before starting the polling loop (give realtime time to recover)
         const activationTimer = setTimeout(() => {
             if (useVendorStore.getState().realtimeStatus === 'SUBSCRIBED') return;
 
-            logger.warn('Realtime unhealthy for >10s — starting fallback poll every 15s');
+            logger.warn('Realtime unhealthy for >3s — starting fallback poll every 8s');
             const pollInterval = setInterval(() => {
                 if (useVendorStore.getState().realtimeStatus === 'SUBSCRIBED') {
                     logger.log('Realtime recovered — stopping fallback poll');
@@ -33,10 +33,10 @@ export function useOrdersPolling() {
                 useVendorStore.getState().fetchOrders().catch((e) =>
                     logger.warn('Polling fetchOrders failed:', e)
                 );
-            }, 15_000);
+            }, 8_000);
 
             return () => clearInterval(pollInterval);
-        }, 10_000);
+        }, 3_000);
 
         return () => clearTimeout(activationTimer);
     }, [realtimeStatus]);
