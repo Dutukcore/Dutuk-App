@@ -16,17 +16,31 @@ import Toast from "react-native-toast-message";
 
 // Map category icon names (from DB) to Ionicons equivalents
 const ICON_MAP: { [key: string]: string } = {
-  'Heart': 'heart-outline',
-  'Camera': 'camera-outline',
-  'Video': 'videocam-outline',
-  'UtensilsCrossed': 'restaurant-outline',
-  'Music': 'musical-notes-outline',
-  'Flower2': 'flower-outline',
-  'MapPin': 'location-outline',
-  'Speaker': 'volume-high-outline',
-  'Cake': 'gift-outline',
-  'Briefcase': 'briefcase-outline',
+  'heart': 'heart-outline',
+  'camera': 'camera-outline',
+  'video': 'videocam-outline',
+  'utensilscrossed': 'restaurant-outline',
+  'restaurant': 'restaurant-outline',
+  'music': 'musical-notes-outline',
+  'flower2': 'flower-outline',
+  'mappin': 'location-outline',
+  'speaker': 'volume-high-outline',
+  'cake': 'gift-outline',
+  'briefcase': 'briefcase-outline',
+  'brush': 'brush-outline',
 };
+
+const DEFAULT_CATEGORIES = [
+  { id: 'f1', name: 'Photography', slug: 'photography', icon: 'camera' },
+  { id: 'f2', name: 'Videography', slug: 'videography', icon: 'video' },
+  { id: 'f3', name: 'Catering', slug: 'catering', icon: 'utensilscrossed' },
+  { id: 'f4', name: 'Music & DJ', slug: 'music-dj', icon: 'music' },
+  { id: 'f5', name: 'Decor', slug: 'decor', icon: 'heart' },
+  { id: 'f6', name: 'Floral', slug: 'floral', icon: 'flower2' },
+  { id: 'f7', name: 'Event Planner', slug: 'event-planner', icon: 'briefcase' },
+  { id: 'f8', name: 'Gifts', slug: 'gifts', icon: 'cake' },
+  { id: 'f9', name: 'Hair & Makeup', slug: 'hair-makeup', icon: 'brush' },
+];
 
 type Category = {
   id: string;
@@ -54,19 +68,19 @@ const OnboardingCategories = () => {
 
         if (error) {
           logger.error("Error fetching categories:", error);
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: 'Failed to load categories.'
-          });
+          setCategories(DEFAULT_CATEGORIES);
           return;
         }
 
-        if (data) {
+        if (data && data.length > 0) {
           setCategories(data);
+        } else {
+          logger.log("Categories empty in DB, using fallbacks.");
+          setCategories(DEFAULT_CATEGORIES);
         }
       } catch (error) {
         logger.error("Error fetching categories:", error);
+        setCategories(DEFAULT_CATEGORIES);
       } finally {
         setFetching(false);
       }
@@ -89,35 +103,34 @@ const OnboardingCategories = () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Session expired. Please sign in again.' });
+        setLoading(false);
+        return;
+      }
 
-      if (user && selectedCategories.length > 0) {
-        // Save selected category names as text[] in companies table
+      if (selectedCategories.length > 0) {
         const { error } = await supabase
           .from("companies")
           .update({ category: selectedCategories })
-          .eq("user_id", user.id);
+          .eq("user_id", user.id)
+          .select('id'); // .select() forces error-on-no-row-matched behavior we can detect
 
         if (error) {
           logger.error("Error updating categories:", error);
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: 'Failed to save your categories. Please try again.'
-          });
+          Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to save your categories. Please try again.' });
           setLoading(false);
           return;
         }
+
+        const { useVendorStore } = await import('@/store/useVendorStore');
+        await useVendorStore.getState().fetchCompany();
       }
 
-      // Navigate to location onboarding step
       router.push('/auth/OnboardingLocation');
     } catch (error) {
-      logger.error("Error in onboarding:", error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Something went wrong. Please try again.'
-      });
+      logger.error("Error in onboarding step 2:", error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Something went wrong. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -129,7 +142,7 @@ const OnboardingCategories = () => {
 
   const getIconName = (dbIcon: string | null): string => {
     if (!dbIcon) return 'ellipse-outline';
-    return ICON_MAP[dbIcon] || 'ellipse-outline';
+    return ICON_MAP[dbIcon.toLowerCase()] || 'ellipse-outline';
   };
 
   return (

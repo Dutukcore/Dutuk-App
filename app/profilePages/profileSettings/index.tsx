@@ -33,8 +33,8 @@ const Index = () => {
           text={"Change Username"}
         />
         <RouteAssist
-          path={"/profilePages/profileSettings/history_and_highlights"}
-          text={"History & Highlights"}
+          path={"/history"}
+          text={"Activity & History"}
         />
         <RouteAssist
           path={"/profilePages/profileSettings/helpcenter"}

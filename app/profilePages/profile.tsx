@@ -1,6 +1,6 @@
-import logger from '@/lib/logger';
+import BottomNavigation from '@/components/layout/BottomNavigation';
 import getCompanyInfo from "@/features/profile/hooks/useGetCompanyInfo";
-import { supabase } from "@/lib/supabase";
+import logger from '@/lib/logger';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -15,7 +15,6 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from 'react-native-toast-message';
-import BottomNavigation from '@/components/layout/BottomNavigation';
 
 const ProfileScreen = () => {
   const insets = useSafeAreaInsets();
@@ -79,21 +78,14 @@ const ProfileScreen = () => {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      const { signOutAndClear } = await import('@/lib/clearUserData');
+      const { error } = await signOutAndClear();
       if (error) {
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: 'Failed to logout'
-        });
-      } else {
-        Toast.show({
-          type: 'success',
-          text1: 'Success',
-          text2: 'Logged out successfully'
-        });
-        router.replace('/auth/UserLogin');
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to logout' });
+        return;
       }
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Logged out successfully' });
+      router.replace('/auth/UserLogin');
     } catch (error) {
       Toast.show({
         type: 'error',
@@ -116,7 +108,7 @@ const ProfileScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
@@ -125,66 +117,66 @@ const ProfileScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <>
-        {/* Header Background */}
-        <View style={styles.headerBackground}>
-          <Pressable style={styles.bannerPlaceholder} onPress={() => {
-            Toast.show({
-              type: 'info',
-              text1: 'Coming Soon',
-              text2: 'Image upload feature will be available soon'
-            });
-          }}>
-            <Ionicons name="image-outline" size={40} color="#CCCCCC" />
-            <Text style={styles.bannerPlaceholderText}>Add Cover Photo</Text>
-          </Pressable>
-        </View>
-
-        {/* Profile Section */}
-        <View style={styles.profileSection}>
-          {/* Profile Image */}
-          <Pressable style={styles.profileImageContainer} onPress={() => {
-            Toast.show({
-              type: 'info',
-              text1: 'Coming Soon',
-              text2: 'Profile image upload will be available soon'
-            });
-          }}>
-            <Image
-              source={{ uri: companyData.logoUrl }}
-              style={styles.profileImagePlaceholder}
-            />
-          </Pressable>
-
-          {/* Company Info */}
-          <Text style={styles.companyName}>
-            {companyData.name || "No name"}
-          </Text>
-          <Text style={styles.companyTagline}>
-            {companyData.description || "No description"}
-          </Text>
-        </View>
-
-        {/* Menu Items */}
-        <View style={styles.menuContainer}>
-          {menuItems.map((item, index) => (
-            <Pressable key={index} style={styles.menuItem} onPress={item.onPress}>
-              <View style={styles.menuItemLeft}>
-                <Ionicons name={item.icon as any} size={22} color="#000000" />
-                <Text style={styles.menuItemText}>{item.title}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={17.59} color="#000000" />
+          {/* Header Background */}
+          <View style={styles.headerBackground}>
+            <Pressable style={styles.bannerPlaceholder} onPress={() => {
+              Toast.show({
+                type: 'info',
+                text1: 'Coming Soon',
+                text2: 'Image upload feature will be available soon'
+              });
+            }}>
+              <Ionicons name="image-outline" size={40} color="#CCCCCC" />
+              <Text style={styles.bannerPlaceholderText}>Add Cover Photo</Text>
             </Pressable>
-          ))}
+          </View>
 
-          {/* Logout */}
-          <Pressable style={styles.menuItem} onPress={handleLogout}>
-            <View style={styles.menuItemLeft}>
-              <Ionicons name="log-out-outline" size={21} color="#FF3030" />
-              <Text style={[styles.menuItemText, { color: '#FF3030' }]}>Log out</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={17.59} color="#FF0000" />
-          </Pressable>
-        </View>
+          {/* Profile Section */}
+          <View style={styles.profileSection}>
+            {/* Profile Image */}
+            <Pressable style={styles.profileImageContainer} onPress={() => {
+              Toast.show({
+                type: 'info',
+                text1: 'Coming Soon',
+                text2: 'Profile image upload will be available soon'
+              });
+            }}>
+              <Image
+                source={{ uri: companyData.logoUrl }}
+                style={styles.profileImagePlaceholder}
+              />
+            </Pressable>
+
+            {/* Company Info */}
+            <Text style={styles.companyName}>
+              {companyData.name || "No name"}
+            </Text>
+            <Text style={styles.companyTagline}>
+              {companyData.description || "No description"}
+            </Text>
+          </View>
+
+          {/* Menu Items */}
+          <View style={styles.menuContainer}>
+            {menuItems.map((item, index) => (
+              <Pressable key={index} style={styles.menuItem} onPress={item.onPress}>
+                <View style={styles.menuItemLeft}>
+                  <Ionicons name={item.icon as any} size={22} color="#000000" />
+                  <Text style={styles.menuItemText}>{item.title}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={17.59} color="#000000" />
+              </Pressable>
+            ))}
+
+            {/* Logout */}
+            <Pressable style={styles.menuItem} onPress={handleLogout}>
+              <View style={styles.menuItemLeft}>
+                <Ionicons name="log-out-outline" size={21} color="#FF3030" />
+                <Text style={[styles.menuItemText, { color: '#FF3030' }]}>Log out</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={17.59} color="#FF0000" />
+            </Pressable>
+          </View>
         </>
       </ScrollView>
 

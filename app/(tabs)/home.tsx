@@ -444,7 +444,7 @@ const Home = () => {
             <Text style={styles.sectionTitle}>Reviews</Text>
             <Pressable
               style={styles.viewAllButton}
-              onPress={() => router.push("/profilePages/profileSettings/history_and_highlights/pastReviews")}
+              onPress={() => router.push("/reviews")}
             >
               <Text style={styles.viewAllText}>View All</Text>
               <Ionicons name="chevron-forward" size={16} color="#800000" />

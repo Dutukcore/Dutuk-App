@@ -63,7 +63,7 @@ const NOTIF_CONFIG: Record<string, { icon: string; color: string; bg: string; ro
     icon: 'star-outline',
     color: COLORS.gold,
     bg: COLORS.goldLight,
-    route: () => '/profilePages/profileSettings/history_and_highlights/pastReviews',
+    route: () => '/reviews',
   },
 };
 

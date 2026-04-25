@@ -1,5 +1,5 @@
-import logger from '@/lib/logger';
 import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
+import logger from '@/lib/logger';
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from 'expo-location';
@@ -93,18 +93,30 @@ const OnboardingLocation = () => {
     }
   };
 
+  const finishOnboarding = async () => {
+    // Mark onboarding as complete locally and clear the new-user flag so the
+    // user can never bounce back into onboarding by re-opening the app.
+    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    await AsyncStorage.removeItem('isNewUserSignup');
+    const { useVendorStore } = await import('@/store/useVendorStore');
+    await useVendorStore.getState().fetchCompany();
+    router.replace('/(tabs)/home');
+  };
+
   const handleContinue = async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Session expired. Please sign in again.' });
+        setLoading(false);
+        return;
+      }
 
-      if (user && location.trim()) {
+      if (location.trim()) {
         const { error } = await supabase
           .from("companies")
-          .update({
-            service_area: location.trim(),
-            address: location.trim(),
-          })
+          .update({ service_area: location.trim(), address: location.trim() })
           .eq("user_id", user.id);
 
         if (error) {
@@ -124,11 +136,10 @@ const OnboardingLocation = () => {
         text1: 'Setup Complete!',
         text2: 'Your vendor profile is ready.'
       });
-
-      router.replace('/(tabs)/home');
+      await finishOnboarding();
     } catch (error) {
-      logger.error("Error in onboarding:", error);
-      router.replace('/(tabs)/home');
+      logger.error("Error in onboarding step 3:", error);
+      await finishOnboarding(); // best-effort
     } finally {
       setLoading(false);
     }
@@ -138,13 +149,13 @@ const OnboardingLocation = () => {
     setLocation(region);
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     Toast.show({
       type: 'success',
       text1: 'Setup Complete!',
       text2: 'You can update your location later in settings.'
     });
-    router.replace('/(tabs)/home');
+    await finishOnboarding();
   };
 
   return (

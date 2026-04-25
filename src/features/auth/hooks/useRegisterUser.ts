@@ -1,6 +1,5 @@
 import logger from "@/lib/logger";
 import { supabase } from "@/lib/supabase";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
 import Toast from 'react-native-toast-message';
 import setRole from "../services/setVendorAsRoleOnRegister";
@@ -43,10 +42,6 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
     const trimmedEmail = userEmail.trim().toLowerCase();
 
     logger.log("Attempting to register user");
-
-    // Set flag BEFORE signup so that onAuthStateChange in index.tsx
-    // always knows this is a new user when it fires.
-    await AsyncStorage.setItem('isNewUserSignup', 'true');
 
     // Attempt to sign up the user
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -121,9 +116,6 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
     // MVP: Auto-login after registration (no email verification)
     logger.log("Proceeding to auto-login after registration");
 
-    // Set flag to indicate this is a new user signup (for onboarding redirect)
-    await AsyncStorage.setItem('isNewUserSignup', 'true');
-
     // Automatically sign in the user
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email: trimmedEmail,
@@ -132,8 +124,6 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
 
     if (signInError) {
       logger.error("Auto-login error after registration");
-      // Clear flag since auto-login failed
-      await AsyncStorage.removeItem('isNewUserSignup');
       Toast.show({
         type: 'info',
         text1: 'Registration Complete',
@@ -143,20 +133,34 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
     } else {
       logger.log("Auto-login successful");
 
-      // Set vendor role and create company entry for the new user
-      const roleSet = await setRole();
-      if (!roleSet) {
-        logger.warn("Warning: Failed to set vendor role, but continuing login");
+      // Set 'isNewUserSignup' flag so app/index.tsx knows to route to onboarding
+      try {
+        const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+        await AsyncStorage.setItem('isNewUserSignup', 'true');
+      } catch (e) {
+        logger.error("Error setting isNewUserSignup flag:", e);
       }
 
-      // Do NOT manually redirect here. The onAuthStateChange listener in
-      // index.tsx will read the 'isNewUserSignup' flag and redirect to
-      // /auth/OnboardingGetStarted automatically.
+      // Set vendor role and create company entry BEFORE the UI reacts.
+      const roleSet = await setRole();
+      if (!roleSet) {
+        logger.warn("Warning: Failed to set vendor role; onboarding screens will retry.");
+      }
+
+      // Pre-warm the vendor store so home/onboarding renders the just-created row.
+      try {
+        const { useVendorStore } = await import('@/store/useVendorStore');
+        await useVendorStore.getState().fetchCompany();
+      } catch (e) {
+        logger.warn('Pre-warm fetchCompany failed (non-fatal):', e);
+      }
+
       Toast.show({
         type: 'success',
         text1: 'Welcome!',
         text2: 'Your vendor account has been created successfully!'
       });
+      // Routing handled by app/index.tsx via isNewUserSignup flag (set above).
     }
   } catch (error) {
     logger.error("Unexpected error during registration");

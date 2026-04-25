@@ -158,7 +158,7 @@ const googleLogin = async (): Promise<void> => {
 
       // Create company entry for new users from this app
       // Pass the Google user's name as default company name
-      const roleSet = await setRole(googleUserName);
+      const roleSet = await setRole(googleUserName, sessionData.session?.user);
 
       if (!roleSet) {
         logger.warn("Warning: Failed to create company entry for new Google OAuth user");
@@ -177,6 +177,14 @@ const googleLogin = async (): Promise<void> => {
         text1: 'Welcome to Dutuk!',
         text2: 'Your vendor account has been created.'
       });
+
+      // Set 'isNewUserSignup' flag so app/index.tsx knows to route to onboarding
+      try {
+        const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+        await AsyncStorage.setItem('isNewUserSignup', 'true');
+      } catch (e) {
+        logger.error("Error setting isNewUserSignup flag in OAuth flow:", e);
+      }
 
       // Redirect new Google users to onboarding
       router.replace("/auth/OnboardingGetStarted");

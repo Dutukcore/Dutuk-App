@@ -1,7 +1,7 @@
-import { useAuthStore } from '@/store/useAuthStore';
-import { useVendorStore } from '@/store/useVendorStore';
 import logger from '@/lib/logger';
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from '@/store/useAuthStore';
+import { useVendorStore } from '@/store/useVendorStore';
 
 type CompanyInfoType = {
   company: string;
@@ -11,6 +11,8 @@ type CompanyInfoType = {
   website: string;
   logo_url?: string;
   description?: string;
+  category?: string[];
+  service_area?: string;
 };
 
 const useCompanyInfo = async ({
@@ -21,6 +23,8 @@ const useCompanyInfo = async ({
   website,
   logo_url,
   description,
+  category,
+  service_area,
 }: CompanyInfoType) => {
   try {
     const userId = useAuthStore.getState().userId;
@@ -48,6 +52,8 @@ const useCompanyInfo = async ({
 
       if (logo_url !== undefined) updateData.logo_url = logo_url;
       if (description !== undefined) updateData.description = description;
+      if (category !== undefined) updateData.category = category;
+      if (service_area !== undefined) updateData.service_area = service_area;
 
       const { error: updateError } = await supabase
         .from("companies")
@@ -74,6 +80,8 @@ const useCompanyInfo = async ({
 
       if (logo_url !== undefined) insertData.logo_url = logo_url;
       if (description !== undefined) insertData.description = description;
+      if (category !== undefined) insertData.category = category;
+      if (service_area !== undefined) insertData.service_area = service_area;
 
       const { error: insertError } = await supabase.from("companies").insert([insertData]);
 

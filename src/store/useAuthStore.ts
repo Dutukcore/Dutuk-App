@@ -62,11 +62,22 @@ export const useAuthStore = create<AuthState>()(
                 get()._authSub?.unsubscribe();
 
                 // Listen for auth changes (login/logout) – single subscription
-                const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
                     logger.log(`Auth event: ${event}`);
+                    const prevUserId = get().userId;
+                    const nextUserId = session?.user?.id ?? null;
+
+                    // Account switched (A → B) OR signed out (X → null):
+                    // wipe persisted vendor cache so user B never sees user A's data.
+                    if (prevUserId && prevUserId !== nextUserId) {
+                        // Lazy import to avoid circular dep at module load.
+                        const { clearAllUserData } = await import('@/lib/clearUserData');
+                        await clearAllUserData();
+                    }
+
                     set({
                         user: session?.user ?? null,
-                        userId: session?.user?.id ?? null,
+                        userId: nextUserId,
                         provider: session?.user?.app_metadata.provider || null,
                         isAuthenticated: !!session?.user,
                         isLoading: false,
@@ -87,13 +98,13 @@ export const useAuthStore = create<AuthState>()(
 
             logout: async () => {
                 try {
-                    // Clean up auth listener before signing out
-                    get()._authSub?.unsubscribe();
                     await supabase.auth.signOut();
+                } catch (err) {
+                    logger.error('Error during logout signOut');
+                } finally {
+                    get()._authSub?.unsubscribe();
                     set({ user: null, userId: null, provider: null, isAuthenticated: false, _authSub: null });
                     logger.log('User logged out from store');
-                } catch (err) {
-                    logger.error('Error during logout');
                 }
             },
         }),

@@ -55,7 +55,8 @@ const checkUserExists = async (
     // If somehow login succeeded (shouldn't happen with dummy password), user exists
     if (data?.user) {
       // Sign out immediately
-      await supabase.auth.signOut();
+      const { signOutAndClear } = await import("@/lib/clearUserData");
+      await signOutAndClear();
       return { exists: true, error: null };
     }
 

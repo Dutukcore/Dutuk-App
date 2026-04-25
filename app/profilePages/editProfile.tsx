@@ -2,6 +2,7 @@ import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
 import useCompanyInfo from "@/features/profile/hooks/useCompanyInfo";
 import useImageUpload from "@/features/profile/hooks/useImageUpload";
 import logger from '@/lib/logger';
+import { supabase } from "@/lib/supabase";
 import { useVendorStore } from "@/store/useVendorStore";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
@@ -18,6 +19,34 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+
+// Map category icon names (from DB) to Ionicons equivalents
+const ICON_MAP: { [key: string]: string } = {
+  'heart': 'heart-outline',
+  'camera': 'camera-outline',
+  'video': 'videocam-outline',
+  'utensilscrossed': 'restaurant-outline',
+  'restaurant': 'restaurant-outline',
+  'music': 'musical-notes-outline',
+  'flower2': 'flower-outline',
+  'mappin': 'location-outline',
+  'speaker': 'volume-high-outline',
+  'cake': 'gift-outline',
+  'briefcase': 'briefcase-outline',
+  'brush': 'brush-outline',
+};
+
+const DEFAULT_CATEGORIES = [
+  { id: 'f1', name: 'Photography', icon: 'camera' },
+  { id: 'f2', name: 'Videography', icon: 'video' },
+  { id: 'f3', name: 'Catering', icon: 'utensilscrossed' },
+  { id: 'f4', name: 'Music & DJ', icon: 'music' },
+  { id: 'f5', name: 'Decor', icon: 'heart' },
+  { id: 'f6', name: 'Floral', icon: 'flower2' },
+  { id: 'f7', name: 'Event Planner', icon: 'briefcase' },
+  { id: 'f8', name: 'Gifts', icon: 'cake' },
+  { id: 'f9', name: 'Hair & Makeup', icon: 'brush' },
+];
 
 const EditProfileScreen = () => {
   const companyStoreData = useVendorStore((s) => s.company);
@@ -39,6 +68,10 @@ const EditProfileScreen = () => {
     logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png",
   });
 
+  const [availableCategories, setAvailableCategories] = useState<any[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [fetchingCategories, setFetchingCategories] = useState(false);
+
   const { pickImage, uploadImage } = useImageUpload();
 
   // Sync with store on mount or store change
@@ -53,8 +86,51 @@ const EditProfileScreen = () => {
         mail: companyStoreData.mail || "",
         logoUrl: companyStoreData.logo_url || "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png",
       });
+      if (companyStoreData.category) {
+        setSelectedCategories(companyStoreData.category);
+      }
     }
   }, [companyStoreData]);
+
+  // Fetch available categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setFetchingCategories(true);
+      try {
+        const { data, error } = await supabase
+          .from("categories")
+          .select("id, name, icon")
+          .is("parent_id", null)
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setAvailableCategories(data);
+        } else {
+          logger.log("Categories empty in DB, using fallbacks.");
+          setAvailableCategories(DEFAULT_CATEGORIES);
+        }
+      } catch (error) {
+        logger.error("Error fetching categories:", error);
+        setAvailableCategories(DEFAULT_CATEGORIES);
+      } finally {
+        setFetchingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const toggleCategory = (categoryName: string) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(categoryName)) {
+        return prev.filter(c => c !== categoryName);
+      } else {
+        return [...prev, categoryName];
+      }
+    });
+  };
 
 
   const handleProfileImageSelect = async () => {
@@ -173,6 +249,7 @@ const EditProfileScreen = () => {
         website: companyData.website,
         description: companyData.description,
         logo_url: companyData.logoUrl,
+        category: selectedCategories,
       });
 
       Toast.show({
@@ -400,6 +477,51 @@ const EditProfileScreen = () => {
                   multiline
                   numberOfLines={4}
                 />
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Business Categories</Text>
+              <Text style={styles.inputHint}>Select the types of services you provide</Text>
+              <View style={styles.categoriesContainer}>
+                {fetchingCategories ? (
+                  <ActivityIndicator size="small" color="#800000" />
+                ) : (
+                  availableCategories.map((cat) => {
+                    const isSelected = selectedCategories.includes(cat.name);
+                    const dbIcon = (cat.icon || '').toLowerCase();
+                    const iconName = ICON_MAP[dbIcon] || 'ellipse-outline';
+
+                    return (
+                      <Pressable
+                        key={cat.id}
+                        onPress={() => toggleCategory(cat.name)}
+                        style={[
+                          styles.categoryChip,
+                          isSelected && styles.categoryChipSelected,
+                        ]}
+                      >
+                        <Ionicons
+                          name={iconName as any}
+                          size={16}
+                          color={isSelected ? "#FFF" : "#800000"}
+                          style={styles.chipIcon}
+                        />
+                        <Text
+                          style={[
+                            styles.categoryChipText,
+                            isSelected && styles.categoryChipTextSelected,
+                          ]}
+                        >
+                          {cat.name}
+                        </Text>
+                        {isSelected && (
+                          <Ionicons name="checkmark-circle" size={14} color="#FFF" style={styles.chipCheck} />
+                        )}
+                      </Pressable>
+                    );
+                  })
+                )}
               </View>
             </View>
           </View>
@@ -782,5 +904,46 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  inputHint: {
+    fontSize: 12,
+    color: "#78716c",
+    marginBottom: 12,
+    marginLeft: 4,
+    marginTop: -4,
+  },
+  categoriesContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  categoryChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "#fafaf9",
+    borderWidth: 1,
+    borderColor: "#f5f5f4",
+    marginBottom: 4,
+  },
+  categoryChipSelected: {
+    backgroundColor: "#800000",
+    borderColor: "#800000",
+  },
+  categoryChipText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#57534e",
+  },
+  categoryChipTextSelected: {
+    color: "#FFFFFF",
+  },
+  chipCheck: {
+    marginLeft: 4,
+  },
+  chipIcon: {
+    marginRight: 6,
   },
 });

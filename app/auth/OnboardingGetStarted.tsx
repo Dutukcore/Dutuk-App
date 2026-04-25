@@ -1,4 +1,7 @@
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
 import logger from '@/lib/logger';
+import { supabase } from "@/lib/supabase";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -10,10 +13,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase";
 import Toast from "react-native-toast-message";
-import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
 
 const OnboardingGetStarted = () => {
   const [name, setName] = useState("");
@@ -24,44 +24,53 @@ const OnboardingGetStarted = () => {
 
     setLoading(true);
     try {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        // Update company name in the companies table
-        const { error } = await supabase
-          .from("companies")
-          .update({ company: name.trim() })
-          .eq("user_id", user.id);
-
-        if (error) {
-          logger.error("Error updating company name:", error);
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: 'Failed to save your name. Please try again.'
-          });
-          setLoading(false);
-          return;
-        }
+      if (!user) {
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Session expired. Please sign in again.' });
+        setLoading(false);
+        return;
       }
 
-      // Navigate to categories onboarding step
+      const { error } = await supabase
+        .from("companies")
+        .upsert(
+          { user_id: user.id, company: name.trim(), mail: user.email },
+          { onConflict: 'user_id' }
+        );
+
+      if (error) {
+        logger.error("Error upserting company name:", error);
+        Toast.show({ type: 'error', text1: 'Error', text2: 'Failed to save your name. Please try again.' });
+        setLoading(false);
+        return;
+      }
+
+      // Sync local store so subsequent screens / home see the saved name.
+      const { useVendorStore } = await import('@/store/useVendorStore');
+      await useVendorStore.getState().fetchCompany();
+
       router.push('/auth/OnboardingCategories');
     } catch (error) {
-      logger.error("Error in onboarding:", error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Something went wrong. Please try again.'
-      });
+      logger.error("Error in onboarding step 1:", error);
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Something went wrong. Please try again.' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSkip = () => {
-    // Skip to next step without saving
+  const handleSkip = async () => {
+    // Ensure a stub companies row exists so subsequent updates don't no-op.
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("companies").upsert(
+          { user_id: user.id, mail: user.email },
+          { onConflict: 'user_id' }
+        );
+        const { useVendorStore } = await import('@/store/useVendorStore');
+        await useVendorStore.getState().fetchCompany();
+      }
+    } catch (e) { /* non-fatal */ }
     router.push('/auth/OnboardingCategories');
   };
 
@@ -74,7 +83,7 @@ const OnboardingGetStarted = () => {
       <SafeAreaView style={styles.safeArea}>
         {/* Header with back button and progress */}
         <View style={styles.header}>
-          <Pressable 
+          <Pressable
             style={styles.backButton}
             onPress={() => router.back()}
           >
@@ -89,7 +98,7 @@ const OnboardingGetStarted = () => {
           </View>
         </View>
 
-        <KeyboardSafeView 
+        <KeyboardSafeView
           scrollable={true}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}

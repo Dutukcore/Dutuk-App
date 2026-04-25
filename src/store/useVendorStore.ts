@@ -74,8 +74,11 @@ export interface Company {
     logo_url: string | null;
     address: string | null;
     phone: string | null;
-    email: string | null;
+    email: string | null; // Database column
+    mail: string | null;  // Alias
     website: string | null;
+    category: string[] | null;
+    service_area: string | null; // ADDED
     created_at: string;
 }
 
@@ -206,6 +209,7 @@ interface VendorState {
     removeOrderFromStore: (orderId: string) => void;
     updateEventInStore: (eventId: string, updates: Partial<VendorEvent>) => void;
     setRealtimeStatus: (status: 'SUBSCRIBED' | 'CHANNEL_ERROR' | 'TIMED_OUT' | 'CLOSED' | null) => void;
+    clearStore: () => void; // ADDED
 }
 
 // =====================================================
@@ -609,6 +613,24 @@ export const useVendorStore = create<VendorState>()(
             })),
 
             setRealtimeStatus: (status) => set({ realtimeStatus: status }),
+
+            clearStore: () => {
+                logger.log('Clearing Vendor Store...');
+                set({
+                    company: null,
+                    allEvents: [],
+                    orders: [],
+                    calendarDates: [],
+                    reviews: [],
+                    conversations: [],
+                    earnings: [],
+                    payments: [],
+                    lastFetchedAt: null,
+                    reviewStats: { totalReviews: 0, averageRating: 0, ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
+                    newOrderCount: 0,
+                    isHydrated: false,
+                });
+            },
         }),
         {
             name: 'dutuk-vendor-data-storage',
