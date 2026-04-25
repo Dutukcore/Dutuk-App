@@ -55,7 +55,7 @@ Your React Native app is **ready for EAS Build**! All critical requirements are 
 
 6. **Backend Integration**
    - ✅ Supabase configuration valid
-   - ✅ Supabase URL: https://unqpmwlzyaqrryzyrslf.supabase.co
+   - ✅ Supabase URL: https://<YOUR_PROJECT_ID>.supabase.co
    - ✅ Authentication setup complete
    - ✅ Storage buckets configured (company-logos, event-images)
 
@@ -140,7 +140,7 @@ eas build --platform android --profile development
 {
   "node": "20.19.0",
   "env": {
-    "EXPO_PUBLIC_SUPABASE_URL": "https://unqpmwlzyaqrryzyrslf.supabase.co"
+    "EXPO_PUBLIC_SUPABASE_URL": "https://<YOUR_PROJECT_ID>.supabase.co"
   }
 }
 ```
@@ -206,7 +206,7 @@ The web version is currently running for you to test. You can verify:
 Consider moving sensitive keys to environment variables:
 ```bash
 # In EAS Build secrets
-EXPO_PUBLIC_SUPABASE_URL=https://unqpmwlzyaqrryzyrslf.supabase.co
+EXPO_PUBLIC_SUPABASE_URL=https://<YOUR_PROJECT_ID>.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
 ```
 

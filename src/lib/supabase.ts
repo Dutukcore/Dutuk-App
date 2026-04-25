@@ -1,6 +1,6 @@
 import logger from '@/lib/logger';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import * as SecureStore from 'expo-secure-store';
 import { Platform } from "react-native";
 
 // Load Supabase credentials from environment variables
@@ -17,12 +17,8 @@ const isServerSide = typeof window === 'undefined';
 
 // Auth storage adapter
 // ─────────────────────────────────────────────────────────────────────────────
-// We deliberately use AsyncStorage here (NOT MMKV) for two reasons:
-// 1. Supabase auth only stores ~3 small tokens — async perf is irrelevant.
-// 2. react-native-mmkv v4 returns a C++ HybridObject whose native methods
-//    are not accessible via CommonJS require() or conditional access inside
-//    function closures, causing "storage.delete is not a function" crashes.
-// Zustand state (larger, sync-required) continues to use MMKV separately.
+// We use SecureStore for mobile (Keychain/EncryptedSharedPreferences) 
+// to ensure JWTs are not stored in plaintext AsyncStorage.
 const createSafeStorage = () => {
   if (Platform.OS === 'web') {
     return {
@@ -31,27 +27,28 @@ const createSafeStorage = () => {
       removeItem: async (key: string) => window.localStorage?.removeItem(key),
     };
   }
+
   return {
     getItem: async (key: string): Promise<string | null> => {
       try {
-        return await AsyncStorage.getItem(key);
+        return await SecureStore.getItemAsync(key);
       } catch (error) {
-        logger.warn('Storage getItem error:', error);
+        logger.warn('SecureStore getItem error:', error);
         return null;
       }
     },
     setItem: async (key: string, value: string): Promise<void> => {
       try {
-        await AsyncStorage.setItem(key, value);
+        await SecureStore.setItemAsync(key, value);
       } catch (error) {
-        logger.warn('Storage setItem error:', error);
+        logger.warn('SecureStore setItem error:', error);
       }
     },
     removeItem: async (key: string): Promise<void> => {
       try {
-        await AsyncStorage.removeItem(key);
+        await SecureStore.deleteItemAsync(key);
       } catch (error) {
-        logger.warn('Storage removeItem error:', error);
+        logger.warn('SecureStore deleteItem error:', error);
       }
     },
   };

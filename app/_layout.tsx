@@ -1,3 +1,4 @@
+import { useNetInfo } from '@react-native-community/netinfo';
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as WebBrowser from "expo-web-browser";
@@ -7,6 +8,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import Toast from 'react-native-toast-message';
 
 // Performance Stores
+import { OfflineFallback } from '@/components';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useOrdersPolling } from '@/features/orders/hooks/useOrdersPolling';
 import { installGlobalErrorHandler } from '@/lib/globalErrorHandler';
@@ -60,6 +62,8 @@ export default function RootLayout() {
     }
   }, [appReady, isAuthenticated, fetchCritical]);
 
+  const { isConnected } = useNetInfo();
+
   // Don't render the navigation tree until init is complete.
   // The splash screen is still visible at this point.
   if (!appReady) return null;
@@ -68,6 +72,9 @@ export default function RootLayout() {
     <ErrorBoundary>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardProvider>
+          {/* Global network guard - blocks app if no internet */}
+          {isConnected === false && <OfflineFallback />}
+
           <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
             {/* Landing/Auth Check Screen */}
             <Stack.Screen name="index" options={{ animation: 'none' }} />

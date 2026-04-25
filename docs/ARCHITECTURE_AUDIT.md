@@ -1,7 +1,7 @@
 # Dutuk Platform — Full Architecture Audit
 
 > **Audit Date:** 2026-04-12  
-> **Scope:** `dutuk-vendor` (React Native / Expo), `dutuk-user` (Next.js), Supabase backend (project `unqpmwlzyaqrryzyrslf`, region `ap-south-1`)
+> **Scope:** `dutuk-vendor` (React Native / Expo), `dutuk-user` (Next.js), Supabase backend (project `<YOUR_PROJECT_ID>`, region `ap-south-1`)
 
 ---
 

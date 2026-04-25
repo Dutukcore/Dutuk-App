@@ -125,7 +125,7 @@ Update `eas.json` to enable ProGuard and split APK by ABI:
     "base": {
       "node": "20.19.4",
       "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "https://unqpmwlzyaqrryzyrslf.supabase.co"
+        "EXPO_PUBLIC_SUPABASE_URL": "https://<YOUR_PROJECT_ID>.supabase.co"
       }
     },
     "production": {

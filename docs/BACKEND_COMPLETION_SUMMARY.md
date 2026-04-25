@@ -288,7 +288,7 @@
 
 ### SQL Editor
 
-Access at: https://supabase.com/dashboard/project/unqpmwlzyaqrryzyrslf/sql
+Access at: https://supabase.com/dashboard/project/<YOUR_PROJECT_ID>/sql
 
 ---
 
