@@ -8,6 +8,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -102,10 +103,22 @@ const Home = () => {
   // Activate fallback polling when realtime is unhealthy
   useOrdersPolling();
 
-  // Re-hydrate orders on tab focus to ensure data is fresh
-  // even if realtime payloads were missed while backgrounded or due to race.
+  // Re-hydrate orders on tab focus only if data is older than FRESH_MS,
+  // to avoid thrashing the store on every router transition and to
+  // minimise the fetch/realtime race window.
+  const FRESH_MS = 20_000;
+
   useFocusEffect(
     useCallback(() => {
+      const { lastFetchedAt, realtimeStatus } = useVendorStore.getState();
+      const stale = !lastFetchedAt || Date.now() - lastFetchedAt > FRESH_MS;
+
+      // Skip refetch if realtime is healthy AND data is fresh.
+      if (realtimeStatus === 'SUBSCRIBED' && !stale) {
+        logger.log('Home focus: realtime healthy + data fresh — skipping refetch');
+        return;
+      }
+
       logger.log('Home tab focused — refreshing orders');
       useVendorStore.getState().fetchOrders().catch(e =>
         logger.warn('Focus refetch failed:', e)
@@ -288,26 +301,26 @@ const Home = () => {
               </Text>
             </View>
           ) : (
-            <ScrollView
+            <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
+              data={orders.slice(0, 5)}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => <OrderPreviewCard order={item} />}
               contentContainerStyle={styles.ordersScrollContent}
-            >
-              {orders.slice(0, 5).map((order) => (
-                <OrderPreviewCard key={order.id} order={order} />
-              ))}
-
-              {orders.length > 5 && (
-                <Pressable
-                  style={styles.viewAllOrdersCard}
-                  onPress={() => router.push('/orders/allOrders' as any)}
-                >
-                  <Ionicons name="arrow-forward-circle-outline" size={40} color="#800000" />
-                  <Text style={styles.viewAllOrdersText}>View All</Text>
-                  <Text style={styles.viewAllOrdersCount}>+{orders.length - 5} more</Text>
-                </Pressable>
-              )}
-            </ScrollView>
+              ListFooterComponent={
+                orders.length > 5 ? (
+                  <Pressable
+                    style={styles.viewAllOrdersCard}
+                    onPress={() => router.push('/orders/allOrders' as any)}
+                  >
+                    <Ionicons name="arrow-forward-circle-outline" size={40} color="#800000" />
+                    <Text style={styles.viewAllOrdersText}>View All</Text>
+                    <Text style={styles.viewAllOrdersCount}>+{orders.length - 5} more</Text>
+                  </Pressable>
+                ) : null
+              }
+            />
           )}
         </View>
 
@@ -388,26 +401,27 @@ const Home = () => {
               </View>
             </View>
 
-            <ScrollView
+            <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
+              data={manageableEvents.slice(0, 3)}
+              keyExtractor={(item) => item.id}
               contentContainerStyle={styles.manageEventsScroll}
-            >
-              <Pressable
-                style={styles.addEventCardSmall}
-                onPress={() => router.push('/event/manage/createStepOne')}
-              >
-                <View style={styles.addEventCardImageSmall}>
-                  <Ionicons name="add-circle" size={40} color="#800000" />
-                  <Text style={styles.addEventLabel}>add new event</Text>
-                </View>
-              </Pressable>
-
-              {manageableEvents.slice(0, 3).map((item) => {
+              ListHeaderComponent={
+                <Pressable
+                  style={styles.addEventCardSmall}
+                  onPress={() => router.push('/event/manage/createStepOne')}
+                >
+                  <View style={styles.addEventCardImageSmall}>
+                    <Ionicons name="add-circle" size={40} color="#800000" />
+                    <Text style={styles.addEventLabel}>add new event</Text>
+                  </View>
+                </Pressable>
+              }
+              renderItem={({ item }) => {
                 const imageUri = item.image_url || item.banner_url || "";
                 return (
                   <Pressable
-                    key={item.id}
                     style={styles.manageCardSmall}
                     onPress={() => router.push(`/event/manage/${item.id}`)}
                   >
@@ -419,8 +433,8 @@ const Home = () => {
                     <Text style={styles.manageCardTitleSmall} numberOfLines={1}>{item.event}</Text>
                   </Pressable>
                 );
-              })}
-            </ScrollView>
+              }}
+            />
           </View>
         )}
 
@@ -446,65 +460,39 @@ const Home = () => {
               </Text>
             </View>
           ) : (
-            <>
-              {/* Reviews Stats */}
-              <View style={styles.reviewsStatsCard}>
-                <View style={styles.reviewsRating}>
-                  <Text style={styles.reviewsRatingNumber}>{reviewStats.averageRating || '—'}</Text>
-                  <View style={styles.reviewsStarsContainer}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Ionicons
-                        key={star}
-                        name={reviewStats.averageRating >= star ? "star" : reviewStats.averageRating >= star - 0.5 ? "star-half" : "star-outline"}
-                        size={20}
-                        color="#FFC13C"
-                      />
-                    ))}
-                  </View>
-                  <Text style={styles.reviewsCountText}>{reviewStats.totalReviews} reviews</Text>
-                </View>
-              </View>
-
-              {/* Recent Reviews List */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.reviewsScrollContent}
-              >
-                {reviews.map((review: any) => (
-                  <View key={review.id} style={styles.reviewCard}>
-                    <View style={styles.reviewCardHeader}>
-                      <View style={styles.reviewerInfo}>
-                        <View style={styles.reviewerAvatar}>
-                          <Text style={styles.reviewerInitial}>
-                            {review.customer_name?.charAt(0)?.toUpperCase() || 'C'}
-                          </Text>
-                        </View>
-                        <View>
-                          <Text style={styles.reviewerName}>{review.customer_name}</Text>
-                          <Text style={styles.reviewEventName}>{review.event_name || 'Event'}</Text>
-                        </View>
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={reviews.slice(0, 5)}
+              keyExtractor={(item: any) => item.id}
+              contentContainerStyle={styles.reviewsScrollContent}
+              renderItem={({ item: review }: { item: any }) => (
+                <View style={styles.reviewCard}>
+                  <View style={styles.reviewCardHeader}>
+                    <View style={styles.reviewerInfo}>
+                      <View style={styles.reviewerAvatar}>
+                        <Text style={styles.reviewerInitial}>
+                          {review.customer?.full_name?.charAt(0)?.toUpperCase() || 'C'}
+                        </Text>
                       </View>
-                      <View style={styles.reviewRatingBadge}>
-                        <Ionicons name="star" size={14} color="#FFC13C" />
-                        <Text style={styles.reviewRatingText}>{review.rating}</Text>
+                      <View>
+                        <Text style={styles.reviewerName}>{review.customer?.full_name || 'Anonymous'}</Text>
+                        <Text style={styles.reviewEventName}>{review.order?.title || 'Event'}</Text>
                       </View>
                     </View>
-                    {Boolean(review.review) && (
-                      <Text style={styles.reviewText} numberOfLines={3}>
-                        "{review.review}"
-                      </Text>
-                    )}
-                    {Boolean(review.verified_booking) && (
-                      <View style={styles.verifiedBadge}>
-                        <Ionicons name="checkmark-circle" size={12} color="#34C759" />
-                        <Text style={styles.verifiedText}>Verified Booking</Text>
-                      </View>
-                    )}
+                    <View style={styles.reviewRatingBadge}>
+                      <Ionicons name="star" size={14} color="#FFC13C" />
+                      <Text style={styles.reviewRatingText}>{review.rating}</Text>
+                    </View>
                   </View>
-                ))}
-              </ScrollView>
-            </>
+                  {Boolean(review.review) && (
+                    <Text style={styles.reviewText} numberOfLines={3}>
+                      "{review.review}"
+                    </Text>
+                  )}
+                </View>
+              )}
+            />
           )}
         </View>
       </ScrollView>
@@ -993,40 +981,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '400',
   },
-  reviewsStatsCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    borderRadius: 24,
-    padding: 36,
-    marginHorizontal: 28,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(128, 0, 0, 0.06)',
-    shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
-  },
-  reviewsRating: {
-    alignItems: 'center',
-  },
-  reviewsRatingNumber: {
-    fontSize: 48,
-    fontWeight: '700',
-    color: '#1c1917',
-    letterSpacing: -2,
-  },
-  reviewsStarsContainer: {
-    flexDirection: 'row',
-    marginTop: 12,
-    marginBottom: 12,
-  },
-  reviewsCountText: {
-    fontSize: 13,
-    color: '#57534e',
-    fontWeight: '600',
-    letterSpacing: 0.3,
-  },
   reviewsScrollContent: {
     paddingLeft: 28,
     paddingRight: 28,
@@ -1106,20 +1060,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontStyle: 'italic',
     fontWeight: '400',
-  },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(128, 0, 0, 0.06)',
-  },
-  verifiedText: {
-    fontSize: 12,
-    color: '#34C759',
-    fontWeight: '600',
-    marginLeft: 5,
   },
 
   // Live status indicator styles

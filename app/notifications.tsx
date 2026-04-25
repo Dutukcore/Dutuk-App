@@ -2,21 +2,21 @@
  * In-App Notification Center
  * Shows all vendor notifications: new orders, quote requests, messages, reviews
  */
+import { COLORS, RADIUS, SHADOW, SPACING, TYPOGRAPHY } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
   RefreshControl,
-  ScrollView,
+  SectionList,
   StyleSheet,
   Text,
-  View,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '@/lib/supabase';
-import { COLORS, RADIUS, SHADOW, SPACING, TYPOGRAPHY } from '@/constants/theme';
 
 interface Notification {
   id: string;
@@ -169,6 +169,20 @@ export default function NotificationsScreen() {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
+  const sections = useMemo(() => {
+    const unread = notifications.filter(n => !n.is_read);
+    const read = notifications.filter(n => n.is_read);
+
+    const result = [];
+    if (unread.length > 0) {
+      result.push({ title: 'NEW', data: unread });
+    }
+    if (read.length > 0) {
+      result.push({ title: 'EARLIER', data: read });
+    }
+    return result;
+  }, [notifications]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
@@ -198,22 +212,21 @@ export default function NotificationsScreen() {
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
-        <ScrollView
-          style={styles.scroll}
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <NotificationItem notif={item} onPress={() => handlePress(item)} />
+          )}
+          renderSectionHeader={({ section: { title } }) => (
+            <Text style={styles.groupLabel}>{title}</Text>
+          )}
           contentContainerStyle={[
             styles.scrollContent,
             notifications.length === 0 && styles.scrollContentEmpty,
           ]}
           showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={COLORS.primary}
-            />
-          }
-        >
-          {notifications.length === 0 ? (
+          ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="notifications-off-outline" size={60} color={COLORS.textMuted} />
               <Text style={styles.emptyTitle}>No notifications yet</Text>
@@ -221,34 +234,16 @@ export default function NotificationsScreen() {
                 Order updates, messages, and alerts will appear here
               </Text>
             </View>
-          ) : (
-            <>
-              {/* Unread section */}
-              {notifications.filter(n => !n.is_read).length > 0 && (
-                <>
-                  <Text style={styles.groupLabel}>NEW</Text>
-                  {notifications
-                    .filter(n => !n.is_read)
-                    .map(n => (
-                      <NotificationItem key={n.id} notif={n} onPress={() => handlePress(n)} />
-                    ))}
-                </>
-              )}
-
-              {/* Read section */}
-              {notifications.filter(n => n.is_read).length > 0 && (
-                <>
-                  <Text style={styles.groupLabel}>EARLIER</Text>
-                  {notifications
-                    .filter(n => n.is_read)
-                    .map(n => (
-                      <NotificationItem key={n.id} notif={n} onPress={() => handlePress(n)} />
-                    ))}
-                </>
-              )}
-            </>
-          )}
-        </ScrollView>
+          }
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={COLORS.primary}
+            />
+          }
+          stickySectionHeadersEnabled={false}
+        />
       )}
     </SafeAreaView>
   );

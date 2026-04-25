@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
@@ -182,15 +183,23 @@ export function usePushNotifications() {
         responseListener.current = Notifications.addNotificationResponseReceivedListener(
             (response) => {
                 logger.log('Notification response received');
-                const data = response.notification.request.content.data;
+                const data = response.notification.request.content.data as any;
 
                 // Handle navigation based on notification type
-                if (data?.type === 'new_message') {
-                    // TODO: Navigate to chat conversation
-                    logger.log('Navigate to conversation');
-                } else if (data?.type === 'order_accepted') {
-                    // TODO: Navigate to orders
-                    logger.log('Navigate to orders');
+                if (data?.type === 'new_message' && data?.conversation_id) {
+                    router.push({
+                        pathname: '/chat/conversation',
+                        params: { conversationId: data.conversation_id }
+                    });
+                } else if (data?.type === 'new_order' || data?.type === 'order_accepted') {
+                    if (data?.order_id) {
+                        router.push({
+                            pathname: '/orders/customerDetails',
+                            params: { orderId: data.order_id }
+                        });
+                    } else {
+                        router.push('/(tabs)/orders' as any);
+                    }
                 }
             }
         );
@@ -205,21 +214,19 @@ export function usePushNotifications() {
         };
     }, []);
 
-    // Auto-register only once the user is authenticated.
-    // Registering before auth means (a) the permission dialog fires before the
-    // user knows what the app is, and (b) storePushToken gets called with a null user.
+    // Auto-register whenever authentication state changes to true.
     useEffect(() => {
-        const unsub = useAuthStore.subscribe((state) => {
-            if (state.isAuthenticated) {
-                registerForPushNotifications();
-                unsub(); // Only register once per session
-            }
-        });
-        // If already authenticated when hook mounts, register immediately
         if (useAuthStore.getState().isAuthenticated) {
             registerForPushNotifications();
-            unsub();
         }
+
+        const unsub = useAuthStore.subscribe((state, prevState) => {
+            if (state.isAuthenticated && !prevState.isAuthenticated) {
+                logger.log('Auth state changed to authenticated — registering for push');
+                registerForPushNotifications();
+            }
+        });
+
         return unsub;
     }, [registerForPushNotifications]);
 

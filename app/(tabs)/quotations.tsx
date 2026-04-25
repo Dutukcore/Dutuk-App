@@ -1,18 +1,18 @@
+import { COLORS, RADIUS, SHADOW, SPACING, TYPOGRAPHY } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  FlatList,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
-  View,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '@/lib/supabase';
-import { COLORS, RADIUS, SHADOW, SPACING, TYPOGRAPHY } from '@/constants/theme';
 
 interface QuotationRequest {
   id: string;
@@ -118,8 +118,8 @@ const QuotationCard = ({
               {responseStatus === 'accepted'
                 ? '✓ Accepted'
                 : responseStatus === 'declined'
-                ? '✗ Declined'
-                : '⏳ Responded'}
+                  ? '✗ Declined'
+                  : '⏳ Responded'}
             </Text>
           </View>
         ) : item.status === 'open' ? (
@@ -219,10 +219,10 @@ export default function QuotationsScreen() {
       has_responded: responseMap.has(req.id),
       my_response: responseMap.has(req.id)
         ? {
-            id: responseMap.get(req.id)!.id,
-            proposed_price: responseMap.get(req.id)!.quoted_price,
-            status: responseMap.get(req.id)!.status,
-          }
+          id: responseMap.get(req.id)!.id,
+          proposed_price: responseMap.get(req.id)!.quoted_price,
+          status: responseMap.get(req.id)!.status,
+        }
         : null,
     }));
 
@@ -285,13 +285,43 @@ export default function QuotationsScreen() {
           <ActivityIndicator color={COLORS.primary} size="large" />
         </View>
       ) : (
-        <ScrollView
+        <FlatList
           style={styles.scroll}
+          data={displayed}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <QuotationCard
+              item={item}
+              onPress={() =>
+                router.push({
+                  pathname: '/quotations/[id]' as any,
+                  params: { id: item.id },
+                })
+              }
+            />
+          )}
           contentContainerStyle={[
             styles.scrollContent,
             displayed.length === 0 && styles.scrollContentEmpty,
           ]}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="document-text-outline" size={56} color={COLORS.textMuted} />
+              <Text style={styles.emptyTitle}>
+                {filter === 'new'
+                  ? 'No new quote requests'
+                  : filter === 'responded'
+                    ? "You haven't responded to any quotes yet"
+                    : 'No closed requests'}
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {filter === 'new'
+                  ? 'New requests from customers will appear here'
+                  : 'Responded quotes will show up here'}
+              </Text>
+            </View>
+          }
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -300,38 +330,7 @@ export default function QuotationsScreen() {
               colors={[COLORS.primary]}
             />
           }
-        >
-          {displayed.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="document-text-outline" size={56} color={COLORS.textMuted} />
-              <Text style={styles.emptyTitle}>
-                {filter === 'new'
-                  ? 'No new quote requests'
-                  : filter === 'responded'
-                  ? "You haven't responded to any quotes yet"
-                  : 'No closed requests'}
-              </Text>
-              <Text style={styles.emptySubtitle}>
-                {filter === 'new'
-                  ? 'New requests from customers will appear here'
-                  : 'Responded quotes will show up here'}
-              </Text>
-            </View>
-          ) : (
-            displayed.map((item) => (
-              <QuotationCard
-                key={item.id}
-                item={item}
-                onPress={() =>
-                  router.push({
-                    pathname: '/quotations/[id]' as any,
-                    params: { id: item.id },
-                  })
-                }
-              />
-            ))
-          )}
-        </ScrollView>
+        />
       )}
     </SafeAreaView>
   );

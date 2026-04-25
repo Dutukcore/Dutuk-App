@@ -1,6 +1,6 @@
-import { useAuthStore } from '@/store/useAuthStore';
 import logger from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useCallback, useEffect, useState } from 'react';
 
 // =====================================================
@@ -128,9 +128,10 @@ export function useMessages(conversationId: string | null, paymentCompleted: boo
             if (fetchError) throw fetchError;
 
             setMessages(data || []);
-        } catch (err: any) {
-            logger.error('Error fetching messages:', err);
-            setError(err.message || 'Failed to load messages');
+        } catch (err: unknown) {
+            const error = err as Error;
+            logger.error('Error fetching messages:', error);
+            setError(error.message || 'Failed to load messages');
         } finally {
             setLoading(false);
         }
@@ -204,9 +205,14 @@ export function useSendMessage() {
     const sendMessage = useCallback(
         async (
             params: SendMessageParams,
-            paymentCompleted: boolean = false
+            paymentCompleted: boolean = false,
+            conversationStatus: 'ACTIVE' | 'COMPLETED' = 'ACTIVE'
         ): Promise<{ success: boolean; error?: string }> => {
             const { conversationId, receiverId, text, attachment, messageType, eventId } = params;
+
+            if (conversationStatus === 'COMPLETED') {
+                return { success: false, error: 'This order is completed. Chat is read-only.' };
+            }
 
             if (!text.trim() && !attachment) {
                 return { success: false, error: 'Message cannot be empty' };
@@ -231,7 +237,7 @@ export function useSendMessage() {
                     throw new Error('User not authenticated');
                 }
 
-                const messageData: any = {
+                const messageData: Partial<Message> = {
                     conversation_id: conversationId,
                     sender_id: user.id,
                     receiver_id: receiverId,
@@ -254,9 +260,10 @@ export function useSendMessage() {
                 if (insertError) throw insertError;
 
                 return { success: true };
-            } catch (err: any) {
-                logger.error('Error sending message:', err);
-                const errorMsg = err.message || 'Failed to send message';
+            } catch (err: unknown) {
+                const error = err as Error;
+                logger.error('Error sending message:', error);
+                const errorMsg = error.message || 'Failed to send message';
                 setError(errorMsg);
                 return { success: false, error: errorMsg };
             } finally {

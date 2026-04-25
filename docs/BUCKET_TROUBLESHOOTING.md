@@ -85,8 +85,8 @@ In `/app/utils/supabase.ts`:
 - Ensure `supabaseAnonKey` is the correct anon/public key (not service role key)
 
 Current values:
-- URL: `https://unqpmwlzyaqrryzyrslf.supabase.co`
-- Key: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (anon key - correct ✅)
+- URL: `https://YOUR_PROJECT.supabase.co`
+- Key: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (your-anon-key)
 
 ---
 

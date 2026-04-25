@@ -1,13 +1,13 @@
+import UnifiedCalendar from "@/features/calendar/components/UnifiedCalendar";
+import { buildOrderBookingMarkedDates } from "@/features/calendar/utils/calendarAvailability";
+import { useOrders } from "@/features/orders/hooks/useOrders";
 import logger from '@/lib/logger';
+import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { ArrowLeft, Calendar as CalendarIcon } from 'react-native-feather';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import { useOrders } from "@/features/orders/hooks/useOrders";
-import UnifiedCalendar from "@/features/calendar/components/UnifiedCalendar";
-import { buildOrderBookingMarkedDates } from "@/features/calendar/utils/calendarAvailability";
 
 const CustomerApprovalScreen = () => {
   const params = useLocalSearchParams<{
@@ -56,10 +56,10 @@ const CustomerApprovalScreen = () => {
 
   // Create initial date for calendar
   const initialDate = new Date(parsedEventDate.year, parsedEventDate.month, parsedEventDate.day);
-  
+
   // Create the booked event date string
   const bookedEventDateString = `${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-${String(parsedEventDate.day).padStart(2, '0')}`;
-  
+
   // Orders page: ONLY show the user-selected booking date with maroon indicator
   // NO availability or unavailability information (that's for Calendar page only)
   const markedDates = buildOrderBookingMarkedDates(bookedEventDateString);
@@ -192,7 +192,7 @@ const CustomerApprovalScreen = () => {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft width={18} height={18} stroke="#000000" />
+            <Feather name="arrow-left" size={18} color="#000000" />
           </TouchableOpacity>
         </View>
 
@@ -213,7 +213,7 @@ const CustomerApprovalScreen = () => {
 
         {/* Event Date Display */}
         <View style={styles.eventDateContainer}>
-          <CalendarIcon width={20} height={20} stroke="#7C2A2A" />
+          <Feather name="calendar" size={20} color="#7C2A2A" />
           <Text style={styles.eventDateLabel}>Event Date:</Text>
           <Text style={styles.eventDateText}>{params.eventDate || 'Not specified'}</Text>
         </View>

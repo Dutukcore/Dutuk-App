@@ -1,7 +1,7 @@
 import logger from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from './useAuthStore';
-import { Order, useVendorStore } from './useVendorStore';
+import { transformOrder, useVendorStore } from './useVendorStore';
 
 let channel: any = null;
 let currentUserId: string | null = null;
@@ -65,32 +65,21 @@ export async function setupRealtimeSubscriptions() {
             logger.log('[RT] INSERT payload arrived for orders', {
                 vendor_id: payload.new.vendor_id,
                 expected: userId,
-                match: payload.new.vendor_id === userId,
             });
             const store = useVendorStore.getState();
 
             // Transform incoming order
-            const newOrder: Order = {
-                id: payload.new.id,
-                title: payload.new.title,
-                customerName: payload.new.customer_name,
-                packageType: payload.new.package_type || 'Standard Package',
-                customerEmail: payload.new.customer_email || '',
-                customerPhone: payload.new.customer_phone || '',
-                status: payload.new.status,
-                date: payload.new.event_date ? new Date(payload.new.event_date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                }) : 'Date TBD',
-                rawEventDate: payload.new.event_date || '',
-                amount: payload.new.amount,
-                notes: payload.new.notes,
-                isNew: true,
-            };
+            const newOrder = transformOrder(payload.new, true);
 
-            store.setOrders([newOrder, ...store.orders]);
-            store.incrementNewOrderCount();
+            // 🔸 Dedupe: Supabase may re-deliver on reconnect/catch-up.
+            const existingIdx = store.orders.findIndex(o => o.id === newOrder.id);
+            const nextOrders = existingIdx >= 0
+                ? store.orders.map((o, i) => (i === existingIdx ? { ...o, ...newOrder } : o))
+                : [newOrder, ...store.orders];
+
+            store.setOrders(nextOrders);
+            store.bumpOrdersRevision();      // 🔸 Tells fetchOrders "I touched state"
+            if (existingIdx < 0) store.incrementNewOrderCount();
         })
         .on('postgres_changes', {
             event: 'UPDATE',
@@ -99,7 +88,9 @@ export async function setupRealtimeSubscriptions() {
         }, (payload) => {
             if (payload.new.vendor_id !== userId) return; // client-side guard
             logger.log('Order update received via realtime');
-            useVendorStore.getState().updateOrderInStore(payload.new.id, payload.new);
+            const store = useVendorStore.getState();
+            store.updateOrderInStore(payload.new.id, transformOrder(payload.new));
+            store.bumpOrdersRevision();
         })
         .on('postgres_changes', {
             event: 'DELETE',
@@ -110,7 +101,9 @@ export async function setupRealtimeSubscriptions() {
             if (oldRow?.vendor_id && oldRow.vendor_id !== userId) return; // client-side guard
             logger.log('Order delete received via realtime');
             if (payload.old?.id) {
-                useVendorStore.getState().removeOrderFromStore(payload.old.id);
+                const store = useVendorStore.getState();
+                store.removeOrderFromStore(payload.old.id);
+                store.bumpOrdersRevision();
             }
         })
         .on('postgres_changes', {
@@ -120,6 +113,15 @@ export async function setupRealtimeSubscriptions() {
         }, (payload) => {
             if (payload.new.vendor_id !== userId) return; // client-side guard
             logger.log('New review received via realtime');
+            useVendorStore.getState().fetchReviews(10);
+        })
+        .on('postgres_changes', {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'reviews',
+        }, (payload) => {
+            if (payload.new.vendor_id !== userId) return; // client-side guard
+            logger.log('Review update received via realtime');
             useVendorStore.getState().fetchReviews(10);
         })
         .on('postgres_changes', {

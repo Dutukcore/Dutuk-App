@@ -1,5 +1,7 @@
-import { useVendorStore } from '@/store/useVendorStore';
+import { RADIUS, TYPOGRAPHY } from '@/constants/theme';
 import logger from '@/lib/logger';
+import { useVendorStore } from '@/store/useVendorStore';
+import { Feather } from "@expo/vector-icons";
 import { router } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import {
@@ -11,10 +13,8 @@ import {
   Text,
   View
 } from 'react-native';
-import { Bell, Calendar, FileText } from 'react-native-feather';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '@/constants/theme';
 
 type FilterType = 'all' | 'pending' | 'approved' | 'completed';
 
@@ -72,7 +72,7 @@ const OrdersScreen = () => {
               logger.log('Notifications pressed');
             }}
           >
-            <Bell width={22} height={22} stroke="#1c1917" />
+            <Feather name="bell" size={22} color="#1c1917" />
           </Pressable>
 
           {/* Calendar Icon */}
@@ -82,7 +82,7 @@ const OrdersScreen = () => {
               router.push('/profilePages/calendar/CalendarPage');
             }}
           >
-            <Calendar width={22} height={22} stroke="#1c1917" />
+            <Feather name="calendar" size={22} color="#1c1917" />
           </Pressable>
         </View>
 
@@ -101,7 +101,7 @@ const OrdersScreen = () => {
       </View>
 
       <FlatList
-      data={filteredOrders}
+        data={filteredOrders}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -143,7 +143,7 @@ const OrdersScreen = () => {
           ) : (
             <View style={styles.emptyStateContainer}>
               <View style={styles.emptyStatePlaceholder}>
-                <FileText width={64} height={64} stroke="#e7e5e4" />
+                <Feather name="file-text" size={64} color="#e7e5e4" />
                 <Text style={styles.emptyStateTitle}>No Orders Yet</Text>
                 <Text style={styles.emptyStateSubtitle}>
                   Your orders will appear here once customers start booking your services
@@ -202,7 +202,7 @@ const OrdersScreen = () => {
 
               <View style={styles.cardFooter}>
                 <View style={styles.dateContainer}>
-                  <Calendar width={16} height={16} stroke="#57534e" />
+                  <Feather name="calendar" size={16} color="#57534e" />
                   <Text style={styles.dateText}>{item.date}</Text>
                 </View>
                 {item.amount ? (

@@ -1,13 +1,13 @@
 import getReqs from "@/features/orders/services/getRequests";
-import { useAuthStore } from '@/store/useAuthStore';
 import logger from '@/lib/logger';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View
@@ -42,24 +42,36 @@ const RequestMenu = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <Text style={styles.title}>Requests</Text>
-          <Text style={styles.subtitle}>Manage customer event requests</Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#800000" />
+          <Text style={styles.loadingText}>Loading requests...</Text>
         </View>
-
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#800000" />
-            <Text style={styles.loadingText}>Loading requests...</Text>
-          </View>
-        ) : requests?.length ? (
-          requests.map((req, key) => (
+      ) : (
+        <FlatList
+          data={requests}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={(
+            <View style={styles.header}>
+              <Text style={styles.title}>Requests</Text>
+              <Text style={styles.subtitle}>Manage customer event requests</Text>
+            </View>
+          )}
+          ListEmptyComponent={(
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconContainer}>
+                <Ionicons name="document-text-outline" size={48} color="#800000" />
+              </View>
+              <Text style={styles.emptyTitle}>No requests yet</Text>
+              <Text style={styles.emptyText}>
+                Customer requests will appear here when they submit event inquiries
+              </Text>
+            </View>
+          )}
+          renderItem={({ item: req }) => (
             <Pressable
-              key={key}
               style={styles.card}
               onPress={() => {
                 router.push({
@@ -85,19 +97,9 @@ const RequestMenu = () => {
                 <Ionicons name="chevron-forward" size={20} color="#a8a29e" />
               </View>
             </Pressable>
-          ))
-        ) : (
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconContainer}>
-              <Ionicons name="document-text-outline" size={48} color="#800000" />
-            </View>
-            <Text style={styles.emptyTitle}>No requests yet</Text>
-            <Text style={styles.emptyText}>
-              Customer requests will appear here when they submit event inquiries
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+          )}
+        />
+      )}
     </SafeAreaView>
   );
 };

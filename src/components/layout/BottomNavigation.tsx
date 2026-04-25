@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -8,7 +8,6 @@ import {
   Text,
   View
 } from 'react-native';
-import { Calendar, Home, MessageCircle, Plus, User } from 'react-native-feather';
 
 interface BottomNavigationProps {
   activeTab: 'home' | 'orders' | 'chat' | 'profile' | 'calendar' | 'quotations';
@@ -46,10 +45,10 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
       <View style={styles.bottomNavbar}>
         {/* Home */}
         <Pressable style={styles.navItem} onPress={() => navigateToTab('home')}>
-          <Home
-            width={24}
-            height={24}
-            stroke={activeTab === 'home' ? PRIMARY_MAROON : "#a8a29e"}
+          <Feather
+            name="home"
+            size={24}
+            color={activeTab === 'home' ? PRIMARY_MAROON : "#a8a29e"}
           />
           <Text style={[styles.navLabel, { color: activeTab === 'home' ? PRIMARY_MAROON : '#a8a29e' }]}>
             Home
@@ -58,10 +57,10 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
 
         {/* Chat */}
         <Pressable style={styles.navItem} onPress={() => navigateToTab('chat')}>
-          <MessageCircle
-            width={24}
-            height={24}
-            stroke={activeTab === 'chat' ? PRIMARY_MAROON : "#a8a29e"}
+          <Feather
+            name="message-square"
+            size={24}
+            color={activeTab === 'chat' ? PRIMARY_MAROON : "#a8a29e"}
           />
           <Text style={[styles.navLabel, { color: activeTab === 'chat' ? PRIMARY_MAROON : '#a8a29e' }]}>
             Chat
@@ -76,15 +75,15 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
             data-testid="create-event-plus-button"
           >
             <View style={styles.plusIconContainer}>
-              <Plus width={28} height={28} stroke="#FFFFFF" strokeWidth={3} />
+              <Feather name="plus" size={28} color="#FFFFFF" />
             </View>
           </Pressable>
         </View>
 
         {/* Quotations */}
         <Pressable style={styles.navItem} onPress={() => navigateToTab('quotations')}>
-          <Ionicons
-            name="document-text-outline"
+          <Feather
+            name="package"
             size={24}
             color={activeTab === 'quotations' ? PRIMARY_MAROON : '#a8a29e'}
           />
@@ -95,10 +94,10 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
 
         {/* Profile */}
         <Pressable style={styles.navItem} onPress={() => navigateToTab('profile')}>
-          <User
-            width={24}
-            height={24}
-            stroke={activeTab === 'profile' ? PRIMARY_MAROON : "#a8a29e"}
+          <Feather
+            name="user"
+            size={24}
+            color={activeTab === 'profile' ? PRIMARY_MAROON : "#a8a29e"}
           />
           <Text style={[styles.navLabel, { color: activeTab === 'profile' ? PRIMARY_MAROON : '#a8a29e' }]}>
             Profile

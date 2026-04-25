@@ -1,6 +1,6 @@
-import { useAuthStore } from '@/store/useAuthStore';
 import logger from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useCallback, useState } from 'react';
 
 // =====================================================
@@ -36,6 +36,17 @@ export function useRequestCompletion() {
                 setError(null);
 
                 const now = new Date().toISOString();
+
+                // 0. Guard: check if conversation is already completed
+                const { data: conv } = await supabase
+                    .from('conversations')
+                    .select('status')
+                    .eq('id', conversationId)
+                    .single();
+
+                if (conv?.status === 'COMPLETED') {
+                    return { success: false, error: 'Order already completed - Chat is closed.' };
+                }
 
                 // 1. Insert completion_request message into chat
                 const { error: msgError } = await supabase.from('messages').insert({

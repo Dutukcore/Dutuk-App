@@ -37,7 +37,7 @@ export interface Conversation {
     customer_id: string;
     vendor_id: string;
     event_id: string | null;
-    order_id: string | null;
+    order_id: string; // Now guaranteed by NOT NULL constraint
     booking_status: string | null;
     terms_accepted_by_customer: boolean;
     terms_accepted_at: string | null;
@@ -48,6 +48,8 @@ export interface Conversation {
     last_message_preview: string | null;
     created_at: string;
     updated_at: string;
+    status: 'ACTIVE' | 'COMPLETED'; // NEW
+    ended_at: string | null; // NEW
     customer_name: string | null;
     customer_avatar: string | null;
     customer_email: string | null;
@@ -55,19 +57,83 @@ export interface Conversation {
     vendor_avatar: string | null;
     vendor_company: string | null;
     vendor_email: string | null;
+    order_status: 'pending' | 'approved' | 'completed' | 'rejected'; // NEW (from view)
+    completion_requested_at: string | null; // NEW (from view)
+    completed_at: string | null; // NEW (from view)
 }
 
 export interface ConversationWithUnread extends Conversation {
     unread_count: number;
 }
 
+export interface Company {
+    id: string;
+    user_id: string;
+    company: string;
+    description: string | null;
+    logo_url: string | null;
+    address: string | null;
+    phone: string | null;
+    email: string | null;
+    website: string | null;
+    created_at: string;
+}
+
+export interface VendorEvent {
+    id: string;
+    vendor_id: string;
+    title: string;
+    description: string | null;
+    status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+    created_at: string;
+    event_date?: string;
+}
+
+export interface Review {
+    id: string;
+    vendor_id: string;
+    customer_id: string;
+    order_id: string | null;
+    rating: number;
+    comment: string | null;
+    response: string | null;
+    response_at: string | null;
+    created_at: string;
+    customer?: {
+        full_name: string | null;
+        avatar_url: string | null;
+    };
+    order?: {
+        title: string | null;
+        event_date: string | null;
+    };
+}
+
+export interface Earning {
+    id: string;
+    vendor_id: string;
+    order_id: string;
+    amount: number;
+    earning_date: string;
+    status: string;
+}
+
+export interface Payment {
+    id: string;
+    vendor_id: string;
+    order_id: string;
+    amount: number;
+    payment_status: string;
+    payment_date: string;
+}
+
 interface VendorState {
     // Company
-    company: any | null;
+    company: Company | null;
     companyLoading: boolean;
 
     // Events (single fetch, derived views)
-    allEvents: any[];
+    allEvents: VendorEvent[];
     eventsLoading: boolean;
 
     // Orders
@@ -83,7 +149,7 @@ interface VendorState {
     pendingInquiries: number;
 
     // Reviews
-    reviews: any[];
+    reviews: Review[];
     reviewStats: {
         totalReviews: number;
         averageRating: number;
@@ -95,9 +161,9 @@ interface VendorState {
     isHydrated: boolean;
 
     reviewsLoading: boolean;
-    earnings: any[];
+    earnings: Earning[];
     earningsLoading: boolean;
-    payments: any[];
+    payments: Payment[];
     paymentsLoading: boolean;
 
     // Chat
@@ -106,6 +172,11 @@ interface VendorState {
 
     // Realtime health
     realtimeStatus: 'SUBSCRIBED' | 'CHANNEL_ERROR' | 'TIMED_OUT' | 'CLOSED' | null;
+
+    /** Incremented whenever a realtime event mutates `orders`.
+     *  Used by fetchOrders() to detect and survive fetch/realtime races. */
+    ordersRevision: number;
+    bumpOrdersRevision: () => void;
 
     // Actions
     fetchAll: () => Promise<void>;
@@ -116,17 +187,18 @@ interface VendorState {
     fetchCalendarDates: () => Promise<void>;
     fetchRequestsCount: () => Promise<void>;
     fetchReviews: (limit?: number) => Promise<void>;
+    replyToReview: (reviewId: string, response: string) => Promise<void>;
     fetchEarnings: () => Promise<void>;
     fetchPayments: () => Promise<void>;
     fetchConversations: () => Promise<void>;
     setOrders: (orders: Order[]) => void;
-    addEvent: (event: any) => void;
+    addEvent: (event: VendorEvent) => void;
     removeEvent: (eventId: string) => void;
     incrementNewOrderCount: () => void;
     resetNewOrderCount: () => void;
     updateOrderInStore: (orderId: string, updates: Partial<Order>) => void;
     removeOrderFromStore: (orderId: string) => void;
-    updateEventInStore: (eventId: string, updates: Partial<any>) => void;
+    updateEventInStore: (eventId: string, updates: Partial<VendorEvent>) => void;
     setRealtimeStatus: (status: 'SUBSCRIBED' | 'CHANNEL_ERROR' | 'TIMED_OUT' | 'CLOSED' | null) => void;
 }
 
@@ -134,7 +206,7 @@ interface VendorState {
 // HELPERS
 // =====================================================
 
-const transformOrder = (order: any, isNew: boolean = false): Order => ({
+export const transformOrder = (order: any, isNew: boolean = false): Order => ({
     id: order.id,
     title: order.title,
     customerName: order.customer_name,
@@ -182,6 +254,8 @@ export const useVendorStore = create<VendorState>()(
             conversations: [],
             conversationsLoading: false,
             realtimeStatus: null,
+            ordersRevision: 0,
+            bumpOrdersRevision: () => set((s) => ({ ordersRevision: s.ordersRevision + 1 })),
 
             fetchEarnings: async () => {
                 const userId = useAuthStore.getState().userId;
@@ -321,6 +395,9 @@ export const useVendorStore = create<VendorState>()(
             fetchOrders: async () => {
                 const userId = useAuthStore.getState().userId;
                 if (!userId) return;
+
+                // Snapshot the revision *before* issuing the query.
+                const revBefore = get().ordersRevision;
                 set({ ordersLoading: true });
 
                 const { data, error } = await supabase
@@ -331,10 +408,41 @@ export const useVendorStore = create<VendorState>()(
 
                 if (error) {
                     logger.error('Error fetching orders:', error);
+                    set({ ordersLoading: false });
+                    return;
                 }
 
-                const transformedOrders = (data || []).map(o => transformOrder(o, false));
-                set({ orders: transformedOrders, ordersLoading: false });
+                const fetched = (data || []).map(o => transformOrder(o, false));
+
+                // If realtime mutated `orders` while this SELECT was in flight,
+                // merge instead of replace — realtime rows win for their id.
+                const { ordersRevision: revAfter, orders: liveOrders } = get();
+                if (revAfter !== revBefore) {
+                    const byId = new Map<string, Order>();
+                    // Fetched (stable baseline)
+                    for (const o of fetched) byId.set(o.id, o);
+                    // Live realtime rows override / add
+                    for (const o of liveOrders) byId.set(o.id, { ...byId.get(o.id), ...o });
+
+                    // Preserve created_at ordering from the fetched list, but prepend
+                    // any live rows that weren't in the fetch snapshot.
+                    const fetchedIds = new Set(fetched.map(o => o.id));
+                    const extras = liveOrders.filter(o => !fetchedIds.has(o.id));
+
+                    set({
+                        orders: [...extras, ...fetched.map(o => byId.get(o.id)!)],
+                        ordersLoading: false,
+                        lastFetchedAt: Date.now(),
+                    });
+                    logger.log(`fetchOrders: merged ${extras.length} realtime row(s) into fetch result`);
+                    return;
+                }
+
+                set({
+                    orders: fetched,
+                    ordersLoading: false,
+                    lastFetchedAt: Date.now(),
+                });
             },
 
             fetchCalendarDates: async () => {
@@ -400,7 +508,7 @@ export const useVendorStore = create<VendorState>()(
 
                 let query = supabase
                     .from('reviews')
-                    .select('*')
+                    .select('*, customer:customer_profiles(full_name, avatar_url), order:orders(title, event_date)')
                     .eq('vendor_id', userId)
                     .order('created_at', { ascending: false });
 
@@ -437,6 +545,34 @@ export const useVendorStore = create<VendorState>()(
                 }
 
                 set({ reviews: reviewsList, reviewStats: stats });
+            },
+
+            replyToReview: async (reviewId: string, response: string) => {
+                const userId = useAuthStore.getState().userId;
+                if (!userId) return;
+
+                const { error } = await supabase
+                    .from('reviews')
+                    .update({
+                        response: response,
+                        response_at: new Date().toISOString(),
+                    })
+                    .eq('id', reviewId)
+                    .eq('vendor_id', userId);
+
+                if (error) {
+                    logger.error('Error replying to review:', error);
+                    throw error;
+                }
+
+                // Optimistically update the store
+                set((s) => ({
+                    reviews: s.reviews.map((r: any) =>
+                        r.id === reviewId
+                            ? { ...r, response, response_at: new Date().toISOString() }
+                            : r
+                    ),
+                }));
             },
 
             setOrders: (orders) => set({ orders: [...orders] }),

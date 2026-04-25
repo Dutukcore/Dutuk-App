@@ -1,17 +1,25 @@
+import { useVendorStore } from '@/store/useVendorStore';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 type ReviewProp = {
     id: string;
     vendor_id: string;
     customer_id: string;
-    customer_name: string;
-    event_id?: string;
     rating: number;
     review?: string;
-    event_name?: string;
-    event_date?: string;
+    response?: string;
+    response_at?: string;
     created_at: string;
+    customer?: {
+        full_name: string | null;
+        avatar_url: string | null;
+    };
+    order?: {
+        title: string | null;
+        event_date: string | null;
+    };
 };
 
 type ReviewsProp = {
@@ -19,6 +27,11 @@ type ReviewsProp = {
 };
 
 const DisplayReviews = ({ reviews }: ReviewsProp) => {
+    const { replyToReview } = useVendorStore();
+    const [replyingTo, setReplyingTo] = React.useState<string | null>(null);
+    const [replyText, setReplyText] = React.useState('');
+    const [isSubmitting, setIsSubmitting] = React.useState(false);
+
     const formatDate = (dateString: string) => {
         if (!dateString) return 'N/A';
         const date = new Date(dateString);
@@ -29,6 +42,20 @@ const DisplayReviews = ({ reviews }: ReviewsProp) => {
         });
     };
 
+    const handleReply = async (reviewId: string) => {
+        if (!replyText.trim()) return;
+        setIsSubmitting(true);
+        try {
+            await replyToReview(reviewId, replyText.trim());
+            setReplyingTo(null);
+            setReplyText('');
+        } catch (error) {
+            console.error('Failed to reply:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <ScrollView style={styles.container}>
             {reviews.length === 0 ? (
@@ -36,39 +63,93 @@ const DisplayReviews = ({ reviews }: ReviewsProp) => {
             ) : (
                 reviews.map((review, index) => (
                     <View key={review.id || index} style={styles.card}>
-                        <Text style={styles.eventName}>
-                            {review.event_name || 'Event Review'}
-                        </Text>
-
-                        <Text style={styles.reviewerName}>
-                            Reviewed by: {review.customer_name}
-                        </Text>
-
-                        <View style={styles.ratingContainer}>
-                            <Text style={styles.ratingText}>{`Rating: ${review.rating}`}</Text>
-                            <Text style={styles.stars}>
-                                {'★'.repeat(review.rating) + '☆'.repeat(5 - review.rating)}
-                            </Text>
+                        <View style={styles.cardHeader}>
+                            <View style={styles.headerMain}>
+                                <Text style={styles.eventName}>
+                                    {review.order?.title || 'Event Review'}
+                                </Text>
+                                <Text style={styles.reviewerName}>
+                                    By: {review.customer?.full_name || 'Anonymous Guest'}
+                                </Text>
+                            </View>
+                            <View style={styles.ratingBadge}>
+                                <Ionicons name="star" size={12} color="#D4AF37" />
+                                <Text style={styles.ratingBadgeText}>{review.rating}</Text>
+                            </View>
                         </View>
 
                         <View style={styles.separator} />
 
                         {review.review && (
-                            <>
-                                <Text style={styles.reviewTextHeader}>Review:</Text>
+                            <View style={styles.reviewContent}>
                                 <Text style={styles.reviewText}>{review.review}</Text>
-                            </>
+                                <Text style={styles.reviewDate}>
+                                    {formatDate(review.created_at)}
+                                </Text>
+                            </View>
                         )}
 
-                        {review.event_date && (
-                            <Text style={styles.reviewDate}>
-                                Event Date: {formatDate(review.event_date)}
-                            </Text>
+                        {/* Existing Response */}
+                        {review.response ? (
+                            <View style={styles.responseContainer}>
+                                <View style={styles.responseConnector} />
+                                <View style={styles.responseContent}>
+                                    <View style={styles.responseHeader}>
+                                        <Text style={styles.responseAuthor}>Your Response</Text>
+                                        <Text style={styles.responseDate}>
+                                            {formatDate(review.response_at!)}
+                                        </Text>
+                                    </View>
+                                    <Text style={styles.responseText}>{review.response}</Text>
+                                </View>
+                            </View>
+                        ) : (
+                            /* Reply Action */
+                            <View style={styles.actionsContainer}>
+                                {replyingTo === review.id ? (
+                                    <View style={styles.replyForm}>
+                                        <TextInput
+                                            style={styles.replyInput}
+                                            placeholder="Write your response..."
+                                            value={replyText}
+                                            onChangeText={setReplyText}
+                                            multiline
+                                            autoFocus
+                                        />
+                                        <View style={styles.replyActions}>
+                                            <Pressable
+                                                style={[styles.replyBtn, styles.cancelBtn]}
+                                                onPress={() => {
+                                                    setReplyingTo(null);
+                                                    setReplyText('');
+                                                }}
+                                            >
+                                                <Text style={styles.cancelBtnText}>Cancel</Text>
+                                            </Pressable>
+                                            <Pressable
+                                                style={[styles.replyBtn, styles.submitBtn]}
+                                                onPress={() => handleReply(review.id)}
+                                                disabled={isSubmitting || !replyText.trim()}
+                                            >
+                                                {isSubmitting ? (
+                                                    <ActivityIndicator size="small" color="#FFF" />
+                                                ) : (
+                                                    <Text style={styles.submitBtnText}>Send Reply</Text>
+                                                )}
+                                            </Pressable>
+                                        </View>
+                                    </View>
+                                ) : (
+                                    <Pressable
+                                        style={styles.replyToggleBtn}
+                                        onPress={() => setReplyingTo(review.id)}
+                                    >
+                                        <Ionicons name="arrow-undo-outline" size={16} color="#800000" />
+                                        <Text style={styles.replyToggleText}>Reply to feedback</Text>
+                                    </Pressable>
+                                )}
+                            </View>
                         )}
-
-                        <Text style={styles.reviewDate}>
-                            Reviewed on: {formatDate(review.created_at)}
-                        </Text>
                     </View>
                 ))
             )}
@@ -80,7 +161,7 @@ const DisplayReviews = ({ reviews }: ReviewsProp) => {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#F7F9FC', 
+        backgroundColor: '#F7F9FC',
         padding: 15,
     },
     card: {
@@ -155,6 +236,128 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 50,
         paddingHorizontal: 20,
+    },
+    // Reply and Response Styles
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    },
+    headerMain: {
+        flex: 1,
+    },
+    ratingBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FCF8E8',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        gap: 4,
+    },
+    ratingBadgeText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#D4AF37',
+    },
+    reviewContent: {
+        marginBottom: 12,
+    },
+    responseContainer: {
+        marginTop: 12,
+        flexDirection: 'row',
+    },
+    responseConnector: {
+        width: 2,
+        backgroundColor: '#80000020',
+        marginLeft: 12,
+        marginRight: 16,
+        borderRadius: 1,
+    },
+    responseContent: {
+        flex: 1,
+        backgroundColor: '#FAF8F5',
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#E8EBF2',
+    },
+    responseHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    responseAuthor: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#800000',
+    },
+    responseDate: {
+        fontSize: 11,
+        color: '#9E9E9E',
+    },
+    responseText: {
+        fontSize: 14,
+        color: '#495057',
+        lineHeight: 20,
+    },
+    actionsContainer: {
+        marginTop: 8,
+    },
+    replyToggleBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingVertical: 8,
+    },
+    replyToggleText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#800000',
+    },
+    replyForm: {
+        backgroundColor: '#FAF8F5',
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#80000030',
+        marginTop: 8,
+    },
+    replyInput: {
+        fontSize: 15,
+        color: '#1c1917',
+        minHeight: 80,
+        textAlignVertical: 'top',
+        marginBottom: 16,
+    },
+    replyActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: 12,
+    },
+    replyBtn: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 12,
+        minWidth: 80,
+        alignItems: 'center',
+    },
+    cancelBtn: {
+        backgroundColor: '#F5F5F4',
+    },
+    cancelBtnText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#57534e',
+    },
+    submitBtn: {
+        backgroundColor: '#800000',
+    },
+    submitBtnText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#FFFFFF',
     },
 });
 

@@ -1,4 +1,7 @@
+import BottomNavigation from '@/components/layout/BottomNavigation';
+import { useOrders } from '@/features/orders/hooks/useOrders';
 import logger from '@/lib/logger';
+import { Feather } from "@expo/vector-icons";
 import { router } from 'expo-router';
 import React, { useEffect } from 'react';
 import {
@@ -9,10 +12,7 @@ import {
   Text,
   View
 } from 'react-native';
-import { Bell, Calendar, FileText, RefreshCw, User } from 'react-native-feather';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import BottomNavigation from '@/components/layout/BottomNavigation';
-import { useOrders } from '@/features/orders/hooks/useOrders';
 
 const OrdersScreen = () => {
   const insets = useSafeAreaInsets();
@@ -43,14 +43,14 @@ const OrdersScreen = () => {
             style={styles.headerIcon}
             onPress={() => logger.log('Notifications pressed')}
           >
-            <Bell width={24} height={24} stroke="#000000" />
+            <Feather name="bell" size={24} color="#000000" />
           </Pressable>
 
           <Pressable
             style={styles.headerIcon}
             onPress={() => router.push('/profilePages/calendar/CalendarPage')}
           >
-            <Calendar width={24} height={24} stroke="#000000" />
+            <Feather name="calendar" size={24} color="#000000" />
           </Pressable>
         </View>
 
@@ -60,7 +60,7 @@ const OrdersScreen = () => {
           onPress={() => router.push('/profilePages/profile')}
         >
           <View style={styles.profileImagePlaceholder}>
-            <User width={24} height={24} stroke="#CCCCCC" />
+            <Feather name="user" size={24} color="#CCCCCC" />
           </View>
         </Pressable>
       </View>
@@ -76,7 +76,7 @@ const OrdersScreen = () => {
           <View style={styles.titleContainer}>
             <View style={styles.titleRow}>
               <Text style={styles.headerTitle}>Orders</Text>
-              <FileText width={24} height={24} stroke="#000000" />
+              <Feather name="file-text" size={24} color="#000000" />
             </View>
           </View>
         )}
@@ -89,13 +89,13 @@ const OrdersScreen = () => {
           ) : (
             <View style={styles.emptyStateContainer}>
               <View style={styles.emptyStatePlaceholder}>
-                <FileText width={60} height={60} stroke="#CCCCCC" />
+                <Feather name="file-text" size={60} color="#CCCCCC" />
                 <Text style={styles.emptyStateTitle}>No Orders Yet</Text>
                 <Text style={styles.emptyStateSubtitle}>
                   Your orders will appear here once customers start booking your services
                 </Text>
                 <Pressable style={styles.refreshButton} onPress={getOrders}>
-                  <RefreshCw width={16} height={16} stroke="#800000" />
+                  <Feather name="refresh-cw" size={16} color="#800000" />
                   <Text style={styles.refreshText}>Refresh</Text>
                 </Pressable>
               </View>
@@ -139,7 +139,7 @@ const OrdersScreen = () => {
 
               <View style={styles.cardFooter}>
                 <View style={styles.dateContainer}>
-                  <Calendar width={16} height={16} stroke="#666666" />
+                  <Feather name="calendar" size={16} color="#666666" />
                   <Text style={styles.dateText}>{item.date}</Text>
                 </View>
                 {item.amount != null && (

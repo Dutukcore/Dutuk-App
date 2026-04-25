@@ -1,8 +1,8 @@
+import logger from "@/lib/logger";
+import { supabase } from "@/lib/supabase";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
 import Toast from 'react-native-toast-message';
-import logger from "@/lib/logger";
-import { supabase } from "@/lib/supabase";
 import setRole from "../services/setVendorAsRoleOnRegister";
 
 /**
@@ -28,13 +28,16 @@ const registerUser = async (userEmail: string, password: string): Promise<void> 
       throw new Error('Email is required');
     }
 
-    if (!password || password.length < 8) {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+
+    if (!password || password.length < 8 || !hasUpperCase || !hasNumber) {
       Toast.show({
         type: 'error',
         text1: 'Validation Error',
-        text2: 'Password must be at least 8 characters.'
+        text2: 'Password must be 8+ chars with an uppercase letter and a number.'
       });
-      throw new Error('Password must be at least 8 characters');
+      throw new Error('Password complexity requirement not met');
     }
 
     const trimmedEmail = userEmail.trim().toLowerCase();

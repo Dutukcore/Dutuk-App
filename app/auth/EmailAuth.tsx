@@ -1,13 +1,14 @@
+import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
 import AuthAssist from "@/features/auth/components/AuthAssist";
 import AuthButton from "@/features/auth/components/AuthButton";
-import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
+import registerUser from "@/features/auth/hooks/useRegisterUser";
+import React, { useState } from "react";
+import { Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 import authEmailPageStyle from "../../src/css/authEmailPageStyle";
 import authInputStyle from "../../src/css/authInputStyle";
 import authLableStyle from "../../src/css/authLableStyle";
-import registerUser from "@/features/auth/hooks/useRegisterUser";
-import React, { useState } from "react";
-import { Alert, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const EmailAuth = () => {
   const [email, setEmail] = useState("");
@@ -20,9 +21,13 @@ const EmailAuth = () => {
     confirmPassword: string
   ) => {
     if (password != confirmPassword) {
-      Alert.alert("Password ain't matching");
+      Toast.show({
+        type: "error",
+        text1: "Passwords do not match",
+        text2: "Please make sure both passwords are identical.",
+      });
     } else {
-      registerUser(email, password);
+      registerUser(email, password).catch(() => { });
     }
   };
 

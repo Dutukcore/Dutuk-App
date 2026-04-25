@@ -3,12 +3,15 @@
  * Vendors manage their service offerings with the 3-model pricing system.
  * Uses useServices hook (vendor_services table).
  */
+import { COLORS, RADIUS, SHADOW, SPACING, TYPOGRAPHY } from '@/constants/theme';
+import { CreateServiceParams, Service, useServices } from '@/features/profile/hooks/useServices';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  FlatList,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -22,8 +25,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS, RADIUS, SHADOW, SPACING, TYPOGRAPHY } from '@/constants/theme';
-import { useServices, Service, CreateServiceParams } from '@/features/profile/hooks/useServices';
 
 type PricingModel = 'starting' | 'range' | 'quote';
 
@@ -280,16 +281,23 @@ export default function ServicesCatalogueScreen() {
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
-        <ScrollView
-          style={styles.scroll}
+        <FlatList
+          data={services}
+          keyExtractor={(s) => s.id}
+          renderItem={({ item: s }) => (
+            <ServiceCard
+              service={s}
+              onEdit={() => openEdit(s)}
+              onToggle={() => toggleServiceActive(s.id)}
+              onDelete={() => handleDelete(s)}
+            />
+          )}
           contentContainerStyle={[
             styles.scrollContent,
             services.length === 0 && styles.scrollContentEmpty,
           ]}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
-        >
-          {services.length === 0 ? (
+          ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="briefcase-outline" size={64} color={COLORS.textMuted} />
               <Text style={styles.emptyTitle}>No services yet</Text>
@@ -299,18 +307,9 @@ export default function ServicesCatalogueScreen() {
                 <Text style={styles.emptyAddBtnText}>Add Service</Text>
               </Pressable>
             </View>
-          ) : (
-            services.map((s) => (
-              <ServiceCard
-                key={s.id}
-                service={s}
-                onEdit={() => openEdit(s)}
-                onToggle={() => toggleServiceActive(s.id)}
-                onDelete={() => handleDelete(s)}
-              />
-            ))
-          )}
-        </ScrollView>
+          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+        />
       )}
 
       {/* Add/Edit Modal */}

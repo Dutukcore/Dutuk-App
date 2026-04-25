@@ -34,7 +34,7 @@ export interface CreateServiceParams {
   is_active?: boolean;
 }
 
-export interface UpdateServiceParams extends Partial<CreateServiceParams> {}
+export interface UpdateServiceParams extends Partial<CreateServiceParams> { }
 
 /** Fetch and manage the authenticated vendor's services */
 export const useServices = () => {
@@ -128,9 +128,10 @@ export const useServices = () => {
 
       setServices(prev => [data, ...prev]);
       return data;
-    } catch (err: any) {
-      logger.error('Error creating service', err);
-      setError(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      logger.error('Error creating service', error);
+      setError(error.message);
       return null;
     }
   };
@@ -149,9 +150,10 @@ export const useServices = () => {
         prev.map(s => s.id === id ? { ...s, ...params, updated_at: new Date().toISOString() } : s)
       );
       return true;
-    } catch (err: any) {
-      logger.error('Error updating service', err);
-      setError(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      logger.error('Error updating service', error);
+      setError(error.message);
       return false;
     }
   };
@@ -168,9 +170,10 @@ export const useServices = () => {
 
       setServices(prev => prev.filter(s => s.id !== id));
       return true;
-    } catch (err: any) {
-      logger.error('Error deleting service', err);
-      setError(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      logger.error('Error deleting service', error);
+      setError(error.message);
       return false;
     }
   };

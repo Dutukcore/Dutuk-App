@@ -1,9 +1,10 @@
 import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
 import useCompanyInfo from "@/features/profile/hooks/useCompanyInfo";
 import useImageUpload from "@/features/profile/hooks/useImageUpload";
-import { useVendorStore } from "@/store/useVendorStore";
 import logger from '@/lib/logger';
+import { useVendorStore } from "@/store/useVendorStore";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -197,8 +198,7 @@ const EditProfileScreen = () => {
   const handleUseCurrentLocation = async () => {
     setGeoLoading(true);
     try {
-      const EL = require("expo-location");
-      const { status } = await EL.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         Toast.show({
           type: "error",
@@ -209,11 +209,11 @@ const EditProfileScreen = () => {
         return;
       }
 
-      const position = await EL.getCurrentPositionAsync({
-        accuracy: EL.Accuracy.High,
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
       });
 
-      const [geocode] = await EL.reverseGeocodeAsync({
+      const [geocode] = await Location.reverseGeocodeAsync({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       });

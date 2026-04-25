@@ -192,9 +192,10 @@ export const usePortfolio = () => {
 
             setItems((prev) => [data, ...prev]);
             return data;
-        } catch (err: any) {
-            logger.error('Error uploading image:', err);
-            setError(err.message);
+        } catch (err: unknown) {
+            const error = err as Error;
+            logger.error('Error uploading image:', error);
+            setError(error.message);
             return null;
         } finally {
             setUploading(false);
@@ -242,7 +243,7 @@ export const usePortfolio = () => {
                     throw new Error('Failed to read video file');
                 }
                 arrayBuffer = await response.arrayBuffer();
-            } catch (fetchError: any) {
+            } catch (err: unknown) {
                 throw new Error('Could not access video file. Please try again.');
             }
 
@@ -286,9 +287,10 @@ export const usePortfolio = () => {
             setItems((prev) => [data, ...prev]);
             setError(null);
             return data;
-        } catch (err: any) {
-            logger.error('Error uploading video:', err);
-            setError(err.message);
+        } catch (err: unknown) {
+            const error = err as Error;
+            logger.error('Error uploading video:', error);
+            setError(error.message);
             return null;
         } finally {
             setUploading(false);
@@ -312,9 +314,10 @@ export const usePortfolio = () => {
                 prev.map((item) => (item.id === id ? { ...item, ...params, updated_at: new Date().toISOString() } : item))
             );
             return true;
-        } catch (err: any) {
-            logger.error('Error updating portfolio item:', err);
-            setError(err.message);
+        } catch (err: unknown) {
+            const error = err as Error;
+            logger.error('Error updating portfolio item:', error);
+            setError(error.message);
             return false;
         }
     };
@@ -346,9 +349,10 @@ export const usePortfolio = () => {
 
             setItems((prev) => prev.filter((i) => i.id !== id));
             return true;
-        } catch (err: any) {
-            logger.error('Error deleting portfolio item:', err);
-            setError(err.message);
+        } catch (err: unknown) {
+            const error = err as Error;
+            logger.error('Error deleting portfolio item:', error);
+            setError(error.message);
             return false;
         }
     };

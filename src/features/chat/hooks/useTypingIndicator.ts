@@ -1,6 +1,6 @@
-import { useAuthStore } from '@/store/useAuthStore';
 import logger from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 // =====================================================
@@ -24,9 +24,10 @@ interface TypingState {
  * 
  * @param conversationId - The conversation ID
  * @param isVendor - Whether the current user is the vendor
+ * @param isClosed - Whether the conversation is closed
  * @returns Object with typing state and updateTyping function
  */
-export function useTypingIndicator(conversationId: string | null, isVendor: boolean = true) {
+export function useTypingIndicator(conversationId: string | null, isVendor: boolean = true, isClosed: boolean = false) {
     const [otherPartyTyping, setOtherPartyTyping] = useState(false);
     const typingTimeoutRef = useRef<any>(null);
     const lastTypingUpdateRef = useRef<number>(0);
@@ -39,7 +40,7 @@ export function useTypingIndicator(conversationId: string | null, isVendor: bool
 
     // Update own typing status in database
     const updateTyping = useCallback(async () => {
-        if (!conversationId) return;
+        if (!conversationId || isClosed) return;
 
         const now = Date.now();
 
@@ -66,11 +67,11 @@ export function useTypingIndicator(conversationId: string | null, isVendor: bool
         } catch (error) {
             logger.error('Error updating typing status:', error);
         }
-    }, [conversationId, isVendor]);
+    }, [conversationId, isVendor, isClosed]);
 
     // Clear own typing status
     const clearTyping = useCallback(async () => {
-        if (!conversationId) return;
+        if (!conversationId || isClosed) return;
 
         try {
             const user = useAuthStore.getState().user;
@@ -88,7 +89,7 @@ export function useTypingIndicator(conversationId: string | null, isVendor: bool
         } catch (error) {
             logger.error('Error clearing typing status:', error);
         }
-    }, [conversationId, isVendor]);
+    }, [conversationId, isVendor, isClosed]);
 
     // Check if a typing timestamp is still valid (within timeout)
     const isTypingActive = (typingAt: string | null): boolean => {

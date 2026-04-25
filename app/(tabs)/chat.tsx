@@ -1,4 +1,5 @@
 import { ConversationWithUnread, useVendorStore } from '@/store/useVendorStore';
+import { Feather } from "@expo/vector-icons";
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -11,7 +12,6 @@ import {
     Text,
     View
 } from 'react-native';
-import { ChevronRight, MessageCircle } from 'react-native-feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -118,15 +118,14 @@ export default function ChatScreen() {
                 </View>
             </View>
 
-            {/* Arrow */}
-            <ChevronRight width={20} height={20} stroke="#C0C0C0" />
+            <Feather name="chevron-right" size={20} color="#C0C0C0" />
         </Pressable>
     );
 
     const renderEmptyState = () => (
         <View style={styles.emptyContainer}>
             <View style={styles.emptyIconContainer}>
-                <MessageCircle width={48} height={48} stroke="#7C2A2A" strokeWidth={1.5} />
+                <Feather name="message-circle" size={48} color="#7C2A2A" />
             </View>
             <Text style={styles.emptyTitle}>No Messages Yet</Text>
             <Text style={styles.emptyDescription}>

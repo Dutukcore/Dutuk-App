@@ -1,3 +1,7 @@
+import UnifiedCalendar from "@/features/calendar/components/UnifiedCalendar";
+import { buildOrderBookingMarkedDates } from "@/features/calendar/utils/calendarAvailability";
+import { supabase } from "@/lib/supabase";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -11,19 +15,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  AlertCircle,
-  ArrowLeft,
-  Calendar as CalendarIcon,
-  Copy,
-  MessageCircle,
-  Star,
-} from 'react-native-feather';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import UnifiedCalendar from "@/features/calendar/components/UnifiedCalendar";
-import { buildOrderBookingMarkedDates } from "@/features/calendar/utils/calendarAvailability";
-import { supabase } from "@/lib/supabase";
 
 const CustomerDetailsScreen = () => {
   const params = useLocalSearchParams<{
@@ -97,14 +90,19 @@ const CustomerDetailsScreen = () => {
 
       const { data: conv } = await supabase
         .from('conversations')
-        .select('id')
+        .select('id, payment_completed')
         .eq('order_id', params.orderId)
         .maybeSingle();
 
-      if (conv) setConversationId(conv.id);
+      if (conv) {
+        setConversationId(conv.id);
+        setPaymentCompleted(conv.payment_completed);
+      }
     };
     load();
   }, [params.orderId]);
+
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
 
   const handleOpenChat = () => {
     if (!conversationId || !customerId) {
@@ -117,7 +115,7 @@ const CustomerDetailsScreen = () => {
         conversationId,
         customerName: params.customerName || 'Customer',
         customerId,
-        paymentCompleted: 'false',
+        paymentCompleted: String(paymentCompleted),
         orderId: params.orderId,
       },
     });
@@ -211,7 +209,7 @@ const CustomerDetailsScreen = () => {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft width={18} height={18} stroke="#000000" />
+            <Feather name="arrow-left" size={18} color="#000000" />
           </TouchableOpacity>
           {/* Order status badge */}
           <View style={[styles.statusBadge, orderStatus === 'completed' && styles.statusBadgeCompleted]}>
@@ -229,18 +227,18 @@ const CustomerDetailsScreen = () => {
           <View style={styles.contactContainer}>
             <TouchableOpacity style={styles.contactItem} onPress={() => copyToClipboard(customerEmail, "Email")}>
               <Text style={styles.contactText}>{customerEmail}</Text>
-              <Copy width={18} height={18} stroke="#FFFFFF" />
+              <Feather name="copy" size={18} color="#FFFFFF" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.contactItem} onPress={() => copyToClipboard(customerPhone, "Phone")}>
               <Text style={styles.contactText}>{customerPhone}</Text>
-              <Copy width={18} height={18} stroke="#FFFFFF" />
+              <Feather name="copy" size={18} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Event Date */}
         <View style={styles.eventDateContainer}>
-          <CalendarIcon width={20} height={20} stroke="#7C2A2A" />
+          <Feather name="calendar" size={20} color="#7C2A2A" />
           <Text style={styles.eventDateLabel}>Event Date:</Text>
           <Text style={styles.eventDateText}>{params.eventDate || 'Not specified'}</Text>
         </View>
@@ -263,7 +261,7 @@ const CustomerDetailsScreen = () => {
           {/* Open Chat */}
           <TouchableOpacity style={styles.actionButton} onPress={handleOpenChat}>
             <View style={styles.actionIconWrap}>
-              <MessageCircle width={20} height={20} stroke="#800000" />
+              <Feather name="message-circle" size={20} color="#800000" />
             </View>
             <View style={styles.actionTextWrap}>
               <Text style={styles.actionLabel}>Open Chat</Text>
@@ -275,7 +273,7 @@ const CustomerDetailsScreen = () => {
           {orderStatus !== 'completed' && (
             <TouchableOpacity style={styles.actionButton} onPress={handleMarkComplete}>
               <View style={[styles.actionIconWrap, { backgroundColor: 'rgba(34,197,94,0.12)' }]}>
-                <Star width={20} height={20} stroke="#16a34a" />
+                <Feather name="check-circle" size={20} color="#16a34a" />
               </View>
               <View style={styles.actionTextWrap}>
                 <Text style={[styles.actionLabel, { color: '#16a34a' }]}>Mark as Completed</Text>
@@ -287,7 +285,7 @@ const CustomerDetailsScreen = () => {
           {/* Raise Dispute */}
           <TouchableOpacity style={styles.actionButton} onPress={() => setDisputeModalVisible(true)}>
             <View style={[styles.actionIconWrap, { backgroundColor: 'rgba(239,68,68,0.10)' }]}>
-              <AlertCircle width={20} height={20} stroke="#dc2626" />
+              <Feather name="alert-circle" size={20} color="#dc2626" />
             </View>
             <View style={styles.actionTextWrap}>
               <Text style={[styles.actionLabel, { color: '#dc2626' }]}>Raise a Dispute</Text>
@@ -299,7 +297,7 @@ const CustomerDetailsScreen = () => {
           {orderStatus === 'completed' && (
             <TouchableOpacity style={styles.actionButton} onPress={() => setReviewModalVisible(true)}>
               <View style={[styles.actionIconWrap, { backgroundColor: 'rgba(234,179,8,0.12)' }]}>
-                <Star width={20} height={20} stroke="#ca8a04" />
+                <Feather name="star" size={20} color="#ca8a04" />
               </View>
               <View style={styles.actionTextWrap}>
                 <Text style={[styles.actionLabel, { color: '#ca8a04' }]}>Leave a Review</Text>
@@ -370,10 +368,10 @@ const CustomerDetailsScreen = () => {
             <View style={styles.starsRow}>
               {[1, 2, 3, 4, 5].map(star => (
                 <TouchableOpacity key={star} onPress={() => setReviewRating(star)}>
-                  <Star
-                    width={36} height={36}
-                    stroke="#ca8a04"
-                    fill={star <= reviewRating ? "#ca8a04" : "transparent"}
+                  <Ionicons
+                    name={star <= reviewRating ? "star" : "star-outline"}
+                    size={36}
+                    color="#ca8a04"
                   />
                 </TouchableOpacity>
               ))}

@@ -1,6 +1,6 @@
+import { Feather } from "@expo/vector-icons";
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { ChevronLeft, ChevronRight } from 'react-native-feather';
 
 interface MarkedDate {
   unavailable?: boolean;
@@ -141,7 +141,7 @@ const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
             disabled={disabled}
             activeOpacity={0.6}
           >
-            <ChevronLeft width={20} height={20} stroke="#1c1917" />
+            <Feather name="chevron-left" size={24} color="#800000" />
           </TouchableOpacity>
 
           <View style={styles.monthTitleContainer}>
@@ -163,7 +163,7 @@ const UnifiedCalendar: React.FC<UnifiedCalendarProps> = ({
             disabled={disabled}
             activeOpacity={0.6}
           >
-            <ChevronRight width={20} height={20} stroke="#1c1917" />
+            <Feather name="chevron-right" size={24} color="#800000" />
           </TouchableOpacity>
         </View>
 

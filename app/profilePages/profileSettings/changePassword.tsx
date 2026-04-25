@@ -1,15 +1,15 @@
-import resetPasswordStyles from "../../../src/css/resetPasswordStyle";
 import usePasswordChange from "@/features/auth/hooks/usePasswordChange";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
-  Alert,
   BackHandler,
   Pressable,
   Text,
   TextInput,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
+import resetPasswordStyles from "../../../src/css/resetPasswordStyle";
 
 const ChangePassword = () => {
   const styles = resetPasswordStyles;
@@ -33,13 +33,28 @@ const ChangePassword = () => {
   );
   const handleChangePassword = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
-      return Alert.alert("Please fill in all fields");
+      return Toast.show({ type: "error", text1: "Please fill in all fields" });
     }
     if (newPassword !== confirmPassword) {
-      return Alert.alert("New passwords do not match");
+      return Toast.show({ type: "error", text1: "New passwords do not match" });
     }
+
+    const hasUpperCase = /[A-Z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+
+    if (newPassword.length < 8 || !hasUpperCase || !hasNumber) {
+      return Toast.show({
+        type: "error",
+        text1: "Weak Password",
+        text2: "Password must be 8+ chars with an uppercase letter and a number.",
+      });
+    }
+
     if (newPassword === oldPassword) {
-      return Alert.alert("New password cannot be the same as the old password");
+      return Toast.show({
+        type: "error",
+        text1: "New password cannot match old password",
+      });
     }
 
     usePasswordChange(newPassword);

@@ -3,8 +3,9 @@ import { useConversation } from '@/features/chat/hooks/useConversations';
 import { Message, useMarkAsRead, useMessages, useSendMessage } from '@/features/chat/hooks/useMessages';
 import { useTypingIndicator } from '@/features/chat/hooks/useTypingIndicator';
 import { useRequestCompletion } from '@/features/orders/hooks/useCompletion';
-import { useAuthStore } from '@/store/useAuthStore';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
+import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -21,7 +22,6 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { AlertCircle, ArrowLeft, CheckCircle, Clock, Paperclip, Send, X } from 'react-native-feather';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
@@ -41,7 +41,6 @@ export default function ConversationScreen() {
     const [requestingCompletion, setRequestingCompletion] = useState(false);
     const [completionRequestedAt, setCompletionRequestedAt] = useState<string | null>(null);
     const [orderStatus, setOrderStatus] = useState<string | null>(null);
-    const [resolvedOrderId, setResolvedOrderId] = useState<string | null>(orderIdParam || null);
     const currentUserId = useAuthStore((state) => state.userId);
     const flatListRef = useRef<FlatList>(null);
 
@@ -53,7 +52,11 @@ export default function ConversationScreen() {
     const { conversation } = useConversation(conversationId || null);
     const { sendMessage, loading: sending } = useSendMessage();
     const { markAsRead } = useMarkAsRead();
-    const { otherPartyTyping, onTextChange } = useTypingIndicator(conversationId || null, true);
+    const { otherPartyTyping, onTextChange } = useTypingIndicator(
+        conversationId || null,
+        true,
+        conversation?.status === 'COMPLETED'
+    );
     const { requestCompletion } = useRequestCompletion();
     const {
         attachment,
@@ -65,52 +68,114 @@ export default function ConversationScreen() {
         clearAttachment
     } = useAttachments();
 
-    // Resolve orderId: use param if available, otherwise look it up from the conversation record
-    useEffect(() => {
-        if (orderIdParam) {
-            setResolvedOrderId(orderIdParam);
-            return;
-        }
-        // Fallback: look up order_id from the conversation data
-        if (conversation?.order_id) {
-            setResolvedOrderId(conversation.order_id);
-            return;
-        }
-        // Last resort: query the conversations table directly
-        if (conversationId && !resolvedOrderId) {
-            supabase
-                .from('conversations')
-                .select('order_id')
-                .eq('id', conversationId)
-                .single()
-                .then(({ data }) => {
-                    if (data?.order_id) {
-                        setResolvedOrderId(data.order_id);
-                    }
-                });
-        }
-    }, [orderIdParam, conversation?.order_id, conversationId]);
+    // Derive orderId + status from conversation row directly (guaranteed by Phase 1)
+    const resolvedOrderId = (conversation?.order_id && conversation.order_id !== '')
+        ? conversation.order_id
+        : (orderIdParam && orderIdParam !== '')
+            ? orderIdParam
+            : null;
 
-    // Load order state for completion button
+    const isClosed = conversation?.status === 'COMPLETED' || orderStatus === 'completed';
+
+    // Sync order state for completion requested status
+    useEffect(() => {
+        if (conversation) {
+            setOrderStatus(conversation.order_status);
+            setCompletionRequestedAt(conversation.completion_requested_at);
+        }
+    }, [conversation]);
+
+    // Real-time subscription for conversation status changes (auto-closure)
+    useEffect(() => {
+        if (!conversationId) return;
+        const channel = supabase
+            .channel(`conv-status-${conversationId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'conversations',
+                    filter: `id=eq.${conversationId}`,
+                },
+                (payload) => {
+                    const newStatus = (payload.new as any).status;
+                    if (newStatus === 'COMPLETED') {
+                        // Optimistically update orderStatus to reflect closure
+                        setOrderStatus('completed');
+                        Toast.show({
+                            type: 'info',
+                            text1: 'Order Completed',
+                            text2: 'This chat is now read-only.',
+                            position: 'bottom'
+                        });
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [conversationId]);
+
+    // Real-time subscription for order status changes
     useEffect(() => {
         if (!resolvedOrderId) return;
-        supabase
-            .from('orders')
-            .select('status, completion_requested_at')
-            .eq('id', resolvedOrderId)
-            .single()
-            .then(({ data }) => {
-                if (data) {
-                    setOrderStatus(data.status);
+
+        const channel = supabase
+            .channel(`order-sync-${resolvedOrderId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'orders',
+                    filter: `id=eq.${resolvedOrderId}`,
+                },
+                (payload) => {
+                    const newStatus = (payload.new as any).status;
+                    setOrderStatus(newStatus);
+
+                    // Also update completion request status if changed
+                    if ((payload.new as any).completion_requested_at) {
+                        setCompletionRequestedAt((payload.new as any).completion_requested_at);
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [resolvedOrderId]);
+
+    // Initial status fetch fallback (source of truth)
+    useEffect(() => {
+        if (!resolvedOrderId || orderStatus !== null) return;
+
+        const fetchInitialStatus = async () => {
+            const { data } = await supabase
+                .from('orders')
+                .select('status, completion_requested_at')
+                .eq('id', resolvedOrderId)
+                .single();
+
+            if (data) {
+                setOrderStatus(data.status);
+                if (data.completion_requested_at) {
                     setCompletionRequestedAt(data.completion_requested_at);
                 }
-            });
-    }, [resolvedOrderId]);
+            }
+        };
+
+        fetchInitialStatus();
+    }, [resolvedOrderId, orderStatus]);
 
     // Show button for approved orders where completion hasn't been requested yet
     const canRequestCompletion = useMemo(() =>
-        !!resolvedOrderId && orderStatus === 'approved' && !completionRequestedAt,
-        [resolvedOrderId, orderStatus, completionRequestedAt]
+        !!resolvedOrderId && (orderStatus === 'approved' || orderStatus === 'pending') && !completionRequestedAt && !isClosed,
+        [resolvedOrderId, orderStatus, completionRequestedAt, isClosed]
     );
 
     const completionAlreadyRequested = useMemo(() =>
@@ -198,6 +263,7 @@ export default function ConversationScreen() {
     }, [conversationId, customerId, resolvedOrderId, requestCompletion]);
 
     const handleSend = async () => {
+        if (isClosed) return;
         if ((!message.trim() && !attachment) || !conversationId || !customerId) return;
 
         let uploadedAttachment = null;
@@ -223,7 +289,8 @@ export default function ConversationScreen() {
                 text: message.trim() || (uploadedAttachment ? '📎 Attachment' : ''),
                 attachment: uploadedAttachment || undefined,
             },
-            paymentCompleted
+            paymentCompleted,
+            conversation?.status || 'ACTIVE'
         );
 
         if (result.success) {
@@ -289,18 +356,18 @@ export default function ConversationScreen() {
     const renderCompletionRequestMessage = (item: Message, isOwn: boolean) => {
         return (
             <View style={[
-                styles.completionCard, 
+                styles.completionCard,
                 isOwn ? styles.completionCardOwn : styles.completionCardOther,
                 isOrderCompleted ? { borderColor: '#22c55e', backgroundColor: '#f0fdf4' } : {}
             ]}>
                 <View style={styles.completionCardHeader}>
                     {isOrderCompleted ? (
-                        <CheckCircle width={16} height={16} stroke="#22c55e" />
+                        <Feather name="check-circle" size={16} color="#22c55e" />
                     ) : (
-                        <Clock width={16} height={16} stroke={isOwn ? '#FFFFFF' : '#7C2A2A'} />
+                        <Feather name="clock" size={16} color={isOwn ? '#FFFFFF' : '#7C2A2A'} />
                     )}
                     <Text style={[
-                        styles.completionCardTitle, 
+                        styles.completionCardTitle,
                         isOwn && styles.completionCardTitleOwn,
                         isOrderCompleted && { color: '#166534' }
                     ]}>
@@ -308,16 +375,16 @@ export default function ConversationScreen() {
                     </Text>
                 </View>
                 <Text style={[
-                    styles.completionCardBody, 
+                    styles.completionCardBody,
                     isOwn && styles.completionCardBodyOwn,
                     isOrderCompleted && { color: '#15803d' }
                 ]}>
                     {isOwn
-                        ? isOrderCompleted 
-                            ? 'Customer has confirmed event completion.' 
+                        ? isOrderCompleted
+                            ? 'Customer has confirmed event completion.'
                             : 'You requested the customer confirm event completion.'
-                        : isOrderCompleted 
-                            ? 'You have confirmed the event completion.' 
+                        : isOrderCompleted
+                            ? 'You have confirmed the event completion.'
                             : 'Vendor has requested you confirm event completion.'}
                 </Text>
                 {!isOrderCompleted && !isOwn && (
@@ -357,7 +424,7 @@ export default function ConversationScreen() {
                 <View style={styles.messageFooter}>
                     <Text style={styles.messageTime}>{formatMessageTime(item.created_at)}</Text>
                     {isOwn && item.is_read && (
-                        <CheckCircle width={12} height={12} stroke="#22C55E" style={{ marginLeft: 4 }} />
+                        <Feather name="check-circle" size={12} color="#22C55E" style={{ marginLeft: 4 }} />
                     )}
                 </View>
             </View>
@@ -393,7 +460,7 @@ export default function ConversationScreen() {
             <SafeAreaView style={styles.container} edges={['top']}>
                 <View style={styles.header}>
                     <Pressable onPress={() => router.back()} style={styles.backButton}>
-                        <ArrowLeft width={24} height={24} stroke="#1A1A1A" />
+                        <Feather name="arrow-left" size={24} color="#1A1A1A" />
                     </Pressable>
                     <View style={styles.headerInfo}>
                         <Text style={styles.headerTitle}>{customerName}</Text>
@@ -411,13 +478,13 @@ export default function ConversationScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <Pressable onPress={() => router.back()} style={styles.backButton}>
-                    <ArrowLeft width={24} height={24} stroke="#1A1A1A" />
+                    <Feather name="arrow-left" size={24} color="#1A1A1A" />
                 </Pressable>
                 <View style={styles.headerInfo}>
                     <Text style={styles.headerTitle} numberOfLines={1}>{customerName}</Text>
                     {paymentCompleted && (
                         <View style={styles.paymentBadge}>
-                            <CheckCircle width={12} height={12} stroke="#22C55E" />
+                            <Feather name="check-circle" size={12} color="#22C55E" />
                             <Text style={styles.paymentBadgeText}>Payment Verified</Text>
                         </View>
                     )}
@@ -447,11 +514,21 @@ export default function ConversationScreen() {
             </View>
 
             {/* Contact Info Warning */}
-            {!paymentCompleted && (
+            {!paymentCompleted && !isClosed && (
                 <View style={styles.warningBanner}>
-                    <AlertCircle width={16} height={16} stroke="#B45309" />
+                    <Feather name="alert-circle" size={16} color="#B45309" />
                     <Text style={styles.warningText}>
                         Contact sharing is blocked until payment is completed
+                    </Text>
+                </View>
+            )}
+
+            {/* Closed Banner */}
+            {isClosed && (
+                <View style={styles.closedBanner}>
+                    <Feather name="check-circle" size={16} color="#15803D" />
+                    <Text style={styles.closedText}>
+                        This order is completed. Chat is read-only.
                     </Text>
                 </View>
             )}
@@ -491,7 +568,7 @@ export default function ConversationScreen() {
                             </View>
                         )}
                         <Pressable style={styles.attachmentRemove} onPress={clearAttachment}>
-                            <X width={16} height={16} stroke="#FFFFFF" />
+                            <Feather name="x" size={16} color="#FFFFFF" />
                         </Pressable>
                     </View>
                 )}
@@ -501,32 +578,32 @@ export default function ConversationScreen() {
                     <Pressable
                         style={styles.attachmentButton}
                         onPress={handleAttachmentPress}
-                        disabled={uploading}
+                        disabled={uploading || isClosed}
                     >
-                        <Paperclip width={22} height={22} stroke="#666666" />
+                        <Feather name="paperclip" size={22} color={isClosed ? "#C0C0C0" : "#666666"} />
                     </Pressable>
                     <TextInput
                         style={styles.input}
-                        placeholder="Type a message..."
+                        placeholder={isClosed ? "Order completed" : "Type a message..."}
                         placeholderTextColor="#999999"
                         value={message}
                         onChangeText={handleTextChange}
                         multiline
                         maxLength={1000}
-                        editable={!sending && !uploading}
+                        editable={!sending && !uploading && !isClosed}
                     />
                     <Pressable
                         style={[
                             styles.sendButton,
-                            ((!message.trim() && !attachment) || sending || uploading) && styles.sendButtonDisabled,
+                            ((!message.trim() && !attachment) || sending || uploading || isClosed) && styles.sendButtonDisabled,
                         ]}
                         onPress={handleSend}
-                        disabled={(!message.trim() && !attachment) || sending || uploading}
+                        disabled={(!message.trim() && !attachment) || sending || uploading || isClosed}
                     >
                         {sending || uploading ? (
                             <ActivityIndicator size="small" color="#FFFFFF" />
                         ) : (
-                            <Send width={20} height={20} stroke="#FFFFFF" />
+                            <Feather name="send" size={20} color="#FFFFFF" />
                         )}
                     </Pressable>
                 </View>
@@ -882,5 +959,21 @@ const styles = StyleSheet.create({
         fontSize: 10,
         fontWeight: '600',
         color: '#991B1B',
+    },
+    closedBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#F0FDF4',
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#DCFCE7',
+    },
+    closedText: {
+        marginLeft: 8,
+        fontSize: 13,
+        color: '#15803D',
+        fontWeight: '600',
     },
 });

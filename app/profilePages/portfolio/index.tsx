@@ -1,14 +1,14 @@
 import { PortfolioItem, usePortfolio } from '@/features/profile/hooks/usePortfolio';
-import logger from '@/lib/logger';
 import { Ionicons } from '@expo/vector-icons';
-import { AVPlaybackStatus, ResizeMode, Video } from 'expo-av';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useVideoPlayer } from 'expo-video';
+import { useEffect, useState } from 'react';
 import {
     ActionSheetIOS,
     ActivityIndicator,
     Alert,
     Dimensions,
+    FlatList,
     Image,
     Modal,
     Platform,
@@ -63,10 +63,29 @@ const PortfolioPage = () => {
     const [saving, setSaving] = useState(false);
 
     // Video player state
-    const videoRef = useRef<Video>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [videoLoading, setVideoLoading] = useState(false);
     const [videoError, setVideoError] = useState(false);
+
+    // Create the player instance
+    const playerSource = selectedItem && isVideoUrl(selectedItem.image_url) ? selectedItem.image_url : null;
+    const player = useVideoPlayer(playerSource, (player) => {
+        player.loop = false;
+        player.muted = false;
+    });
+
+    // Listen for status changes
+    useEffect(() => {
+        if (!player) return;
+
+        const subscription = player.addListener('playingChange', (isPlaying) => {
+            setIsPlaying(isPlaying);
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [player]);
 
     // Edit form state
     const [editTitle, setEditTitle] = useState('');
@@ -100,46 +119,20 @@ const PortfolioPage = () => {
         setShowDetailModal(true);
     };
 
-    const handleVideoPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
-        if (status.isLoaded) {
-            setIsPlaying(status.isPlaying);
-            setVideoLoading(false);
-            if (status.didJustFinish) {
-                setIsPlaying(false);
-            }
-        } else if (status.error) {
-            setVideoError(true);
-            setVideoLoading(false);
-            logger.error('Video error:', status.error);
+    const toggleVideoPlayback = () => {
+        if (!player) return;
+
+        if (player.playing) {
+            player.pause();
+        } else {
+            player.play();
         }
     };
 
-    const toggleVideoPlayback = async () => {
-        if (!videoRef.current) return;
-
-        try {
-            const status = await videoRef.current.getStatusAsync();
-            if (status.isLoaded) {
-                if (status.isPlaying) {
-                    await videoRef.current.pauseAsync();
-                } else {
-                    await videoRef.current.playAsync();
-                }
-            }
-        } catch (error) {
-            logger.error('Error toggling video playback:', error);
-            Toast.show({ type: 'error', text1: 'Failed to play video' });
-        }
-    };
-
-    const handleModalClose = async () => {
+    const handleModalClose = () => {
         // Pause video if playing
-        if (videoRef.current && isPlaying) {
-            try {
-                await videoRef.current.pauseAsync();
-            } catch (error) {
-                logger.error('Error pausing video:', error);
-            }
+        if (player && isPlaying) {
+            player.pause();
         }
         setShowDetailModal(false);
     };
@@ -286,82 +279,70 @@ const PortfolioPage = () => {
                 </Pressable>
             </View>
 
-            <ScrollView
-                style={styles.scrollView}
+            {loading && !refreshing && (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#800000" />
+                    <Text style={styles.loadingText}>Loading portfolio...</Text>
+                </View>
+            )}
+
+            <FlatList
+                data={items}
+                keyExtractor={(item) => item.id}
+                numColumns={GRID_COLUMNS}
                 contentContainerStyle={styles.scrollContent}
+                columnWrapperStyle={styles.columnWrapper}
+                renderItem={({ item }) => (
+                    <Pressable
+                        style={styles.gridItem}
+                        onPress={() => openDetailModal(item)}
+                    >
+                        {isVideoUrl(item.image_url) ? (
+                            <View style={styles.videoContainer}>
+                                <Image source={{ uri: item.image_url }} style={styles.gridImage} />
+                                <View style={styles.playIconContainer}>
+                                    <Ionicons name="play-circle" size={40} color="rgba(255,255,255,0.9)" />
+                                </View>
+                            </View>
+                        ) : (
+                            <Image source={{ uri: item.image_url }} style={styles.gridImage} />
+                        )}
+                        {item.is_featured && (
+                            <View style={styles.featuredBadge}>
+                                <Ionicons name="star" size={12} color="#FFC13C" />
+                            </View>
+                        )}
+                    </Pressable>
+                )}
+                ListEmptyComponent={
+                    !loading && items.length === 0 ? (
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name="images-outline" size={64} color="#800000" />
+                            <Text style={styles.emptyTitle}>No portfolio items</Text>
+                            <Text style={styles.emptySubtitle}>
+                                Showcase your past work with photos and videos to attract more customers
+                            </Text>
+                            <Pressable
+                                style={[styles.emptyAddButton, uploading && styles.addButtonDisabled]}
+                                onPress={handleAddMedia}
+                                disabled={uploading}
+                            >
+                                {uploading ? (
+                                    <ActivityIndicator size="small" color="#fff" />
+                                ) : (
+                                    <>
+                                        <Ionicons name="add" size={20} color="#fff" />
+                                        <Text style={styles.emptyAddButtonText}>Add Media</Text>
+                                    </>
+                                )}
+                            </Pressable>
+                        </View>
+                    ) : null
+                }
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#800000" colors={["#800000"]} />
                 }
-            >
-                {loading && !refreshing && (
-                    <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#800000" />
-                        <Text style={styles.loadingText}>Loading portfolio...</Text>
-                    </View>
-                )}
-
-                {!loading && items.length === 0 && (
-                    <View style={styles.emptyContainer}>
-                        <Ionicons name="images-outline" size={64} color="#800000" />
-                        <Text style={styles.emptyTitle}>No portfolio items</Text>
-                        <Text style={styles.emptySubtitle}>
-                            Showcase your past work with photos and videos to attract more customers
-                        </Text>
-                        <Pressable
-                            style={[styles.emptyAddButton, uploading && styles.addButtonDisabled]}
-                            onPress={handleAddMedia}
-                            disabled={uploading}
-                        >
-                            {uploading ? (
-                                <ActivityIndicator size="small" color="#fff" />
-                            ) : (
-                                <>
-                                    <Ionicons name="add" size={20} color="#fff" />
-                                    <Text style={styles.emptyAddButtonText}>Add Media</Text>
-                                </>
-                            )}
-                        </Pressable>
-                    </View>
-                )}
-
-                {/* Media Grid */}
-                {items.length > 0 && (
-                    <View style={styles.grid}>
-                        {items.map((item) => (
-                            <Pressable
-                                key={item.id}
-                                style={styles.gridItem}
-                                onPress={() => openDetailModal(item)}
-                            >
-                                {isVideoUrl(item.image_url) ? (
-                                    <View style={styles.videoContainer}>
-                                        <Video
-                                            source={{ uri: item.image_url }}
-                                            style={styles.gridImage}
-                                            resizeMode={ResizeMode.COVER}
-                                            shouldPlay={false}
-                                            isLooping={false}
-                                            useNativeControls={false}
-                                            isMuted={true}
-                                            positionMillis={0}
-                                        />
-                                        <View style={styles.playIconContainer}>
-                                            <Ionicons name="play-circle" size={40} color="rgba(255,255,255,0.9)" />
-                                        </View>
-                                    </View>
-                                ) : (
-                                    <Image source={{ uri: item.image_url }} style={styles.gridImage} />
-                                )}
-                                {item.is_featured && (
-                                    <View style={styles.featuredBadge}>
-                                        <Ionicons name="star" size={12} color="#FFC13C" />
-                                    </View>
-                                )}
-                            </Pressable>
-                        ))}
-                    </View>
-                )}
-            </ScrollView>
+            />
 
             {/* Detail Modal */}
             <Modal visible={showDetailModal} animationType="slide" presentationStyle="pageSheet">
@@ -387,21 +368,11 @@ const PortfolioPage = () => {
                             {/* Media Preview */}
                             {isVideoUrl(selectedItem.image_url) ? (
                                 <View style={styles.videoPreviewContainer}>
-                                    <Video
-                                        ref={videoRef}
-                                        source={{ uri: selectedItem.image_url }}
+                                    <VideoView
+                                        player={player}
                                         style={styles.previewImage}
-                                        resizeMode={ResizeMode.CONTAIN}
+                                        contentMode="contain"
                                         useNativeControls={false}
-                                        isLooping={false}
-                                        shouldPlay={false}
-                                        onPlaybackStatusUpdate={handleVideoPlaybackStatusUpdate}
-                                        onLoadStart={() => setVideoLoading(true)}
-                                        onError={(error) => {
-                                            logger.error('Video playback error:', error);
-                                            setVideoError(true);
-                                            setVideoLoading(false);
-                                        }}
                                     />
 
                                     {/* Video Overlay Controls */}
@@ -639,6 +610,11 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
+    },
+    columnWrapper: {
+        justifyContent: 'flex-start',
+        gap: 12,
+        marginBottom: 12,
     },
     featuredBadge: {
         position: 'absolute',
