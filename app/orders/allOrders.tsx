@@ -1,5 +1,5 @@
-import { useVendorStore } from '@/store/useVendorStore';
 import logger from '@/lib/logger';
+import { useVendorStore } from '@/store/useVendorStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -56,7 +56,6 @@ const AllOrdersScreen = () => {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            {/* Header with Back Button */}
             <View style={styles.header}>
                 <Pressable
                     style={styles.backButton}
@@ -65,7 +64,7 @@ const AllOrdersScreen = () => {
                     <Ionicons name="arrow-back" size={24} color="#1c1917" />
                 </Pressable>
                 <Text style={styles.headerTitle}>All Orders</Text>
-                <View style={{ width: 44 }} /> {/* Spacing for alignment */}
+                <View style={{ width: 44 }} />
             </View>
 
             <FlatList
@@ -75,14 +74,14 @@ const AllOrdersScreen = () => {
                 contentContainerStyle={styles.scrollContent}
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
-                ListHeaderComponent={(
+                ListHeaderComponent={
                     <View style={styles.summaryContainer}>
                         <Text style={styles.summaryText}>
-                            Total {orders.length} orders
+                            {`Total ${orders.length} orders`}
                         </Text>
                     </View>
-                )}
-                ListEmptyComponent={(
+                }
+                ListEmptyComponent={
                     loading ? (
                         <View style={styles.emptyStateContainer}>
                             <ActivityIndicator size="large" color="#800000" />
@@ -97,7 +96,7 @@ const AllOrdersScreen = () => {
                             </Text>
                         </View>
                     )
-                )}
+                }
                 renderItem={({ item }) => (
                     <Pressable
                         style={styles.orderCard}
@@ -118,7 +117,7 @@ const AllOrdersScreen = () => {
                         <View style={styles.cardHeader}>
                             <View>
                                 <Text style={styles.orderIdLabel}>ORDER</Text>
-                                <Text style={styles.orderId}>#{item.id.substring(0, 8).toUpperCase()}</Text>
+                                <Text style={styles.orderId}>{`#${item.id.substring(0, 8).toUpperCase()}`}</Text>
                             </View>
                             <StatusBadge status={item.status} />
                         </View>
@@ -131,8 +130,8 @@ const AllOrdersScreen = () => {
                                 <Ionicons name="calendar-outline" size={16} color="#57534e" />
                                 <Text style={styles.dateText}>{item.date}</Text>
                             </View>
-                            {item.amount && (
-                                <Text style={styles.amountText}>₹{item.amount}</Text>
+                            {!!item.amount && (
+                                <Text style={styles.amountText}>{`₹${item.amount}`}</Text>
                             )}
                         </View>
                     </Pressable>

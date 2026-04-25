@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useShallow } from "zustand/react/shallow";
 
 const PastReviews = () => {
@@ -13,12 +12,17 @@ const PastReviews = () => {
         fetchReviews: state.fetchReviews
     })));
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!reviews || reviews.length === 0);
 
     useEffect(() => {
         const loadData = async () => {
             try {
-                await fetchReviews();
+                // Don't await if we already have data
+                if (reviews && reviews.length > 0) {
+                    fetchReviews(); // Background refresh
+                } else {
+                    await fetchReviews();
+                }
             } finally {
                 setLoading(false);
             }
@@ -27,14 +31,14 @@ const PastReviews = () => {
     }, []);
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.safeArea}>
+            {/* Fallback Header if native one is missing or non-interactive */}
             <View style={styles.header}>
-                <Pressable onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#1c1917" />
+                <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={20}>
+                    <Ionicons name="chevron-back" size={28} color="#800000" />
+                    <Text style={styles.backText}>Back</Text>
                 </Pressable>
-                <Text style={styles.headerTitle}>Past Reviews</Text>
             </View>
-
             <View style={styles.container}>
                 {loading ? (
                     <View style={styles.centerContainer}>
@@ -45,7 +49,7 @@ const PastReviews = () => {
                     <DisplayReviews reviews={reviews} />
                 )}
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -53,6 +57,9 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
         backgroundColor: '#F7F9FC',
+    },
+    container: {
+        flex: 1,
     },
     header: {
         flexDirection: 'row',
@@ -64,16 +71,15 @@ const styles = StyleSheet.create({
         borderBottomColor: '#E8EBF2',
     },
     backButton: {
-        padding: 8,
-        marginRight: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 4,
     },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#1c1917',
-    },
-    container: {
-        flex: 1,
+    backText: {
+        fontSize: 16,
+        color: '#800000',
+        marginLeft: 4,
+        fontWeight: '600',
     },
     centerContainer: {
         flex: 1,

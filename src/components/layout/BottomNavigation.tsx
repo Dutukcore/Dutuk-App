@@ -129,7 +129,7 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab }) => {
                 <View style={[styles.iconCircle, { backgroundColor: MUTED_MAROON, borderColor: PRIMARY_MAROON }]}>
                   <Ionicons name="calendar-outline" size={28} color={PRIMARY_MAROON} />
                 </View>
-                <Text style={styles.optionLabel}>Create Event</Text>
+                <Text style={styles.optionLabel}>Create Service</Text>
                 <Text style={styles.optionSub}>Setup pricing & timeline</Text>
               </Pressable>
 

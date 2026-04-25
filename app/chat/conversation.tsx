@@ -79,8 +79,13 @@ export default function ConversationScreen() {
 
     // Sync order state for completion requested status
     useEffect(() => {
-        if (conversation) {
+        if (!conversation) return;
+
+        // Only update if the value is explicitly provided in the view
+        if (conversation.order_status !== undefined && conversation.order_status !== null) {
             setOrderStatus(conversation.order_status);
+        }
+        if (conversation.completion_requested_at !== undefined) {
             setCompletionRequestedAt(conversation.completion_requested_at);
         }
     }, [conversation]);
@@ -152,7 +157,15 @@ export default function ConversationScreen() {
 
     // Initial status fetch fallback (source of truth)
     useEffect(() => {
-        if (!resolvedOrderId || orderStatus !== null) return;
+        if (!resolvedOrderId) return;
+
+        // Only run if we don't have a valid status yet
+        // RC-1 FIX: Handle both null and undefined
+        const currentStatusKnown = orderStatus === 'approved' || orderStatus === 'pending' ||
+            orderStatus === 'completed' || orderStatus === 'rejected' ||
+            orderStatus === 'cancelled';
+
+        if (currentStatusKnown) return;
 
         const fetchInitialStatus = async () => {
             const { data } = await supabase
@@ -174,7 +187,7 @@ export default function ConversationScreen() {
 
     // Show button for approved orders where completion hasn't been requested yet
     const canRequestCompletion = useMemo(() =>
-        !!resolvedOrderId && (orderStatus === 'approved' || orderStatus === 'pending') && !completionRequestedAt && !isClosed,
+        !!resolvedOrderId && orderStatus === 'approved' && !completionRequestedAt && !isClosed,
         [resolvedOrderId, orderStatus, completionRequestedAt, isClosed]
     );
 
@@ -523,15 +536,6 @@ export default function ConversationScreen() {
                 </View>
             )}
 
-            {/* Closed Banner */}
-            {isClosed && (
-                <View style={styles.closedBanner}>
-                    <Feather name="check-circle" size={16} color="#15803D" />
-                    <Text style={styles.closedText}>
-                        This order is completed. Chat is read-only.
-                    </Text>
-                </View>
-            )}
 
             <KeyboardAvoidingView
                 style={styles.keyboardContainer}
@@ -573,40 +577,49 @@ export default function ConversationScreen() {
                     </View>
                 )}
 
-                {/* Input */}
-                <View style={styles.inputContainer}>
-                    <Pressable
-                        style={styles.attachmentButton}
-                        onPress={handleAttachmentPress}
-                        disabled={uploading || isClosed}
-                    >
-                        <Feather name="paperclip" size={22} color={isClosed ? "#C0C0C0" : "#666666"} />
-                    </Pressable>
-                    <TextInput
-                        style={styles.input}
-                        placeholder={isClosed ? "Order completed" : "Type a message..."}
-                        placeholderTextColor="#999999"
-                        value={message}
-                        onChangeText={handleTextChange}
-                        multiline
-                        maxLength={1000}
-                        editable={!sending && !uploading && !isClosed}
-                    />
-                    <Pressable
-                        style={[
-                            styles.sendButton,
-                            ((!message.trim() && !attachment) || sending || uploading || isClosed) && styles.sendButtonDisabled,
-                        ]}
-                        onPress={handleSend}
-                        disabled={(!message.trim() && !attachment) || sending || uploading || isClosed}
-                    >
-                        {sending || uploading ? (
-                            <ActivityIndicator size="small" color="#FFFFFF" />
-                        ) : (
-                            <Feather name="send" size={20} color="#FFFFFF" />
-                        )}
-                    </Pressable>
-                </View>
+                {/* Chat Footer */}
+                {isClosed ? (
+                    <View style={styles.completionBanner}>
+                        <Feather name="lock" size={18} color="#854d0e" />
+                        <Text style={styles.completionBannerText}>
+                            You can no longer have any conversation with the user as the order is completed
+                        </Text>
+                    </View>
+                ) : (
+                    <View style={styles.inputContainer}>
+                        <Pressable
+                            style={styles.attachmentButton}
+                            onPress={handleAttachmentPress}
+                            disabled={uploading}
+                        >
+                            <Feather name="paperclip" size={22} color="#666666" />
+                        </Pressable>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Type a message..."
+                            placeholderTextColor="#999999"
+                            value={message}
+                            onChangeText={handleTextChange}
+                            multiline
+                            maxLength={1000}
+                            editable={!sending && !uploading}
+                        />
+                        <Pressable
+                            style={[
+                                styles.sendButton,
+                                ((!message.trim() && !attachment) || sending || uploading) && styles.sendButtonDisabled,
+                            ]}
+                            onPress={handleSend}
+                            disabled={(!message.trim() && !attachment) || sending || uploading}
+                        >
+                            {sending || uploading ? (
+                                <ActivityIndicator size="small" color="#FFFFFF" />
+                            ) : (
+                                <Feather name="send" size={20} color="#FFFFFF" />
+                            )}
+                        </Pressable>
+                    </View>
+                )}
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
@@ -831,6 +844,13 @@ const styles = StyleSheet.create({
         color: '#1A1A1A',
         marginRight: 8,
     },
+    inputDisabled: {
+        backgroundColor: '#EBEBEB',
+        color: '#A0A0A0',
+    },
+    inputContainerDisabled: {
+        backgroundColor: '#F7F7F7',
+    },
     sendButton: {
         width: 44,
         height: 44,
@@ -960,20 +980,21 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#991B1B',
     },
-    closedBanner: {
+    completionBanner: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#F0FDF4',
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#DCFCE7',
+        backgroundColor: '#FFFBEB',
+        paddingVertical: 20,
+        paddingHorizontal: 24,
+        borderTopWidth: 1,
+        borderTopColor: '#FEF3C7',
     },
-    closedText: {
-        marginLeft: 8,
-        fontSize: 13,
-        color: '#15803D',
+    completionBannerText: {
+        marginLeft: 12,
+        fontSize: 14,
+        color: '#92400E',
         fontWeight: '600',
+        lineHeight: 20,
+        flex: 1,
     },
 });

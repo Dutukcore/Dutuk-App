@@ -1,7 +1,7 @@
 import { useVendorStore } from '@/store/useVendorStore';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 type ReviewProp = {
     id: string;
@@ -23,7 +23,7 @@ type ReviewProp = {
 };
 
 type ReviewsProp = {
-    reviews: ReviewProp[];
+    reviews: any[];
 };
 
 const DisplayReviews = ({ reviews }: ReviewsProp) => {
@@ -56,104 +56,110 @@ const DisplayReviews = ({ reviews }: ReviewsProp) => {
         }
     };
 
-    return (
-        <ScrollView style={styles.container}>
-            {reviews.length === 0 ? (
-                <Text style={styles.noReviewsText}>No past reviews to display.</Text>
+    const renderItem = ({ item: review, index }: { item: any; index: number }) => (
+        <View key={review.id || index} style={styles.card}>
+            <View style={styles.cardHeader}>
+                <View style={styles.headerMain}>
+                    <Text style={styles.eventName}>
+                        {review.order?.title || 'Event Review'}
+                    </Text>
+                    <Text style={styles.reviewerName}>
+                        By: {review.customer?.full_name || 'Anonymous Guest'}
+                    </Text>
+                </View>
+                <View style={styles.ratingBadge}>
+                    <Ionicons name="star" size={12} color="#D4AF37" />
+                    <Text style={styles.ratingBadgeText}>{review.rating}</Text>
+                </View>
+            </View>
+
+            <View style={styles.separator} />
+
+            {review.review && (
+                <View style={styles.reviewContent}>
+                    <Text style={styles.reviewText}>{review.review}</Text>
+                    <Text style={styles.reviewDate}>
+                        {formatDate(review.created_at)}
+                    </Text>
+                </View>
+            )}
+
+            {/* Existing Response */}
+            {review.response ? (
+                <View style={styles.responseContainer}>
+                    <View style={styles.responseConnector} />
+                    <View style={styles.responseContent}>
+                        <View style={styles.responseHeader}>
+                            <Text style={styles.responseAuthor}>Your Response</Text>
+                            <Text style={styles.responseDate}>
+                                {formatDate(review.response_at!)}
+                            </Text>
+                        </View>
+                        <Text style={styles.responseText}>{review.response}</Text>
+                    </View>
+                </View>
             ) : (
-                reviews.map((review, index) => (
-                    <View key={review.id || index} style={styles.card}>
-                        <View style={styles.cardHeader}>
-                            <View style={styles.headerMain}>
-                                <Text style={styles.eventName}>
-                                    {review.order?.title || 'Event Review'}
-                                </Text>
-                                <Text style={styles.reviewerName}>
-                                    By: {review.customer?.full_name || 'Anonymous Guest'}
-                                </Text>
-                            </View>
-                            <View style={styles.ratingBadge}>
-                                <Ionicons name="star" size={12} color="#D4AF37" />
-                                <Text style={styles.ratingBadgeText}>{review.rating}</Text>
+                /* Reply Action */
+                <View style={styles.actionsContainer}>
+                    {replyingTo === review.id ? (
+                        <View style={styles.replyForm}>
+                            <TextInput
+                                style={styles.replyInput}
+                                placeholder="Write your response..."
+                                value={replyText}
+                                onChangeText={setReplyText}
+                                multiline
+                                autoFocus
+                            />
+                            <View style={styles.replyActions}>
+                                <Pressable
+                                    style={[styles.replyBtn, styles.cancelBtn]}
+                                    onPress={() => {
+                                        setReplyingTo(null);
+                                        setReplyText('');
+                                    }}
+                                >
+                                    <Text style={styles.cancelBtnText}>Cancel</Text>
+                                </Pressable>
+                                <Pressable
+                                    style={[styles.replyBtn, styles.submitBtn]}
+                                    onPress={() => handleReply(review.id)}
+                                    disabled={isSubmitting || !replyText.trim()}
+                                >
+                                    {isSubmitting ? (
+                                        <ActivityIndicator size="small" color="#FFF" />
+                                    ) : (
+                                        <Text style={styles.submitBtnText}>Send Reply</Text>
+                                    )}
+                                </Pressable>
                             </View>
                         </View>
-
-                        <View style={styles.separator} />
-
-                        {review.review && (
-                            <View style={styles.reviewContent}>
-                                <Text style={styles.reviewText}>{review.review}</Text>
-                                <Text style={styles.reviewDate}>
-                                    {formatDate(review.created_at)}
-                                </Text>
-                            </View>
-                        )}
-
-                        {/* Existing Response */}
-                        {review.response ? (
-                            <View style={styles.responseContainer}>
-                                <View style={styles.responseConnector} />
-                                <View style={styles.responseContent}>
-                                    <View style={styles.responseHeader}>
-                                        <Text style={styles.responseAuthor}>Your Response</Text>
-                                        <Text style={styles.responseDate}>
-                                            {formatDate(review.response_at!)}
-                                        </Text>
-                                    </View>
-                                    <Text style={styles.responseText}>{review.response}</Text>
-                                </View>
-                            </View>
-                        ) : (
-                            /* Reply Action */
-                            <View style={styles.actionsContainer}>
-                                {replyingTo === review.id ? (
-                                    <View style={styles.replyForm}>
-                                        <TextInput
-                                            style={styles.replyInput}
-                                            placeholder="Write your response..."
-                                            value={replyText}
-                                            onChangeText={setReplyText}
-                                            multiline
-                                            autoFocus
-                                        />
-                                        <View style={styles.replyActions}>
-                                            <Pressable
-                                                style={[styles.replyBtn, styles.cancelBtn]}
-                                                onPress={() => {
-                                                    setReplyingTo(null);
-                                                    setReplyText('');
-                                                }}
-                                            >
-                                                <Text style={styles.cancelBtnText}>Cancel</Text>
-                                            </Pressable>
-                                            <Pressable
-                                                style={[styles.replyBtn, styles.submitBtn]}
-                                                onPress={() => handleReply(review.id)}
-                                                disabled={isSubmitting || !replyText.trim()}
-                                            >
-                                                {isSubmitting ? (
-                                                    <ActivityIndicator size="small" color="#FFF" />
-                                                ) : (
-                                                    <Text style={styles.submitBtnText}>Send Reply</Text>
-                                                )}
-                                            </Pressable>
-                                        </View>
-                                    </View>
-                                ) : (
-                                    <Pressable
-                                        style={styles.replyToggleBtn}
-                                        onPress={() => setReplyingTo(review.id)}
-                                    >
-                                        <Ionicons name="arrow-undo-outline" size={16} color="#800000" />
-                                        <Text style={styles.replyToggleText}>Reply to feedback</Text>
-                                    </Pressable>
-                                )}
-                            </View>
-                        )}
-                    </View>
-                ))
+                    ) : (
+                        <Pressable
+                            style={styles.replyToggleBtn}
+                            onPress={() => setReplyingTo(review.id)}
+                        >
+                            <Ionicons name="arrow-undo-outline" size={16} color="#800000" />
+                            <Text style={styles.replyToggleText}>Reply to feedback</Text>
+                        </Pressable>
+                    )}
+                </View>
             )}
-        </ScrollView>
+        </View>
+    );
+
+    return (
+        <FlatList
+            style={styles.container}
+            data={reviews}
+            keyExtractor={(item, index) => item.id || String(index)}
+            renderItem={renderItem}
+            ListEmptyComponent={
+                <Text style={styles.noReviewsText}>No past reviews to display.</Text>
+            }
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+        />
     );
 };
 
@@ -162,7 +168,10 @@ const DisplayReviews = ({ reviews }: ReviewsProp) => {
 const styles = StyleSheet.create({
     container: {
         backgroundColor: '#F7F9FC',
+    },
+    listContent: {
         padding: 15,
+        paddingBottom: 40,
     },
     card: {
         backgroundColor: '#FFFFFF',

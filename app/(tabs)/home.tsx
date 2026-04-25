@@ -180,8 +180,8 @@ const Home = () => {
     return {
       totalEarnings,
       thisMonthEarnings,
-      pastEventsCount: completedCount,
-      thisMonthEventsCount: thisMonthOrders.length,
+      pastServicesCount: completedCount,
+      thisMonthServicesCount: thisMonthOrders.length,
       avgRating: reviewStats.averageRating || 0,
       totalReviews: reviewStats.totalReviews || 0,
     };
@@ -344,7 +344,7 @@ const Home = () => {
               </View>
               <Text style={styles.analyticsLabel}>This Month</Text>
               <Text style={styles.analyticsValue}>₹{analytics.thisMonthEarnings.toFixed(2)}</Text>
-              <Text style={styles.analyticsSubtext}>{analytics.thisMonthEventsCount} events</Text>
+              <Text style={styles.analyticsSubtext}>{analytics.thisMonthServicesCount} services</Text>
             </View>
           </View>
 
@@ -353,8 +353,8 @@ const Home = () => {
               <View style={[styles.analyticsIconContainer, { backgroundColor: 'rgba(0, 122, 255, 0.08)' }]}>
                 <Ionicons name="calendar-outline" size={28} color="#007AFF" />
               </View>
-              <Text style={styles.analyticsLabel}>Past Events</Text>
-              <Text style={styles.analyticsValue}>{analytics.pastEventsCount}</Text>
+              <Text style={styles.analyticsLabel}>Past Services</Text>
+              <Text style={styles.analyticsValue}>{analytics.pastServicesCount}</Text>
               <Text style={styles.analyticsSubtext}>Completed</Text>
             </View>
 
@@ -369,7 +369,7 @@ const Home = () => {
           </View>
         </View>
 
-        {/* SECTION 3: CREATE EVENT / YOUR EVENTS */}
+        {/* SECTION 3: CREATE SERVICE / YOUR SERVICES */}
         {allEvents.length === 0 ? (
           <View style={styles.createEventSection}>
             <Pressable
@@ -380,9 +380,9 @@ const Home = () => {
                 <Ionicons name="add-circle" size={56} color="#800000" />
               </View>
               <View style={styles.createEventTextContainer}>
-                <Text style={styles.createEventTitle}>Create New Event</Text>
+                <Text style={styles.createEventTitle}>Create New Service</Text>
                 <Text style={styles.createEventSubtitle}>
-                  Set up a new event to showcase to customers
+                  Set up a new service to showcase to customers
                 </Text>
               </View>
               <View style={styles.createEventArrow}>
@@ -393,7 +393,7 @@ const Home = () => {
         ) : (
           <View style={styles.manageEventsWrapper}>
             <View style={styles.manageEventsHeader}>
-              <Text style={styles.subsectionTitle}>Your Events</Text>
+              <Text style={styles.subsectionTitle}>Your Services</Text>
               <View style={styles.headerActions}>
                 <Pressable onPress={() => router.push('/event')}>
                   <Text style={styles.viewAllLink}>View All</Text>
@@ -414,7 +414,7 @@ const Home = () => {
                 >
                   <View style={styles.addEventCardImageSmall}>
                     <Ionicons name="add-circle" size={40} color="#800000" />
-                    <Text style={styles.addEventLabel}>add new event</Text>
+                    <Text style={styles.addEventLabel}>add new service</Text>
                   </View>
                 </Pressable>
               }
@@ -456,7 +456,7 @@ const Home = () => {
               <Ionicons name="star-outline" size={44} color="#FFC13C" />
               <Text style={styles.emptyReviewsTitle}>No reviews yet</Text>
               <Text style={styles.emptyReviewsSubtitle}>
-                Customer reviews will appear here after completed events
+                Customer reviews will appear here after completed services
               </Text>
             </View>
           ) : (

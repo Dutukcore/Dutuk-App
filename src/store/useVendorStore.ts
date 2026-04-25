@@ -82,11 +82,17 @@ export interface Company {
 export interface VendorEvent {
     id: string;
     vendor_id: string;
-    title: string;
+    event?: string;
+    title?: string; // fallback
     description: string | null;
     status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
     created_at: string;
     event_date?: string;
+    start_date?: string;
+    end_date?: string;
+    image_url?: string;
+    banner_url?: string;
+    payment?: number;
 }
 
 export interface Review {
@@ -506,6 +512,12 @@ export const useVendorStore = create<VendorState>()(
                 const userId = useAuthStore.getState().userId;
                 if (!userId) return;
 
+                // Optimization: Don't fetch if we already have data and it's fresh (within 5 mins)
+                const lastFetched = (get() as any).lastReviewsFetchedAt;
+                if (!limit && lastFetched && (Date.now() - lastFetched < 300000)) {
+                    return;
+                }
+
                 let query = supabase
                     .from('reviews')
                     .select('*, customer:customer_profiles(full_name, avatar_url), order:orders(title, event_date)')
@@ -521,30 +533,28 @@ export const useVendorStore = create<VendorState>()(
 
                 const reviewsList = data || [];
 
-                // Calculate stats
-                let stats = {
-                    totalReviews: 0,
-                    averageRating: 0,
-                    ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-                };
+                // Calculate stats efficiently
+                let totalReviews = reviewsList.length;
+                let averageRating = 0;
+                let ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
 
-                if (reviewsList.length > 0) {
-                    const sum = reviewsList.reduce((acc: number, r: any) => acc + r.rating, 0);
-                    const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-                    reviewsList.forEach((r: any) => {
+                if (totalReviews > 0) {
+                    let sum = 0;
+                    for (const r of reviewsList) {
+                        sum += r.rating;
                         const rating = Math.floor(r.rating);
                         if (rating >= 1 && rating <= 5) {
-                            (dist as any)[rating]++;
+                            (ratingDistribution as any)[rating]++;
                         }
-                    });
-                    stats = {
-                        totalReviews: reviewsList.length,
-                        averageRating: Math.round((sum / reviewsList.length) * 10) / 10,
-                        ratingDistribution: dist
-                    };
+                    }
+                    averageRating = Math.round((sum / totalReviews) * 10) / 10;
                 }
 
-                set({ reviews: reviewsList, reviewStats: stats });
+                set({
+                    reviews: reviewsList,
+                    reviewStats: { totalReviews, averageRating, ratingDistribution },
+                    lastReviewsFetchedAt: Date.now()
+                } as any);
             },
 
             replyToReview: async (reviewId: string, response: string) => {

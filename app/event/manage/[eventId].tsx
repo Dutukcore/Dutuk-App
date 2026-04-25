@@ -1,8 +1,8 @@
 import KeyboardSafeView from "@/components/layout/KeyboardSafeView";
 import PricingItemEditor from "@/features/events/components/PricingItemEditor";
+import { getEventPricing } from "@/features/events/hooks/useEventPricing";
 import deleteEvent from "@/features/events/services/deleteEvent";
 import updateEvent, { UpdateEventPayload } from "@/features/events/services/updateEvent";
-import { getEventPricing } from "@/features/events/hooks/useEventPricing";
 import useImageUpload from "@/features/profile/hooks/useImageUpload";
 import { useVendorStore } from "@/store/useVendorStore";
 import { createEmptyPricingItem, PricingItem } from "@/types/pricing";
@@ -87,7 +87,7 @@ const ManageEventScreen = () => {
         const loadedFormState = {
           event: data.event || "",
           description: data.description || "",
-          status: (STATUSES.includes(data.status) ? data.status : "upcoming") as ManageFormState["status"],
+          status: (STATUSES.includes(data.status as any) ? data.status : "upcoming") as ManageFormState["status"],
           startDate: data.start_date || "",
           endDate: data.end_date || "",
         };
@@ -151,7 +151,7 @@ const ManageEventScreen = () => {
         date: formState.startDate ? [formState.startDate, formState.endDate].filter(Boolean) as string[] : undefined
       };
       await updateEvent(eventId, updates);
-      Toast.show({ type: "success", text1: "Event Updated" });
+      Toast.show({ type: "success", text1: "Service Updated" });
       router.back();
     } catch (error) {
       Toast.show({ type: "error", text1: "Update Failed" });
@@ -162,14 +162,14 @@ const ManageEventScreen = () => {
 
   const handleDelete = () => {
     if (!eventId) return;
-    Alert.alert("Delete Event", "Are you sure?", [
+    Alert.alert("Delete Service", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete", style: "destructive", onPress: async () => {
           setDeleting(true);
           try {
             await deleteEvent(eventId);
-            Toast.show({ type: "success", text1: "Event Deleted" });
+            Toast.show({ type: "success", text1: "Service Deleted" });
             router.push("/(tabs)/home");
           } catch (error) {
             Toast.show({ type: "error", text1: "Delete Failed" });
@@ -190,7 +190,7 @@ const ManageEventScreen = () => {
       <View style={styles.headerArea}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}><Ionicons name="chevron-back" size={24} color="#800000" /></Pressable>
         <View>
-          <Text style={styles.pageTitle}>Manage Event</Text>
+          <Text style={styles.pageTitle}>Manage Service</Text>
           <Text style={styles.pageSubtitle}>{formState.event || "Edit Details"}</Text>
         </View>
       </View>
@@ -211,12 +211,12 @@ const ManageEventScreen = () => {
 
         {/* Basic Info */}
         <View style={styles.card}>
-          <Text style={styles.fieldLabel}>EVENT TITLE</Text>
+          <Text style={styles.fieldLabel}>SERVICE TITLE</Text>
           <TextInput
             style={styles.titleInput}
             value={formState.event}
             onChangeText={(t) => setFormState(p => ({ ...p, event: t }))}
-            placeholder="Event Name"
+            placeholder="Service Name"
           />
 
           <Text style={[styles.fieldLabel, { marginTop: 24 }]}>STATUS</Text>
@@ -273,7 +273,7 @@ const ManageEventScreen = () => {
           numberOfLines={4}
           value={formState.description}
           onChangeText={(t) => setFormState(p => ({ ...p, description: t }))}
-          placeholder="Event description..."
+          placeholder="Service description..."
         />
 
         <View style={{ height: 40 }} />
@@ -285,7 +285,7 @@ const ManageEventScreen = () => {
 
         <Pressable style={styles.deleteBtn} onPress={handleDelete} disabled={deleting}>
           <Ionicons name="trash-outline" size={18} color="#FF3B30" />
-          <Text style={styles.deleteText}>Delete Event</Text>
+          <Text style={styles.deleteText}>Delete Service</Text>
         </Pressable>
       </View>
 

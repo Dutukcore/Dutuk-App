@@ -21,11 +21,13 @@ import Toast from "react-native-toast-message";
 const CustomerDetailsScreen = () => {
   const params = useLocalSearchParams<{
     orderId: string;
-    title: string;
-    customerName: string;
-    packageType: string;
-    customerEmail: string;
-    customerPhone: string;
+    title?: string;
+    customerName?: string;
+    packageType?: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    amount?: string | number;
+    notes?: string;
     eventDate?: string;
   }>();
 
@@ -70,6 +72,13 @@ const CustomerDetailsScreen = () => {
   const bookedEventDateString = `${parsedEventDate.year}-${String(parsedEventDate.month + 1).padStart(2, '0')}-${String(parsedEventDate.day).padStart(2, '0')}`;
   const markedDates = buildOrderBookingMarkedDates(bookedEventDateString);
 
+  const [orderData, setOrderData] = useState<{
+    title?: string;
+    notes?: string;
+    amount?: number;
+    customerName?: string;
+  }>({});
+
   // Load conversation + order data
   useEffect(() => {
     if (!params.orderId) return;
@@ -79,13 +88,19 @@ const CustomerDetailsScreen = () => {
 
       const { data: order } = await supabase
         .from('orders')
-        .select('customer_id, status')
+        .select('customer_id, status, title, notes, amount, customer_name')
         .eq('id', params.orderId)
         .single();
 
       if (order) {
         setCustomerId(order.customer_id);
         setOrderStatus(order.status);
+        setOrderData({
+          title: order.title,
+          notes: order.notes,
+          amount: order.amount,
+          customerName: order.customer_name
+        });
       }
 
       const { data: conv } = await supabase
@@ -113,7 +128,7 @@ const CustomerDetailsScreen = () => {
       pathname: '/chat/conversation',
       params: {
         conversationId,
-        customerName: params.customerName || 'Customer',
+        customerName: orderData.customerName || params.customerName || 'Customer',
         customerId,
         paymentCompleted: String(paymentCompleted),
         orderId: params.orderId,
@@ -212,28 +227,32 @@ const CustomerDetailsScreen = () => {
             <Feather name="arrow-left" size={18} color="#000000" />
           </TouchableOpacity>
           {/* Order status badge */}
-          <View style={[styles.statusBadge, orderStatus === 'completed' && styles.statusBadgeCompleted]}>
-            <Text style={styles.statusBadgeText}>{orderStatus.toUpperCase()}</Text>
+          <View style={[
+            styles.statusBadge,
+            (orderStatus === 'completed' || orderStatus === 'approved') ? styles.statusBadgePositive : styles.statusBadgePending
+          ]}>
+            <Text style={[
+              styles.statusBadgeText,
+              (orderStatus === 'completed' || orderStatus === 'approved') ? styles.statusBadgeTextPositive : styles.statusBadgeTextPending
+            ]}>{orderStatus.toUpperCase()}</Text>
           </View>
         </View>
 
         {/* Order Info */}
         <View style={styles.orderInfo}>
-          <Text style={styles.orderTitle}>{params.title || "Event"}</Text>
-          <Text style={styles.customerName}>{params.customerName || "Customer"}</Text>
-          <Text style={styles.packageInfo}>Package: {params.packageType || "Basic"}</Text>
+          <Text style={styles.orderTitle}>{orderData.title || params.title || "Event"}</Text>
 
-          {/* Contact Info */}
-          <View style={styles.contactContainer}>
-            <TouchableOpacity style={styles.contactItem} onPress={() => copyToClipboard(customerEmail, "Email")}>
-              <Text style={styles.contactText}>{customerEmail}</Text>
-              <Feather name="copy" size={18} color="#FFFFFF" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.contactItem} onPress={() => copyToClipboard(customerPhone, "Phone")}>
-              <Text style={styles.contactText}>{customerPhone}</Text>
-              <Feather name="copy" size={18} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+          {/* About Event */}
+          <View style={styles.sectionDivider} />
+          <Text style={styles.sectionLabel}>About the event</Text>
+          <Text style={styles.notesText}>{orderData.notes || params.notes || "No additional notes provided."}</Text>
+
+          {/* Amount */}
+          <View style={styles.sectionDivider} />
+          <Text style={styles.sectionLabel}>Amount</Text>
+          <Text style={styles.amountText}>
+            {orderData.amount || params.amount ? `₹${orderData.amount || params.amount}` : "Not Specified"}
+          </Text>
         </View>
 
         {/* Event Date */}
@@ -421,11 +440,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
   },
   statusBadge: {
-    paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20,
-    backgroundColor: 'rgba(52,199,89,0.15)',
+    paddingHorizontal: 14, paddingVertical: 6, borderRadius: 24,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05, shadowRadius: 2, elevation: 1,
   },
-  statusBadgeCompleted: { backgroundColor: 'rgba(128,0,0,0.12)' },
-  statusBadgeText: { fontSize: 11, fontWeight: '700', color: '#34C759', letterSpacing: 1 },
+  statusBadgePositive: { backgroundColor: "#f0fdf4", borderWidth: 1, borderColor: "#dcfce7" },
+  statusBadgePending: { backgroundColor: "#fffbeb", borderWidth: 1, borderColor: "#fef3c7" },
+  statusBadgeText: { fontSize: 11, fontWeight: "800", letterSpacing: 0.6 },
+  statusBadgeTextPositive: { color: "#166534" },
+  statusBadgeTextPending: { color: "#92400e" },
 
   orderInfo: {
     backgroundColor: "rgba(255,255,255,0.98)", borderRadius: 24,
@@ -434,15 +457,11 @@ const styles = StyleSheet.create({
     shadowColor: '#800000', shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08, shadowRadius: 16, elevation: 4,
   },
-  orderTitle: { fontSize: 24, fontWeight: "700", color: "#800000", marginBottom: 8 },
-  customerName: { fontSize: 16, fontWeight: "600", color: "#1c1917", marginBottom: 6 },
-  packageInfo: { fontSize: 14, color: "#57534e", marginBottom: 20 },
-  contactContainer: { gap: 10 },
-  contactItem: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    backgroundColor: "#800000", borderRadius: 16, paddingHorizontal: 18, paddingVertical: 12,
-  },
-  contactText: { fontSize: 14, fontWeight: "600", color: "#FFFFFF" },
+  orderTitle: { fontSize: 28, fontWeight: "800", color: "#800000", marginBottom: 20, letterSpacing: -0.8 },
+  sectionLabel: { fontSize: 12, fontWeight: "800", color: "#a8a29e", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 10 },
+  notesText: { fontSize: 16, color: "#44403c", lineHeight: 24, fontWeight: "400" },
+  amountText: { fontSize: 20, fontWeight: "800", color: "#1c1917" },
+  sectionDivider: { height: 1, backgroundColor: "rgba(128,0,0,0.04)", marginVertical: 20 },
 
   eventDateContainer: {
     flexDirection: "row", alignItems: "center",

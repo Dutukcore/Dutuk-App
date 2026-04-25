@@ -82,7 +82,7 @@ const CreateEventStepOne = () => {
                     <Ionicons name="chevron-back" size={24} color="#800000" />
                 </Pressable>
                 <View>
-                    <Text style={styles.pageTitle}>New Event</Text>
+                    <Text style={styles.pageTitle}>Create Service</Text>
                     <Text style={styles.pageSubtitle}>Step 1: Basics</Text>
                 </View>
             </View>
@@ -95,7 +95,7 @@ const CreateEventStepOne = () => {
             <View style={styles.mainContainer}>
                 {/* Event Title Input */}
                 <View style={styles.inputCard}>
-                    <Text style={styles.fieldLabel}>EVENT TITLE *</Text>
+                    <Text style={styles.fieldLabel}>SERVICE TITLE *</Text>
                     <TextInput
                         style={styles.titleInput}
                         value={eventTitle}

@@ -148,7 +148,7 @@ const CreateEventStepTwo = () => {
                     <Ionicons name="chevron-back" size={24} color="#800000" />
                 </Pressable>
                 <View>
-                    <Text style={styles.pageTitle}>Event Details</Text>
+                    <Text style={styles.pageTitle}>Service Details</Text>
                     <Text style={styles.pageSubtitle}>{eventTitle}</Text>
                 </View>
             </View>
@@ -195,7 +195,7 @@ const CreateEventStepTwo = () => {
                 {/* Logistics Section */}
                 <View style={[styles.sectionHeader, { marginTop: 40 }]}>
                     <Ionicons name="calendar-clear" size={20} color="#800000" />
-                    <Text style={styles.sectionTitle}>Event Timeline</Text>
+                    <Text style={styles.sectionTitle}>Service Timeline</Text>
                 </View>
 
                 <View style={styles.datePickerRow}>
@@ -251,7 +251,7 @@ const CreateEventStepTwo = () => {
                     {saving ? (
                         <ActivityIndicator size="small" color="#FFFFFF" />
                     ) : (
-                        <Text style={styles.createButtonText}>Create Event</Text>
+                        <Text style={styles.createButtonText}>Create Service</Text>
                     )}
                 </Pressable>
             </View>

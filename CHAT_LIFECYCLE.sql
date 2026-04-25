@@ -147,17 +147,29 @@ FOR EACH ROW EXECUTE FUNCTION public.block_typing_on_closed();
 -- PHASE 1.8  View refresh
 -- ============================================================
 DROP VIEW IF EXISTS public.conversations_with_users CASCADE;
-CREATE VIEW public.conversations_with_users AS
+-- ============================================================
+-- PHASE 1.8  Update the view to expose all UI columns
+-- ============================================================
+DROP VIEW IF EXISTS public.conversations_with_users CASCADE;
+
+CREATE VIEW public.conversations_with_users
+WITH (security_invoker = on) AS
 SELECT
   c.id, c.order_id, c.customer_id, c.vendor_id,
   c.status, c.ended_at,
+  c.booking_status, c.booking_id, c.event_id,
+  c.terms_accepted_by_customer, c.terms_accepted_at,
+  c.payment_completed, c.payment_completed_at,
+  c.last_message_at, c.last_message_preview,
   c.customer_typing_at, c.vendor_typing_at,
   c.created_at, c.updated_at,
-  cu.full_name    AS customer_name,
-  cu.avatar_url   AS customer_avatar,
-  vu.full_name    AS vendor_name,
-  vu.avatar_url   AS vendor_avatar,
-  o.status        AS order_status,
+  cu.full_name  AS customer_name,
+  cu.avatar_url AS customer_avatar,
+  cu.email      AS customer_email,
+  vu.full_name  AS vendor_name,
+  vu.avatar_url AS vendor_avatar,
+  vu.email      AS vendor_email,
+  o.status                  AS order_status,
   o.completion_requested_at,
   o.completed_at
 FROM public.conversations c
@@ -168,8 +180,18 @@ LEFT JOIN public.orders        o  ON o.id       = c.order_id;
 GRANT SELECT ON public.conversations_with_users TO authenticated;
 
 -- ============================================================
+-- PHASE 1.9  RLS Hardening for Order visibility in Chat
+-- ============================================================
+DROP POLICY IF EXISTS "orders_read_for_conversation_parties" ON public.orders;
+CREATE POLICY "orders_read_for_conversation_parties" ON public.orders FOR SELECT
+USING (auth.uid() = vendor_id OR auth.uid() = customer_id);
+
+-- ============================================================
 -- PHASE 2  Atomic Order + Conversation RPC
 -- ============================================================
+-- Clean up old version to avoid cache confusion
+DROP FUNCTION IF EXISTS public.create_order_with_conversation(UUID, UUID, TEXT, NUMERIC);
+
 CREATE OR REPLACE FUNCTION public.create_order_with_conversation(
   p_vendor_id      UUID,
   p_customer_id    UUID,
@@ -182,7 +204,7 @@ CREATE OR REPLACE FUNCTION public.create_order_with_conversation(
   p_amount         NUMERIC,
   p_notes          TEXT DEFAULT NULL
 )
-RETURNS TABLE (order_id UUID, conversation_id UUID)
+RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
@@ -190,6 +212,7 @@ DECLARE
   v_order_id UUID;
   v_conv_id  UUID;
 BEGIN
+  -- Security check: only the customer themselves can initiate their own booking
   IF auth.uid() IS DISTINCT FROM p_customer_id THEN
     RAISE EXCEPTION 'customer_id must equal auth.uid()';
   END IF;
@@ -198,8 +221,8 @@ BEGIN
     vendor_id, customer_id, customer_name, customer_email, customer_phone,
     title, package_type, event_date, amount, notes, status
   ) VALUES (
-    p_vendor_id, p_customer_id, p_customer_name, p_customer_email, p_customer_phone,
-    p_title, p_package_type, p_event_date, p_amount, p_notes, 'pending'
+    p_vendor_id, p_customer_id, COALESCE(p_customer_name, 'Guest'), p_customer_email, p_customer_phone,
+    COALESCE(p_title, 'New Booking'), p_package_type, p_event_date, p_amount, p_notes, 'pending'
   )
   RETURNING id INTO v_order_id;
 
@@ -207,16 +230,14 @@ BEGIN
   VALUES (v_order_id, p_customer_id, p_vendor_id, 'ACTIVE')
   RETURNING id INTO v_conv_id;
 
-  RETURN QUERY SELECT v_order_id, v_conv_id;
-END $$;
+  RETURN v_order_id;
+END;
+$$;
 
-GRANT EXECUTE ON FUNCTION public.create_order_with_conversation(
-  UUID, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, DATE, NUMERIC, TEXT
-) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.create_order_with_conversation(UUID, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, DATE, NUMERIC, TEXT) TO authenticated;
 
 -- ============================================================
 -- PHASE 6  Completion Request Idempotency
 -- ============================================================
 CREATE UNIQUE INDEX IF NOT EXISTS uniq_completion_req_per_conversation
-ON public.messages (conversation_id)
-WHERE message_type = 'completion_request';
+ON public.messages (conversation_id) WHERE message_type = 'completion_request';

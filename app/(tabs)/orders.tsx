@@ -172,6 +172,7 @@ const OrdersScreen = () => {
                   customerEmail: item.customerEmail,
                   customerPhone: item.customerPhone,
                   eventDate: item.date, // Pass the formatted date
+                  amount: item.amount,
                   notes: item.notes || ''
                 }
               })}
