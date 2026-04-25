@@ -1,8 +1,11 @@
 import logger from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
+import type { CreatePortfolioItemParams, PortfolioItem, UpdatePortfolioItemParams } from '@/store/useVendorStore';
+import { useVendorStore } from '@/store/useVendorStore';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Inline decode function to avoid external dependency
 function decode(base64: string): ArrayBuffer {
@@ -42,86 +45,31 @@ function decode(base64: string): ArrayBuffer {
     return arraybuffer;
 }
 
-export interface PortfolioItem {
-    id: string;
-    vendor_id: string;
-    title: string | null;
-    description: string | null;
-    image_url: string;
-    thumbnail_url: string | null;
-    event_type: string | null;
-    event_date: string | null;
-    is_featured: boolean;
-    sort_order: number;
-    created_at: string;
-    updated_at: string;
-}
-
-export interface CreatePortfolioItemParams {
-    title?: string;
-    description?: string;
-    event_type?: string;
-    event_date?: string;
-    is_featured?: boolean;
-}
-
-export interface UpdatePortfolioItemParams extends Partial<CreatePortfolioItemParams> {
-    sort_order?: number;
-}
+export type { CreatePortfolioItemParams, PortfolioItem, UpdatePortfolioItemParams } from '@/store/useVendorStore';
 
 /**
  * Hook to fetch and manage vendor portfolio items
+ * Now uses Zustand store for SWR caching
  */
 export const usePortfolio = () => {
-    const [items, setItems] = useState<PortfolioItem[]>([]);
-    const [loading, setLoading] = useState(true);
+    const userId = useAuthStore((s) => s.userId);
+    const items = useVendorStore((s) => s.portfolioItems);
+    const loading = useVendorStore((s) => s.portfolioLoading);
+    const fetchPortfolio = useVendorStore((s) => s.fetchPortfolio);
+
+    // Store mutations
+    const addPortfolioItem = useVendorStore((s) => s.addPortfolioItem);
+    const updatePortfolioItemInStore = useVendorStore((s) => s.updatePortfolioItem);
+    const removePortfolioItemFromStore = useVendorStore((s) => s.removePortfolioItem);
+
     const [error, setError] = useState<string | null>(null);
     const [uploading, setUploading] = useState(false);
-    const [vendorId, setVendorId] = useState<string | null>(null);
-
-    const fetchPortfolio = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-            if (authError || !user) {
-                logger.error('Authentication error:', authError);
-                setLoading(false);
-                return;
-            }
-
-            // Align with auth.users.id (auth.uid()) as used in the database
-            setVendorId(user.id);
-
-            const { data, error: fetchError } = await supabase
-                .from('portfolio_items')
-                .select('*')
-                .eq('vendor_id', user.id)
-                .order('is_featured', { ascending: false })
-                .order('sort_order', { ascending: true })
-                .order('created_at', { ascending: false });
-
-            if (fetchError) {
-                logger.error('Failed to fetch portfolio:', fetchError);
-                setError(fetchError.message);
-                setLoading(false);
-                return;
-            }
-
-            setItems(data || []);
-            setLoading(false);
-        } catch (err) {
-            logger.error('Error fetching portfolio:', err);
-            setError('Failed to load portfolio');
-            setLoading(false);
-        }
-    }, []);
 
     useEffect(() => {
-        fetchPortfolio();
-    }, [fetchPortfolio]);
+        if (userId) {
+            fetchPortfolio();
+        }
+    }, [userId, fetchPortfolio]);
 
     // Pick and upload image
     const pickAndUploadImage = async (params?: CreatePortfolioItemParams): Promise<PortfolioItem | null> => {
@@ -144,8 +92,8 @@ export const usePortfolio = () => {
             if (result.canceled) return null;
 
             setUploading(true);
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error('Not authenticated');
+            const currentUserId = useAuthStore.getState().userId;
+            if (!currentUserId) throw new Error('Not authenticated');
 
             // Read file as base64
             const asset = result.assets[0];
@@ -155,7 +103,7 @@ export const usePortfolio = () => {
 
             // Generate file path
             const fileExt = asset.uri.split('.').pop()?.toLowerCase() || 'jpg';
-            const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+            const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
 
             // Upload to Supabase Storage
             const { data: uploadData, error: uploadError } = await supabase.storage
@@ -176,7 +124,7 @@ export const usePortfolio = () => {
             const { data, error: insertError } = await supabase
                 .from('portfolio_items')
                 .insert({
-                    vendor_id: user.id, // Correct: Use auth user ID (auth.uid())
+                    vendor_id: currentUserId,
                     image_url: publicUrl,
                     title: params?.title || null,
                     description: params?.description || null,
@@ -190,7 +138,7 @@ export const usePortfolio = () => {
 
             if (insertError) throw insertError;
 
-            setItems((prev) => [data, ...prev]);
+            addPortfolioItem(data);
             return data;
         } catch (err: unknown) {
             const error = err as Error;
@@ -232,8 +180,8 @@ export const usePortfolio = () => {
             }
 
             setUploading(true);
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) throw new Error('Not authenticated');
+            const currentUserId = useAuthStore.getState().userId;
+            if (!currentUserId) throw new Error('Not authenticated');
 
             // Read video file
             let arrayBuffer: ArrayBuffer;
@@ -249,7 +197,7 @@ export const usePortfolio = () => {
 
             // Get file extension
             const fileExt = asset.uri.split('.').pop()?.toLowerCase() || 'mp4';
-            const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+            const fileName = `${currentUserId}/${Date.now()}.${fileExt}`;
 
             // Upload
             const { data: uploadData, error: uploadError } = await supabase.storage
@@ -270,7 +218,7 @@ export const usePortfolio = () => {
             const { data, error: insertError } = await supabase
                 .from('portfolio_items')
                 .insert({
-                    vendor_id: user.id, // Correct: Use auth user ID (auth.uid())
+                    vendor_id: currentUserId,
                     image_url: publicUrl,
                     title: params?.title || null,
                     description: params?.description || null,
@@ -284,7 +232,7 @@ export const usePortfolio = () => {
 
             if (insertError) throw insertError;
 
-            setItems((prev) => [data, ...prev]);
+            addPortfolioItem(data);
             setError(null);
             return data;
         } catch (err: unknown) {
@@ -310,9 +258,7 @@ export const usePortfolio = () => {
 
             if (updateError) throw updateError;
 
-            setItems((prev) =>
-                prev.map((item) => (item.id === id ? { ...item, ...params, updated_at: new Date().toISOString() } : item))
-            );
+            updatePortfolioItemInStore(id, { ...params, updated_at: new Date().toISOString() });
             return true;
         } catch (err: unknown) {
             const error = err as Error;
@@ -347,7 +293,7 @@ export const usePortfolio = () => {
                 }
             }
 
-            setItems((prev) => prev.filter((i) => i.id !== id));
+            removePortfolioItemFromStore(id);
             return true;
         } catch (err: unknown) {
             const error = err as Error;
@@ -369,8 +315,8 @@ export const usePortfolio = () => {
         loading,
         error,
         uploading,
-        vendorId,
-        refetch: fetchPortfolio,
+        vendorId: userId,
+        refetch: () => fetchPortfolio({ force: true }),
         pickAndUploadImage,
         pickAndUploadVideo,
         updateItem,

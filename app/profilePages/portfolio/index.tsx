@@ -1,7 +1,7 @@
 import { PortfolioItem, usePortfolio } from '@/features/profile/hooks/usePortfolio';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useVideoPlayer } from 'expo-video';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useState } from 'react';
 import {
     ActionSheetIOS,
@@ -78,8 +78,8 @@ const PortfolioPage = () => {
     useEffect(() => {
         if (!player) return;
 
-        const subscription = player.addListener('playingChange', (isPlaying) => {
-            setIsPlaying(isPlaying);
+        const subscription = player.addListener('playingChange', (event) => {
+            setIsPlaying(event.isPlaying);
         });
 
         return () => {
@@ -371,8 +371,8 @@ const PortfolioPage = () => {
                                     <VideoView
                                         player={player}
                                         style={styles.previewImage}
-                                        contentMode="contain"
-                                        useNativeControls={false}
+                                        contentFit="contain"
+                                        nativeControls={false}
                                     />
 
                                     {/* Video Overlay Controls */}

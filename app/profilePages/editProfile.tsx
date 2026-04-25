@@ -5,12 +5,12 @@ import logger from '@/lib/logger';
 import { supabase } from "@/lib/supabase";
 import { useVendorStore } from "@/store/useVendorStore";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from 'expo-image';
 import * as Location from "expo-location";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -47,6 +47,39 @@ const DEFAULT_CATEGORIES = [
   { id: 'f8', name: 'Gifts', icon: 'cake' },
   { id: 'f9', name: 'Hair & Makeup', icon: 'brush' },
 ];
+
+const CategoryChip = memo(({ cat, isSelected, onToggle }: { cat: any, isSelected: boolean, onToggle: (name: string) => void }) => {
+  const dbIcon = (cat.icon || '').toLowerCase();
+  const iconName = ICON_MAP[dbIcon] || 'ellipse-outline';
+
+  return (
+    <Pressable
+      onPress={() => onToggle(cat.name)}
+      style={[
+        styles.categoryChip,
+        isSelected && styles.categoryChipSelected,
+      ]}
+    >
+      <Ionicons
+        name={iconName as any}
+        size={16}
+        color={isSelected ? "#FFF" : "#800000"}
+        style={styles.chipIcon}
+      />
+      <Text
+        style={[
+          styles.categoryChipText,
+          isSelected && styles.categoryChipTextSelected,
+        ]}
+      >
+        {cat.name}
+      </Text>
+      {isSelected && (
+        <Ionicons name="checkmark-circle" size={14} color="#FFF" style={styles.chipCheck} />
+      )}
+    </Pressable>
+  );
+});
 
 const EditProfileScreen = () => {
   const companyStoreData = useVendorStore((s) => s.company);
@@ -365,6 +398,8 @@ const EditProfileScreen = () => {
               <Image
                 source={{ uri: selectedImageUri || companyData.logoUrl }}
                 style={styles.avatar}
+                cachePolicy="disk"
+                transition={200}
               />
               {(uploadingImage || selectingImage) && (
                 <View style={styles.uploadingOverlay}>
@@ -487,40 +522,14 @@ const EditProfileScreen = () => {
                 {fetchingCategories ? (
                   <ActivityIndicator size="small" color="#800000" />
                 ) : (
-                  availableCategories.map((cat) => {
-                    const isSelected = selectedCategories.includes(cat.name);
-                    const dbIcon = (cat.icon || '').toLowerCase();
-                    const iconName = ICON_MAP[dbIcon] || 'ellipse-outline';
-
-                    return (
-                      <Pressable
-                        key={cat.id}
-                        onPress={() => toggleCategory(cat.name)}
-                        style={[
-                          styles.categoryChip,
-                          isSelected && styles.categoryChipSelected,
-                        ]}
-                      >
-                        <Ionicons
-                          name={iconName as any}
-                          size={16}
-                          color={isSelected ? "#FFF" : "#800000"}
-                          style={styles.chipIcon}
-                        />
-                        <Text
-                          style={[
-                            styles.categoryChipText,
-                            isSelected && styles.categoryChipTextSelected,
-                          ]}
-                        >
-                          {cat.name}
-                        </Text>
-                        {isSelected && (
-                          <Ionicons name="checkmark-circle" size={14} color="#FFF" style={styles.chipCheck} />
-                        )}
-                      </Pressable>
-                    );
-                  })
+                  availableCategories.map((cat) => (
+                    <CategoryChip
+                      key={cat.id}
+                      cat={cat}
+                      isSelected={selectedCategories.includes(cat.name)}
+                      onToggle={toggleCategory}
+                    />
+                  ))
                 )}
               </View>
             </View>

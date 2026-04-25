@@ -15,6 +15,6 @@ config.resolver.resolverMainFields = ['react-native', 'browser', 'main'];
 config.resolver.sourceExts = [...config.resolver.sourceExts, 'mjs'];
 
 // Ensure async-storage is handled properly on web
-config.resolver.unstable_enablePackageExports = false;
+config.resolver.unstable_enablePackageExports = true;
 
 module.exports = config;

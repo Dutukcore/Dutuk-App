@@ -6,6 +6,10 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 import { useAuthStore } from './useAuthStore';
 
+const PORTFOLIO_STALE_MS = 60_000;
+const SERVICES_STALE_MS = 60_000;
+const CATEGORIES_STALE_MS = 24 * 3600_000;
+
 // =====================================================
 // TYPES
 // =====================================================
@@ -136,6 +140,69 @@ export interface Payment {
     payment_date: string;
 }
 
+export interface PortfolioItem {
+    id: string;
+    vendor_id: string;
+    title: string | null;
+    description: string | null;
+    image_url: string;
+    thumbnail_url: string | null;
+    event_type: string | null;
+    event_date: string | null;
+    is_featured: boolean;
+    sort_order: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreatePortfolioItemParams {
+    title?: string;
+    description?: string;
+    event_type?: string;
+    event_date?: string;
+    is_featured?: boolean;
+}
+
+export interface UpdatePortfolioItemParams extends Partial<CreatePortfolioItemParams> {
+    sort_order?: number;
+}
+
+export type PricingModel = 'starting' | 'range' | 'quote';
+
+export interface Service {
+    id: string;
+    company_id: string;
+    name: string;
+    description: string | null;
+    category: string | null;
+    pricing_model: PricingModel;
+    min_price: number | null;
+    max_price: number | null;
+    usp_tags: string[] | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface CreateServiceParams {
+    name: string;
+    description?: string;
+    category?: string;
+    pricing_model?: PricingModel;
+    min_price?: number;
+    max_price?: number;
+    usp_tags?: string[];
+    is_active?: boolean;
+}
+
+export interface UpdateServiceParams extends Partial<CreateServiceParams> { }
+
+export interface Category {
+    id: string;
+    name: string;
+    icon: string | null;
+}
+
 interface VendorState {
     // Company
     company: Company | null;
@@ -179,6 +246,18 @@ interface VendorState {
     conversations: ConversationWithUnread[];
     conversationsLoading: boolean;
 
+    // Portfolio & Services (SWR)
+    portfolioItems: PortfolioItem[];
+    portfolioLoading: boolean;
+    portfolioLastFetchedAt: number | null;
+
+    vendorServices: Service[];
+    servicesLoading: boolean;
+    servicesLastFetchedAt: number | null;
+
+    categories: Category[];
+    categoriesLastFetchedAt: number | null;
+
     // Realtime health
     realtimeStatus: 'SUBSCRIBED' | 'CHANNEL_ERROR' | 'TIMED_OUT' | 'CLOSED' | null;
 
@@ -200,6 +279,23 @@ interface VendorState {
     fetchEarnings: () => Promise<void>;
     fetchPayments: () => Promise<void>;
     fetchConversations: () => Promise<void>;
+
+    // New SWR Actions
+    fetchPortfolio: (opts?: { force?: boolean }) => Promise<void>;
+    fetchServices: (opts?: { force?: boolean }) => Promise<void>;
+    fetchCategoriesIfStale: () => Promise<void>;
+
+    // Portfolio Mutations
+    setPortfolioItems: (items: PortfolioItem[]) => void;
+    addPortfolioItem: (item: PortfolioItem) => void;
+    updatePortfolioItem: (id: string, updates: Partial<PortfolioItem>) => void;
+    removePortfolioItem: (id: string) => void;
+
+    // Services Mutations
+    setVendorServices: (services: Service[]) => void;
+    addVendorService: (service: Service) => void;
+    updateVendorService: (id: string, updates: Partial<Service>) => void;
+    removeVendorService: (id: string) => void;
     setOrders: (orders: Order[]) => void;
     addEvent: (event: VendorEvent) => void;
     removeEvent: (eventId: string) => void;
@@ -266,6 +362,17 @@ export const useVendorStore = create<VendorState>()(
             realtimeStatus: null,
             ordersRevision: 0,
             bumpOrdersRevision: () => set((s) => ({ ordersRevision: s.ordersRevision + 1 })),
+
+            portfolioItems: [],
+            portfolioLoading: false,
+            portfolioLastFetchedAt: null,
+
+            vendorServices: [],
+            servicesLoading: false,
+            servicesLastFetchedAt: null,
+
+            categories: [],
+            categoriesLastFetchedAt: null,
 
             fetchEarnings: async () => {
                 const userId = useAuthStore.getState().userId;
@@ -363,6 +470,9 @@ export const useVendorStore = create<VendorState>()(
                     get().fetchReviews(10),
                     get().fetchEarnings(),
                     get().fetchPayments(),
+                    get().fetchPortfolio(),
+                    get().fetchServices(),
+                    get().fetchCategoriesIfStale(),
                 ]);
             },
 
@@ -561,6 +671,86 @@ export const useVendorStore = create<VendorState>()(
                 } as any);
             },
 
+            fetchPortfolio: async (opts) => {
+                const userId = useAuthStore.getState().userId;
+                if (!userId) return;
+
+                const { portfolioLastFetchedAt, portfolioLoading } = get();
+                if (!opts?.force && portfolioLastFetchedAt && (Date.now() - portfolioLastFetchedAt < PORTFOLIO_STALE_MS)) {
+                    return;
+                }
+
+                if (portfolioLoading) return;
+                set({ portfolioLoading: true });
+
+                const { data, error } = await supabase
+                    .from('portfolio_items')
+                    .select('*')
+                    .eq('vendor_id', userId)
+                    .order('is_featured', { ascending: false })
+                    .order('sort_order', { ascending: true })
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    logger.error('Error fetching portfolio in store:', error);
+                }
+
+                set({
+                    portfolioItems: data || [],
+                    portfolioLoading: false,
+                    portfolioLastFetchedAt: Date.now(),
+                });
+            },
+
+            fetchServices: async (opts) => {
+                const companyId = get().company?.id;
+                if (!companyId) return;
+
+                const { servicesLastFetchedAt, servicesLoading } = get();
+                if (!opts?.force && servicesLastFetchedAt && (Date.now() - servicesLastFetchedAt < SERVICES_STALE_MS)) {
+                    return;
+                }
+
+                if (servicesLoading) return;
+                set({ servicesLoading: true });
+
+                const { data, error } = await supabase
+                    .from('vendor_services')
+                    .select('*')
+                    .eq('company_id', companyId)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    logger.error('Error fetching services in store:', error);
+                }
+
+                set({
+                    vendorServices: data || [],
+                    servicesLoading: false,
+                    servicesLastFetchedAt: Date.now(),
+                });
+            },
+
+            fetchCategoriesIfStale: async () => {
+                const { categoriesLastFetchedAt, categories } = get();
+                if (categories.length > 0 && categoriesLastFetchedAt && (Date.now() - categoriesLastFetchedAt < CATEGORIES_STALE_MS)) {
+                    return;
+                }
+
+                const { data, error } = await supabase
+                    .from('categories')
+                    .select('id, name, icon');
+
+                if (error) {
+                    logger.error('Error fetching categories in store:', error);
+                } else {
+                    set({
+                        categories: data || [],
+                        categoriesLastFetchedAt: Date.now(),
+                    });
+                }
+            },
+
             replyToReview: async (reviewId: string, response: string) => {
                 const userId = useAuthStore.getState().userId;
                 if (!userId) return;
@@ -614,6 +804,24 @@ export const useVendorStore = create<VendorState>()(
 
             setRealtimeStatus: (status) => set({ realtimeStatus: status }),
 
+            setPortfolioItems: (items) => set({ portfolioItems: [...items] }),
+            addPortfolioItem: (item) => set((s) => ({ portfolioItems: [item, ...s.portfolioItems] })),
+            updatePortfolioItem: (id, updates) => set((s) => ({
+                portfolioItems: s.portfolioItems.map((i) => i.id === id ? { ...i, ...updates } : i)
+            })),
+            removePortfolioItem: (id) => set((s) => ({
+                portfolioItems: s.portfolioItems.filter((i) => i.id !== id)
+            })),
+
+            setVendorServices: (services) => set({ vendorServices: [...services] }),
+            addVendorService: (service) => set((s) => ({ vendorServices: [service, ...s.vendorServices] })),
+            updateVendorService: (id, updates) => set((s) => ({
+                vendorServices: s.vendorServices.map((i) => i.id === id ? { ...i, ...updates } : i)
+            })),
+            removeVendorService: (id) => set((s) => ({
+                vendorServices: s.vendorServices.filter((i) => i.id !== id)
+            })),
+
             clearStore: () => {
                 logger.log('Clearing Vendor Store...');
                 set({
@@ -629,6 +837,12 @@ export const useVendorStore = create<VendorState>()(
                     reviewStats: { totalReviews: 0, averageRating: 0, ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } },
                     newOrderCount: 0,
                     isHydrated: false,
+                    portfolioItems: [],
+                    portfolioLastFetchedAt: null,
+                    vendorServices: [],
+                    servicesLastFetchedAt: null,
+                    categories: [],
+                    categoriesLastFetchedAt: null,
                 });
             },
         }),
@@ -647,6 +861,12 @@ export const useVendorStore = create<VendorState>()(
                 earnings: state.earnings,
                 payments: state.payments,
                 lastFetchedAt: state.lastFetchedAt,
+                portfolioItems: state.portfolioItems,
+                portfolioLastFetchedAt: state.portfolioLastFetchedAt,
+                vendorServices: state.vendorServices,
+                servicesLastFetchedAt: state.servicesLastFetchedAt,
+                categories: state.categories,
+                categoriesLastFetchedAt: state.categoriesLastFetchedAt,
                 // Excluded: orders, conversations, realtimeStatus, newOrderCount
                 // These must always be fetched fresh to reflect the live state.
             }),

@@ -1,20 +1,23 @@
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { User } from 'react-native-gifted-chat';
 
 
 
-const UserCard = (user:User) => {
+const UserCard = (user: User) => {
   return (
-    <TouchableOpacity style={styles.card} onPress={()=>{router.push({
-  pathname: "/profilePages/message/chatPage",
-  params: {
-    _id: user._id.toString(),
-    name: user.name,
-    avatar: user.avatar?.toString(),
-  }
-});}}>
-      <Image source={{ uri: user.avatar as string} } style={styles.avatar} />
+    <TouchableOpacity style={styles.card} onPress={() => {
+      router.push({
+        pathname: "/chat/conversation",
+        params: {
+          _id: user._id.toString(),
+          name: user.name,
+          avatar: user.avatar?.toString(),
+        }
+      });
+    }}>
+      <Image source={{ uri: user.avatar as string }} style={styles.avatar} />
       <View>
         <Text style={styles.name}>{user.name}</Text>
       </View>

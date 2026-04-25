@@ -1,17 +1,14 @@
-import { buildAvailabilityMarkedDates, MarkedDatesMap, mergeAvailabilityWithEvents } from '@/features/calendar/utils/calendarAvailability';
-import { useOrdersPolling } from '@/features/orders/hooks/useOrdersPolling';
 import logger from '@/lib/logger';
 import { useVendorStore } from '@/store/useVendorStore';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   View
@@ -19,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useShallow } from 'zustand/react/shallow';
 
-const StatusBadge = ({ status }: { status: string }) => {
+const StatusBadge = memo(({ status }: { status: string }) => {
   const badgeConfigs = {
     pending: { bg: 'rgba(128, 0, 0, 0.08)', text: '#800000' },
     approved: { bg: '#34C75915', text: '#34C759' },
@@ -34,9 +31,9 @@ const StatusBadge = ({ status }: { status: string }) => {
       </Text>
     </View>
   );
-};
+});
 
-const OrderPreviewCard = ({ order }: { order: any }) => {
+const OrderPreviewCard = memo(({ order }: { order: any }) => {
   return (
     <Pressable
       style={styles.orderPreviewCard}
@@ -64,7 +61,55 @@ const OrderPreviewCard = ({ order }: { order: any }) => {
       </View>
     </Pressable>
   );
-};
+});
+
+const ManageEventCard = memo(({ item, onPress }: { item: any, onPress: (id: string) => void }) => {
+  const FALLBACK_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png";
+  const imageUri = item.image_url || item.banner_url || "";
+  return (
+    <Pressable
+      style={styles.manageCardSmall}
+      onPress={() => onPress(item.id)}
+    >
+      <Image
+        source={imageUri ? { uri: imageUri } : { uri: FALLBACK_IMAGE }}
+        style={styles.manageCardImageSmall}
+        cachePolicy="disk"
+        transition={200}
+      />
+      <Text style={styles.manageCardTitleSmall} numberOfLines={1}>{item.event}</Text>
+    </Pressable>
+  );
+});
+
+const ReviewCard = memo(({ review }: { review: any }) => {
+  return (
+    <View style={styles.reviewCard}>
+      <View style={styles.reviewCardHeader}>
+        <View style={styles.reviewerInfo}>
+          <View style={styles.reviewerAvatar}>
+            <Text style={styles.reviewerInitial}>
+              {review.customer?.full_name?.charAt(0)?.toUpperCase() || 'C'}
+            </Text>
+          </View>
+          <View>
+            <Text style={styles.reviewerName}>{review.customer?.full_name || 'Anonymous'}</Text>
+            <Text style={styles.reviewEventName}>{review.order?.title || 'Event'}</Text>
+          </View>
+        </View>
+        <View style={styles.reviewRatingBadge}>
+          <Ionicons name="star" size={14} color="#FFC13C" />
+          <Text style={styles.reviewRatingText}>{review.rating}</Text>
+        </View>
+      </View>
+      {Boolean(review.review) && (
+        <Text style={styles.reviewText} numberOfLines={3}>
+          "{review.review}"
+        </Text>
+      )}
+    </View>
+  );
+});
 
 const Home = () => {
   // Store state with optimized selection
@@ -100,12 +145,6 @@ const Home = () => {
     }))
   );
 
-  // Activate fallback polling when realtime is unhealthy
-  useOrdersPolling();
-
-  // Re-hydrate orders on tab focus only if data is older than FRESH_MS,
-  // to avoid thrashing the store on every router transition and to
-  // minimise the fetch/realtime race window.
   const FRESH_MS = 20_000;
 
   useFocusEffect(
@@ -113,7 +152,6 @@ const Home = () => {
       const { lastFetchedAt, realtimeStatus } = useVendorStore.getState();
       const stale = !lastFetchedAt || Date.now() - lastFetchedAt > FRESH_MS;
 
-      // Skip refetch if realtime is healthy AND data is fresh.
       if (realtimeStatus === 'SUBSCRIBED' && !stale) {
         logger.log('Home focus: realtime healthy + data fresh — skipping refetch');
         return;
@@ -126,10 +164,8 @@ const Home = () => {
     }, [])
   );
 
-  // Local UI state
   const [refreshing, setRefreshing] = useState(false);
   const [profileImageLoading, setProfileImageLoading] = useState(false);
-  const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({});
 
   const FALLBACK_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png";
   const profileImageUrl = company?.logo_url || FALLBACK_IMAGE;
@@ -138,35 +174,14 @@ const Home = () => {
     return allEvents.filter((evt) => evt.status !== 'completed');
   }, [allEvents]);
 
-  // Derived calendar markers
-  const markedDates = useMemo(() => {
-    const availabilityMarked = buildAvailabilityMarkedDates(calendarDates);
-
-    const eventMarked: MarkedDatesMap = {};
-    allEvents.forEach((event) => {
-      const startDate = event.start_date?.split('T')[0];
-      if (startDate) {
-        eventMarked[startDate] = {
-          hasEvent: true,
-          eventColor: event.status === 'upcoming' ? '#007AFF' : event.status === 'ongoing' ? '#FF9500' : '#34C759',
-        };
-      }
-    });
-
-    return mergeAvailabilityWithEvents(availabilityMarked, eventMarked);
-  }, [allEvents, calendarDates]);
-
-  // Analytics Calculation — derived from real orders data
   const analytics = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    // Earnings from completed OR approved orders (approved = confirmed booking)
     const earnableOrders = orders.filter(o => o.status === 'completed' || o.status === 'approved');
     const totalEarnings = earnableOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
 
-    // This month: filter by event date in current calendar month
     const thisMonthOrders = earnableOrders.filter(o => {
       if (!o.rawEventDate) return false;
       const d = new Date(o.rawEventDate);
@@ -174,7 +189,6 @@ const Home = () => {
     });
     const thisMonthEarnings = thisMonthOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
 
-    // Counts
     const completedCount = orders.filter(o => o.status === 'completed').length;
 
     return {
@@ -187,19 +201,6 @@ const Home = () => {
     };
   }, [orders, reviewStats]);
 
-  const handleImageLoadStart = (eventId: string) => {
-    setImageLoadingStates(prev => ({ ...prev, [eventId]: true }));
-  };
-
-  const handleImageLoadEnd = (eventId: string) => {
-    setImageLoadingStates(prev => ({ ...prev, [eventId]: false }));
-  };
-
-  const handleImageLoadError = (eventId: string) => {
-    logger.error(`Failed to load image for event ${eventId}`);
-    setImageLoadingStates(prev => ({ ...prev, [eventId]: false }));
-  };
-
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -211,166 +212,163 @@ const Home = () => {
     }
   }, [fetchAll]);
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#800000"
-            colors={["#800000"]}
-            progressBackgroundColor="#faf8f5"
-          />
-        }
-      >
-        <View style={styles.header}>
-          <View style={styles.headerIcons}>
-            {/* Left group */}
-            <View style={styles.leftIcons}>
-              <Pressable style={styles.iconButton} onPress={() => router.push('/notifications' as any)}>
-                <Ionicons name="notifications-outline" size={26} color="#1c1917" />
-              </Pressable>
-              <Pressable style={styles.iconButton} onPress={() => router.push("/calendar" as any)}>
-                <Ionicons name="calendar-outline" size={26} color="#1c1917" />
+  const sections = useMemo(() => [
+    { type: 'ORDERS' },
+    { type: 'ANALYTICS' },
+    { type: 'SERVICES' },
+    { type: 'REVIEWS' }
+  ], []);
+
+  const renderHeader = () => (
+    <>
+      <View style={styles.header}>
+        <View style={styles.headerIcons}>
+          <View style={styles.leftIcons}>
+            <Pressable style={styles.iconButton} onPress={() => router.push('/notifications' as any)}>
+              <Ionicons name="notifications-outline" size={26} color="#1c1917" />
+            </Pressable>
+            <Pressable style={styles.iconButton} onPress={() => router.push("/calendar" as any)}>
+              <Ionicons name="calendar-outline" size={26} color="#1c1917" />
+            </Pressable>
+          </View>
+
+          <Pressable style={styles.profileIcon} onPress={() => router.push("/profile")}>
+            <Image
+              source={{ uri: profileImageUrl }}
+              style={styles.profileImage}
+              cachePolicy="disk"
+              transition={200}
+              onLoadStart={() => setProfileImageLoading(true)}
+              onLoadEnd={() => setProfileImageLoading(false)}
+            />
+            {Boolean(profileImageLoading) && (
+              <View style={styles.profileImageLoadingOverlay}>
+                <ActivityIndicator color="#800000" size="small" />
+              </View>
+            )}
+          </Pressable>
+        </View>
+      </View>
+
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Home</Text>
+      </View>
+    </>
+  );
+
+  const renderItem = ({ item }: { item: any }) => {
+    switch (item.type) {
+      case 'ORDERS':
+        return (
+          <View style={styles.ordersSection}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.headerTitleGroup}>
+                <Text style={styles.sectionTitle}>New Orders</Text>
+                <View style={[styles.orderCountBadge, newOrderCount > 0 && styles.newOrderBadge]}>
+                  <Text style={[styles.orderCountText, newOrderCount > 0 && styles.newOrderText]}>{orders.length}</Text>
+                </View>
+                {newOrderCount > 0 && <View style={styles.redDot} />}
+                <View style={[
+                  styles.liveIndicator,
+                  realtimeStatus === 'SUBSCRIBED' ? styles.liveIndicatorActive : styles.liveIndicatorReconnecting
+                ]}>
+                  <View style={[
+                    styles.liveDot,
+                    realtimeStatus === 'SUBSCRIBED' ? styles.liveDotActive : styles.liveDotReconnecting
+                  ]} />
+                  <Text style={[
+                    styles.liveText,
+                    realtimeStatus === 'SUBSCRIBED' ? styles.liveTextActive : styles.liveTextReconnecting
+                  ]}>
+                    {realtimeStatus === 'SUBSCRIBED' ? 'Live' : 'Reconnecting…'}
+                  </Text>
+                </View>
+              </View>
+              <Pressable onPress={() => router.push('/orders/allOrders' as any)}>
+                <Text style={styles.viewAllLink}>View All</Text>
               </Pressable>
             </View>
 
-            {/* Right group */}
-            <Pressable style={styles.profileIcon} onPress={() => router.push("/profile")}>
-              <Image
-                source={{ uri: profileImageUrl }}
-                style={styles.profileImage}
-                cachePolicy="disk"
-                onLoadStart={() => setProfileImageLoading(true)}
-                onLoadEnd={() => setProfileImageLoading(false)}
-              />
-              {Boolean(profileImageLoading) && (
-                <View style={styles.profileImageLoadingOverlay}>
-                  <ActivityIndicator color="#800000" size="small" />
-                </View>
-              )}
-            </Pressable>
-          </View>
-        </View>
-
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>Home</Text>
-        </View>
-
-        {/* SECTION 1: NEW ORDERS */}
-        <View style={styles.ordersSection}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.headerTitleGroup}>
-              <Text style={styles.sectionTitle}>New Orders</Text>
-              <View style={[styles.orderCountBadge, newOrderCount > 0 && styles.newOrderBadge]}>
-                <Text style={[styles.orderCountText, newOrderCount > 0 && styles.newOrderText]}>{orders.length}</Text>
-              </View>
-              {newOrderCount > 0 && <View style={styles.redDot} />}
-              {/* Live status indicator */}
-              <View style={[
-                styles.liveIndicator,
-                realtimeStatus === 'SUBSCRIBED' ? styles.liveIndicatorActive : styles.liveIndicatorReconnecting
-              ]}>
-                <View style={[
-                  styles.liveDot,
-                  realtimeStatus === 'SUBSCRIBED' ? styles.liveDotActive : styles.liveDotReconnecting
-                ]} />
-                <Text style={[
-                  styles.liveText,
-                  realtimeStatus === 'SUBSCRIBED' ? styles.liveTextActive : styles.liveTextReconnecting
-                ]}>
-                  {realtimeStatus === 'SUBSCRIBED' ? 'Live' : 'Reconnecting…'}
+            {orders.length === 0 ? (
+              <View style={styles.emptyOrdersCard}>
+                <Ionicons name="file-tray-outline" size={44} color="#a8a29e" />
+                <Text style={styles.emptyOrdersTitle}>No Orders Yet</Text>
+                <Text style={styles.emptyOrdersSubtitle}>
+                  Customer orders will appear here when they book your services
                 </Text>
               </View>
-            </View>
-            <Pressable onPress={() => router.push('/orders/allOrders' as any)}>
-              <Text style={styles.viewAllLink}>View All</Text>
-            </Pressable>
+            ) : (
+              <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                data={orders.slice(0, 5)}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => <OrderPreviewCard order={item} />}
+                contentContainerStyle={styles.ordersScrollContent}
+                ListFooterComponent={
+                  orders.length > 5 ? (
+                    <Pressable
+                      style={styles.viewAllOrdersCard}
+                      onPress={() => router.push('/orders/allOrders' as any)}
+                    >
+                      <Ionicons name="arrow-forward-circle-outline" size={40} color="#800000" />
+                      <Text style={styles.viewAllOrdersText}>View All</Text>
+                      <Text style={styles.viewAllOrdersCount}>+{orders.length - 5} more</Text>
+                    </Pressable>
+                  ) : null
+                }
+              />
+            )}
           </View>
+        );
+      case 'ANALYTICS':
+        return (
+          <View style={styles.analyticsSection}>
+            <Text style={styles.sectionTitle}>Analytics & Performance</Text>
 
-          {orders.length === 0 ? (
-            <View style={styles.emptyOrdersCard}>
-              <Ionicons name="file-tray-outline" size={44} color="#a8a29e" />
-              <Text style={styles.emptyOrdersTitle}>No Orders Yet</Text>
-              <Text style={styles.emptyOrdersSubtitle}>
-                Customer orders will appear here when they book your services
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              data={orders.slice(0, 5)}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <OrderPreviewCard order={item} />}
-              contentContainerStyle={styles.ordersScrollContent}
-              ListFooterComponent={
-                orders.length > 5 ? (
-                  <Pressable
-                    style={styles.viewAllOrdersCard}
-                    onPress={() => router.push('/orders/allOrders' as any)}
-                  >
-                    <Ionicons name="arrow-forward-circle-outline" size={40} color="#800000" />
-                    <Text style={styles.viewAllOrdersText}>View All</Text>
-                    <Text style={styles.viewAllOrdersCount}>+{orders.length - 5} more</Text>
-                  </Pressable>
-                ) : null
-              }
-            />
-          )}
-        </View>
-
-        {/* SECTION 2: ANALYTICAL DATA */}
-        <View style={styles.analyticsSection}>
-          <Text style={styles.sectionTitle}>Analytics & Performance</Text>
-
-          <View style={styles.analyticsRow}>
-            <View style={styles.analyticsCard}>
-              <View style={styles.analyticsIconContainer}>
-                <Ionicons name="wallet-outline" size={28} color="#34C759" />
+            <View style={styles.analyticsRow}>
+              <View style={styles.analyticsCard}>
+                <View style={styles.analyticsIconContainer}>
+                  <Ionicons name="wallet-outline" size={28} color="#34C759" />
+                </View>
+                <Text style={styles.analyticsLabel}>Total Earnings</Text>
+                <Text style={styles.analyticsValue}>₹{analytics.totalEarnings.toFixed(2)}</Text>
+                <Text style={styles.analyticsSubtext}>All time</Text>
               </View>
-              <Text style={styles.analyticsLabel}>Total Earnings</Text>
-              <Text style={styles.analyticsValue}>₹{analytics.totalEarnings.toFixed(2)}</Text>
-              <Text style={styles.analyticsSubtext}>All time</Text>
+
+              <View style={styles.analyticsCard}>
+                <View style={[styles.analyticsIconContainer, { backgroundColor: 'rgba(128, 0, 0, 0.08)' }]}>
+                  <Ionicons name="trending-up-outline" size={28} color="#800000" />
+                </View>
+                <Text style={styles.analyticsLabel}>This Month</Text>
+                <Text style={styles.analyticsValue}>₹{analytics.thisMonthEarnings.toFixed(2)}</Text>
+                <Text style={styles.analyticsSubtext}>{analytics.thisMonthServicesCount} services</Text>
+              </View>
             </View>
 
-            <View style={styles.analyticsCard}>
-              <View style={[styles.analyticsIconContainer, { backgroundColor: 'rgba(128, 0, 0, 0.08)' }]}>
-                <Ionicons name="trending-up-outline" size={28} color="#800000" />
+            <View style={styles.analyticsRow}>
+              <View style={styles.analyticsCard}>
+                <View style={[styles.analyticsIconContainer, { backgroundColor: 'rgba(0, 122, 255, 0.08)' }]}>
+                  <Ionicons name="calendar-outline" size={28} color="#007AFF" />
+                </View>
+                <Text style={styles.analyticsLabel}>Past Services</Text>
+                <Text style={styles.analyticsValue}>{analytics.pastServicesCount}</Text>
+                <Text style={styles.analyticsSubtext}>Completed</Text>
               </View>
-              <Text style={styles.analyticsLabel}>This Month</Text>
-              <Text style={styles.analyticsValue}>₹{analytics.thisMonthEarnings.toFixed(2)}</Text>
-              <Text style={styles.analyticsSubtext}>{analytics.thisMonthServicesCount} services</Text>
-            </View>
-          </View>
 
-          <View style={styles.analyticsRow}>
-            <View style={styles.analyticsCard}>
-              <View style={[styles.analyticsIconContainer, { backgroundColor: 'rgba(0, 122, 255, 0.08)' }]}>
-                <Ionicons name="calendar-outline" size={28} color="#007AFF" />
+              <View style={styles.analyticsCard}>
+                <View style={[styles.analyticsIconContainer, { backgroundColor: 'rgba(255, 193, 60, 0.08)' }]}>
+                  <Ionicons name="star" size={28} color="#FFC13C" />
+                </View>
+                <Text style={styles.analyticsLabel}>Rating</Text>
+                <Text style={styles.analyticsValue}>{analytics.avgRating.toFixed(1)} ⭐</Text>
+                <Text style={styles.analyticsSubtext}>{analytics.totalReviews} reviews</Text>
               </View>
-              <Text style={styles.analyticsLabel}>Past Services</Text>
-              <Text style={styles.analyticsValue}>{analytics.pastServicesCount}</Text>
-              <Text style={styles.analyticsSubtext}>Completed</Text>
-            </View>
-
-            <View style={styles.analyticsCard}>
-              <View style={[styles.analyticsIconContainer, { backgroundColor: 'rgba(255, 193, 60, 0.08)' }]}>
-                <Ionicons name="star" size={28} color="#FFC13C" />
-              </View>
-              <Text style={styles.analyticsLabel}>Rating</Text>
-              <Text style={styles.analyticsValue}>{analytics.avgRating.toFixed(1)} ⭐</Text>
-              <Text style={styles.analyticsSubtext}>{analytics.totalReviews} reviews</Text>
             </View>
           </View>
-        </View>
-
-        {/* SECTION 3: CREATE SERVICE / YOUR SERVICES */}
-        {allEvents.length === 0 ? (
+        );
+      case 'SERVICES':
+        return allEvents.length === 0 ? (
           <View style={styles.createEventSection}>
             <Pressable
               style={styles.createEventCTA}
@@ -418,85 +416,76 @@ const Home = () => {
                   </View>
                 </Pressable>
               }
-              renderItem={({ item }) => {
-                const imageUri = item.image_url || item.banner_url || "";
-                return (
-                  <Pressable
-                    style={styles.manageCardSmall}
-                    onPress={() => router.push(`/event/manage/${item.id}`)}
-                  >
-                    <Image
-                      source={imageUri ? { uri: imageUri } : { uri: FALLBACK_IMAGE }}
-                      style={styles.manageCardImageSmall}
-                      cachePolicy="disk"
-                    />
-                    <Text style={styles.manageCardTitleSmall} numberOfLines={1}>{item.event}</Text>
-                  </Pressable>
-                );
-              }}
-            />
-          </View>
-        )}
-
-        {/* Reviews Section */}
-        <View style={styles.reviewsSection}>
-          <View style={styles.reviewsHeader}>
-            <Text style={styles.sectionTitle}>Reviews</Text>
-            <Pressable
-              style={styles.viewAllButton}
-              onPress={() => router.push("/reviews")}
-            >
-              <Text style={styles.viewAllText}>View All</Text>
-              <Ionicons name="chevron-forward" size={16} color="#800000" />
-            </Pressable>
-          </View>
-
-          {reviews.length === 0 ? (
-            <View style={styles.emptyReviewsCard}>
-              <Ionicons name="star-outline" size={44} color="#FFC13C" />
-              <Text style={styles.emptyReviewsTitle}>No reviews yet</Text>
-              <Text style={styles.emptyReviewsSubtitle}>
-                Customer reviews will appear here after completed services
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              data={reviews.slice(0, 5)}
-              keyExtractor={(item: any) => item.id}
-              contentContainerStyle={styles.reviewsScrollContent}
-              renderItem={({ item: review }: { item: any }) => (
-                <View style={styles.reviewCard}>
-                  <View style={styles.reviewCardHeader}>
-                    <View style={styles.reviewerInfo}>
-                      <View style={styles.reviewerAvatar}>
-                        <Text style={styles.reviewerInitial}>
-                          {review.customer?.full_name?.charAt(0)?.toUpperCase() || 'C'}
-                        </Text>
-                      </View>
-                      <View>
-                        <Text style={styles.reviewerName}>{review.customer?.full_name || 'Anonymous'}</Text>
-                        <Text style={styles.reviewEventName}>{review.order?.title || 'Event'}</Text>
-                      </View>
-                    </View>
-                    <View style={styles.reviewRatingBadge}>
-                      <Ionicons name="star" size={14} color="#FFC13C" />
-                      <Text style={styles.reviewRatingText}>{review.rating}</Text>
-                    </View>
-                  </View>
-                  {Boolean(review.review) && (
-                    <Text style={styles.reviewText} numberOfLines={3}>
-                      "{review.review}"
-                    </Text>
-                  )}
-                </View>
+              renderItem={({ item }) => (
+                <ManageEventCard
+                  item={item}
+                  onPress={(id) => router.push(`/event/manage/${id}`)}
+                />
               )}
             />
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView >
+          </View>
+        );
+      case 'REVIEWS':
+        return (
+          <View style={styles.reviewsSection}>
+            <View style={styles.reviewsHeader}>
+              <Text style={styles.sectionTitle}>Reviews</Text>
+              <Pressable
+                style={styles.viewAllButton}
+                onPress={() => router.push("/reviews")}
+              >
+                <Text style={styles.viewAllText}>View All</Text>
+                <Ionicons name="chevron-forward" size={16} color="#800000" />
+              </Pressable>
+            </View>
+
+            {reviews.length === 0 ? (
+              <View style={styles.emptyReviewsCard}>
+                <Ionicons name="star-outline" size={44} color="#FFC13C" />
+                <Text style={styles.emptyReviewsTitle}>No reviews yet</Text>
+                <Text style={styles.emptyReviewsSubtitle}>
+                  Customer reviews will appear here after completed services
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                data={reviews.slice(0, 5)}
+                keyExtractor={(item: any) => item.id}
+                contentContainerStyle={styles.reviewsScrollContent}
+                renderItem={({ item: review }: { item: any }) => (
+                  <ReviewCard review={review} />
+                )}
+              />
+            )}
+          </View>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <FlatList
+        data={sections}
+        keyExtractor={(item) => item.type}
+        renderItem={renderItem}
+        ListHeaderComponent={renderHeader}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#800000"
+            colors={["#800000"]}
+            progressBackgroundColor="#faf8f5"
+          />
+        }
+      />
+    </SafeAreaView>
   );
 };
 
@@ -507,7 +496,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 16,
-    paddingHorizontal: 28,
+    paddingHorizontal: 0, // Adjusted for FlatList header
     paddingBottom: 24,
     backgroundColor: 'transparent',
   },
@@ -556,7 +545,6 @@ const styles = StyleSheet.create({
   profileImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   profileImageLoadingOverlay: {
     position: 'absolute',
@@ -578,16 +566,13 @@ const styles = StyleSheet.create({
     color: '#800000',
     letterSpacing: -0.5,
   },
-  scrollView: {
-    flex: 1,
-  },
   scrollContent: {
     paddingHorizontal: 28,
     paddingBottom: 50,
   },
   // Order Section Styles
   ordersSection: {
-    marginBottom: 56,
+    marginBottom: 48,
     marginLeft: -28,
     marginRight: -28,
     overflow: 'visible',
@@ -631,21 +616,38 @@ const styles = StyleSheet.create({
     gap: 8,
     flex: 1,
   },
+  viewAllLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#800000',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1c1917',
+  },
+  subsectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1c1917',
+  },
+  manageEventsWrapper: {
+    marginBottom: 48,
+  },
+  manageEventsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  smallAddButton: {
-    padding: 4,
-  },
-  manageEventsWrapper: {
-    marginTop: 10,
-    marginBottom: 64,
-  },
   addEventCardSmall: {
     width: 110,
-    marginRight: 20,
+    marginRight: 16,
   },
   addEventCardImageSmall: {
     width: 110,
@@ -660,12 +662,28 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   addEventLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '700',
     color: '#800000',
     textAlign: 'center',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  manageCardSmall: {
+    width: 110,
+    marginRight: 16,
+  },
+  manageCardImageSmall: {
+    width: 110,
+    height: 140,
+    borderRadius: 24,
+    backgroundColor: '#e7e5e4',
+  },
+  manageCardTitleSmall: {
+    marginTop: 8,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1c1917',
   },
   orderCountText: {
     color: '#800000',
@@ -701,7 +719,7 @@ const styles = StyleSheet.create({
   },
   orderPreviewCard: {
     width: 280,
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
     padding: 20,
     marginRight: 16,
@@ -794,137 +812,61 @@ const styles = StyleSheet.create({
 
   // Analytics Styles
   analyticsSection: {
-    marginBottom: 56,
+    marginBottom: 48,
   },
   analyticsRow: {
     flexDirection: 'row',
-    gap: 18,
-    marginBottom: 18,
+    gap: 16,
+    marginBottom: 16,
   },
   analyticsCard: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    padding: 24,
-    alignItems: 'center',
+    padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(128, 0, 0, 0.06)',
+    borderColor: 'rgba(128, 0, 0, 0.04)',
     shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   analyticsIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     backgroundColor: 'rgba(52, 199, 89, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
-  analyticsLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#57534e',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
   analyticsValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#1c1917',
     marginBottom: 4,
-    letterSpacing: -0.5,
+  },
+  analyticsLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#a8a29e',
+    marginBottom: 4,
   },
   analyticsSubtext: {
     fontSize: 12,
-    color: '#a8a29e',
-    fontWeight: '500',
-  },
-
-  // Create Event Styles
-  createEventSection: {
-    marginBottom: 56,
-  },
-  createEventCTA: {
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    borderRadius: 28,
-    padding: 28,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(128, 0, 0, 0.1)',
-    shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 8,
-    marginBottom: 24,
-  },
-  createEventIconCircle: {
-    marginRight: 18,
-  },
-  createEventTextContainer: {
-    flex: 1,
-  },
-  createEventTitle: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: '#1c1917',
-    marginBottom: 4,
-  },
-  createEventSubtitle: {
-    fontSize: 14,
     color: '#57534e',
-    lineHeight: 20,
-  },
-  createEventArrow: {
-    marginLeft: 10,
-  },
-  manageEventsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  subsectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1c1917',
-  },
-  viewAllLink: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#800000',
-  },
-  manageEventsScroll: {
-    paddingVertical: 8,
-  },
-  manageCardSmall: {
-    width: 220,
-    marginRight: 20,
-  },
-  manageCardImageSmall: {
-    width: 220,
-    height: 140,
-    borderRadius: 20,
-    marginBottom: 10,
-  },
-  manageCardTitleSmall: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1c1917',
   },
 
-  // Shared / Legacy
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1c1917',
-    letterSpacing: -0.4,
+  // Reviews Styles
+  reviewsSection: {
+    marginBottom: 20,
+  },
+  reviewsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   viewAllButton: {
     flexDirection: 'row',
@@ -933,149 +875,115 @@ const styles = StyleSheet.create({
   },
   viewAllText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#800000',
   },
-
-  // Reviews Section Styles
-  reviewsSection: {
-    marginBottom: 56,
-    marginLeft: -28,
-    marginRight: -28,
-    overflow: 'visible',
-  },
-  reviewsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingLeft: 28,
-    paddingRight: 28,
-  },
-  emptyReviewsCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    borderRadius: 24,
-    padding: 48,
-    alignItems: 'center',
-    marginHorizontal: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(128, 0, 0, 0.06)',
-    shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    elevation: 3,
-  },
-  emptyReviewsTitle: {
-    marginTop: 20,
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1c1917',
-    letterSpacing: -0.3,
-  },
-  emptyReviewsSubtitle: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#57534e',
-    textAlign: 'center',
-    lineHeight: 22,
-    fontWeight: '400',
-  },
   reviewsScrollContent: {
-    paddingLeft: 28,
-    paddingRight: 28,
+    paddingVertical: 4,
   },
   reviewCard: {
-    width: 310,
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    width: 280,
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    padding: 24,
-    marginRight: 18,
+    padding: 20,
+    marginRight: 16,
     borderWidth: 1,
-    borderColor: 'rgba(128, 0, 0, 0.06)',
+    borderColor: 'rgba(128, 0, 0, 0.04)',
     shadowColor: '#800000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   reviewCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
+    alignItems: 'center',
+    marginBottom: 14,
   },
   reviewerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    gap: 12,
   },
   reviewerAvatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: '#FFC13C',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(128, 0, 0, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 193, 60, 0.2)',
   },
   reviewerInitial: {
-    fontSize: 19,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#800000',
   },
   reviewerName: {
     fontSize: 15,
     fontWeight: '700',
     color: '#1c1917',
-    letterSpacing: -0.1,
   },
   reviewEventName: {
     fontSize: 12,
-    color: '#57534e',
-    marginTop: 3,
-    fontWeight: '500',
+    color: '#a8a29e',
   },
   reviewRatingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF8E6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 193, 60, 0.2)',
+    gap: 4,
+    backgroundColor: 'rgba(255, 193, 60, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
   reviewRatingText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
-    color: '#1c1917',
-    marginLeft: 5,
+    color: '#FFC13C',
   },
   reviewText: {
     fontSize: 14,
-    color: '#292524',
-    lineHeight: 22,
+    color: '#57534e',
+    lineHeight: 20,
     fontStyle: 'italic',
-    fontWeight: '400',
   },
-
-  // Live status indicator styles
+  emptyReviewsCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    borderRadius: 24,
+    padding: 40,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(128, 0, 0, 0.06)',
+  },
+  emptyReviewsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1c1917',
+    marginTop: 16,
+  },
+  emptyReviewsSubtitle: {
+    fontSize: 14,
+    color: '#57534e',
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
   liveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(52, 199, 89, 0.08)',
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-    gap: 4,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 8,
   },
   liveIndicatorActive: {
-    backgroundColor: 'rgba(52, 199, 89, 0.1)',
+    backgroundColor: 'rgba(52, 199, 89, 0.08)',
   },
   liveIndicatorReconnecting: {
-    backgroundColor: 'rgba(255, 149, 0, 0.1)',
+    backgroundColor: 'rgba(255, 149, 0, 0.08)',
   },
   liveDot: {
     width: 6,
@@ -1091,13 +999,63 @@ const styles = StyleSheet.create({
   liveText: {
     fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.2,
   },
   liveTextActive: {
     color: '#34C759',
   },
   liveTextReconnecting: {
     color: '#FF9500',
+  },
+  manageEventsScroll: {
+    paddingVertical: 4,
+  },
+  createEventSection: {
+    marginBottom: 56,
+  },
+  createEventCTA: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
+    padding: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(128, 0, 0, 0.04)',
+    shadowColor: '#800000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 4,
+  },
+  createEventIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(128, 0, 0, 0.04)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  createEventTextContainer: {
+    flex: 1,
+  },
+  createEventTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1c1917',
+    marginBottom: 6,
+  },
+  createEventSubtitle: {
+    fontSize: 14,
+    color: '#57534e',
+    lineHeight: 20,
+  },
+  createEventArrow: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(128, 0, 0, 0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

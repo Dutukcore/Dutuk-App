@@ -1,117 +1,47 @@
 /**
  * Vendor Services Hook — reads/writes to `vendor_services` table.
- * Replaces the old `services` table (now renamed services_deprecated).
+ * Now uses Zustand store for SWR caching.
  */
 import logger from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
-import { useCallback, useEffect, useState } from 'react';
+import type { CreateServiceParams, Service, UpdateServiceParams } from '@/store/useVendorStore';
+import { useVendorStore } from '@/store/useVendorStore';
+import { useEffect, useState } from 'react';
 
-export type PricingModel = 'starting' | 'range' | 'quote';
+export type { CreateServiceParams, PricingModel, Service, UpdateServiceParams } from '@/store/useVendorStore';
 
-export interface Service {
-  id: string;
-  company_id: string;
-  name: string;
-  description: string | null;
-  category: string | null;
-  pricing_model: PricingModel;
-  min_price: number | null;
-  max_price: number | null;
-  usp_tags: string[] | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CreateServiceParams {
-  name: string;
-  description?: string;
-  category?: string;
-  pricing_model?: PricingModel;
-  min_price?: number;
-  max_price?: number;
-  usp_tags?: string[];
-  is_active?: boolean;
-}
-
-export interface UpdateServiceParams extends Partial<CreateServiceParams> { }
-
-/** Fetch and manage the authenticated vendor's services */
+/** Fetch and manage the authenticated vendor's services 
+ * Now uses Zustand store for SWR caching
+*/
 export const useServices = () => {
-  const [services, setServices] = useState<Service[]>([]);
-  const [companyId, setCompanyId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const company = useVendorStore((s) => s.company);
+  const services = useVendorStore((s) => s.vendorServices);
+  const loading = useVendorStore((s) => s.servicesLoading);
+  const fetchServices = useVendorStore((s) => s.fetchServices);
+
+  // Store mutations
+  const addVendorService = useVendorStore((s) => s.addVendorService);
+  const updateVendorServiceInStore = useVendorStore((s) => s.updateVendorService);
+  const removeVendorServiceFromStore = useVendorStore((s) => s.removeVendorService);
+
   const [error, setError] = useState<string | null>(null);
 
-  const fetchServices = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        logger.error('Authentication error in useServices');
-        setLoading(false);
-        return;
-      }
-
-      // Resolve company_id from user_id
-      const { data: company, error: companyError } = await supabase
-        .from('companies')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (companyError || !company) {
-        logger.error('No company found for user in useServices');
-        setLoading(false);
-        return;
-      }
-
-      setCompanyId(company.id);
-
-      const { data, error: fetchError } = await supabase
-        .from('vendor_services')
-        .select('*')
-        .eq('company_id', company.id)
-        .order('created_at', { ascending: false });
-
-      if (fetchError) {
-        logger.error('Failed to fetch vendor services');
-        setError(fetchError.message);
-        setLoading(false);
-        return;
-      }
-
-      setServices(data || []);
-    } catch (err) {
-      logger.error('Error fetching services', err);
-      setError('Failed to load services');
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (company?.id) {
+      fetchServices();
     }
-  }, []);
-
-  useEffect(() => { fetchServices(); }, [fetchServices]);
+  }, [company?.id, fetchServices]);
 
   /** Create a new service */
   const createService = async (params: CreateServiceParams): Promise<Service | null> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      let cId = companyId;
-      if (!cId) {
-        const { data: company } = await supabase
-          .from('companies').select('id').eq('user_id', user.id).single();
-        cId = company?.id || null;
-      }
-      if (!cId) throw new Error('No company found');
+      const companyId = useVendorStore.getState().company?.id;
+      if (!companyId) throw new Error('No company ID found in vendor store');
 
       const { data, error: insertError } = await supabase
         .from('vendor_services')
         .insert({
-          company_id: cId,
+          company_id: companyId,
           name: params.name,
           description: params.description || null,
           category: params.category || null,
@@ -126,7 +56,7 @@ export const useServices = () => {
 
       if (insertError) throw insertError;
 
-      setServices(prev => [data, ...prev]);
+      addVendorService(data);
       return data;
     } catch (err: unknown) {
       const error = err as Error;
@@ -146,9 +76,7 @@ export const useServices = () => {
 
       if (updateError) throw updateError;
 
-      setServices(prev =>
-        prev.map(s => s.id === id ? { ...s, ...params, updated_at: new Date().toISOString() } : s)
-      );
+      updateVendorServiceInStore(id, { ...params, updated_at: new Date().toISOString() });
       return true;
     } catch (err: unknown) {
       const error = err as Error;
@@ -168,7 +96,7 @@ export const useServices = () => {
 
       if (deleteError) throw deleteError;
 
-      setServices(prev => prev.filter(s => s.id !== id));
+      removeVendorServiceFromStore(id);
       return true;
     } catch (err: unknown) {
       const error = err as Error;
@@ -189,7 +117,7 @@ export const useServices = () => {
     services,
     loading,
     error,
-    refetch: fetchServices,
+    refetch: () => fetchServices({ force: true }),
     createService,
     updateService,
     deleteService,

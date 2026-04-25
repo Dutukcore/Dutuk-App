@@ -1,5 +1,6 @@
 import logger from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useCallback, useEffect, useState } from 'react';
 
 export interface Review {
@@ -45,22 +46,22 @@ export const useVendorReviews = (limit?: number) => {
             setLoading(true);
             setError(null);
 
-            // Get current user
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            // Get current user ID from store
+            const currentUserId = useAuthStore.getState().userId;
 
-            if (authError || !user) {
-                logger.error('Authentication error:', authError);
+            if (!currentUserId) {
+                logger.error('No authenticated user ID found in store in useVendorReviews');
                 setLoading(false);
                 return;
             }
 
-            setUserId(user.id);
+            setUserId(currentUserId);
 
             // Fetch reviews for this vendor
             let query = supabase
                 .from('reviews')
                 .select('*')
-                .eq('vendor_id', user.id)
+                .eq('vendor_id', currentUserId)
                 .order('created_at', { ascending: false });
 
             if (limit) {
@@ -183,9 +184,9 @@ export const useRespondToReview = () => {
         setError(null);
 
         try {
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            const userId = useAuthStore.getState().userId;
 
-            if (authError || !user) {
+            if (!userId) {
                 throw new Error('Not authenticated');
             }
 
@@ -196,7 +197,7 @@ export const useRespondToReview = () => {
                     response_at: new Date().toISOString(),
                 })
                 .eq('id', reviewId)
-                .eq('vendor_id', user.id);
+                .eq('vendor_id', userId);
 
             if (updateError) {
                 throw updateError;

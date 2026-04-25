@@ -2,11 +2,11 @@ import logger from '@/lib/logger';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useVendorStore } from '@/store/useVendorStore';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -26,6 +26,25 @@ const ProfileScreen = () => {
     }))
   );
   const logoutStore = useAuthStore((s) => s.logout);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    // Prefetch key sub-routes to make navigation feel instantaneous
+    const routesToPrefetch = [
+      '/profilePages/editProfile',
+      '/profilePages/portfolio',
+      '/profilePages/calendar/CalendarPage',
+      '/profilePages/historyScreen'
+    ];
+
+    routesToPrefetch.forEach(route => {
+      try {
+        router.prefetch(route as any);
+      } catch (e) {
+        logger.warn(`Failed to prefetch route: ${route}`, e);
+      }
+    });
+  }, []);
 
   const menuItems = [
     {
@@ -67,6 +86,8 @@ const ProfileScreen = () => {
   ];
 
   const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
     try {
       await logoutStore();
       Toast.show({
@@ -83,6 +104,8 @@ const ProfileScreen = () => {
         text1: 'Error',
         text2: 'Failed to logout'
       });
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -125,6 +148,8 @@ const ProfileScreen = () => {
               <Image
                 source={{ uri: profileImageUrl }}
                 style={styles.avatar}
+                cachePolicy="disk"
+                transition={200}
               />
               <View style={styles.editBadge}>
                 <Ionicons name="pencil" size={14} color="#FFF" />
@@ -132,23 +157,20 @@ const ProfileScreen = () => {
             </View>
           </Pressable>
 
-          {/* Company Info */}
-          <View style={styles.profileTextInfo}>
-            <Text
-              style={styles.companyName}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
-              {company?.company || "No name"}
-            </Text>
-            <Text
-              style={styles.companyTagline}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
-              {company?.description || "No description"}
-            </Text>
-          </View>
+          <Text
+            style={styles.companyName}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {company?.company || "No name"}
+          </Text>
+          <Text
+            style={styles.companyTagline}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {company?.description || "No description"}
+          </Text>
         </View>
 
         {/* Menu Items */}
@@ -185,14 +207,22 @@ const ProfileScreen = () => {
           <Pressable
             style={({ pressed }) => [
               styles.logoutButton,
-              pressed && styles.logoutButtonPressed,
+              (pressed || isLoggingOut) && styles.logoutButtonPressed,
+              isLoggingOut && styles.logoutButtonDisabled,
             ]}
             onPress={handleLogout}
+            disabled={isLoggingOut}
           >
-            <View style={styles.logoutIconContainer}>
-              <Ionicons name="log-out-outline" size={22} color="#FF3030" />
-            </View>
-            <Text style={styles.logoutText}>Log out Account</Text>
+            {isLoggingOut ? (
+              <ActivityIndicator color="#FF3030" size="small" />
+            ) : (
+              <>
+                <View style={styles.logoutIconContainer}>
+                  <Ionicons name="log-out-outline" size={22} color="#FF3030" />
+                </View>
+                <Text style={styles.logoutText}>Log out Account</Text>
+              </>
+            )}
           </Pressable>
         </View>
       </ScrollView>
@@ -363,6 +393,9 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
     opacity: 0.9,
     backgroundColor: "#fffafa",
+  },
+  logoutButtonDisabled: {
+    opacity: 0.7,
   },
   logoutIconContainer: {
     marginRight: 12,

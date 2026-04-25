@@ -8,6 +8,7 @@ import Toast from 'react-native-toast-message';
 
 // Performance Stores
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useOrdersPolling } from '@/features/orders/hooks/useOrdersPolling';
 import { installGlobalErrorHandler } from '@/lib/globalErrorHandler';
 import { useRealtimeLifecycle } from '@/lib/useRealtimeLifecycle';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -47,6 +48,9 @@ export default function RootLayout() {
   // It observes isAuthenticated + AppState to manage subscriptions.
   // appReady gates setup so we don't connect before initialize() loads the session.
   useRealtimeLifecycle(appReady);
+
+  // Activate global order polling as a safety catch for realtime
+  useOrdersPolling();
 
   // When user authenticates (and app is ready), fetch critical vendor data.
   useEffect(() => {

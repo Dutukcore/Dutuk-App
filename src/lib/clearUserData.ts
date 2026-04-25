@@ -60,8 +60,9 @@ export async function clearAllUserData(): Promise<void> {
 
         // 3. Purge persisted MMKV partitions (zustand/persist names).
         if (mmkv) {
-            mmkv.delete('dutuk-vendor-data-storage');
-            mmkv.delete('dutuk-auth-storage');
+            // Note: Use .remove() to match our storage.ts adapter implementation.
+            mmkv.remove('dutuk-vendor-data-storage');
+            mmkv.remove('dutuk-auth-storage');
         }
 
         // 4. Clear ad-hoc AsyncStorage flags. Add new keys here as the app grows.

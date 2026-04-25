@@ -1,36 +1,33 @@
 import logger from '@/lib/logger';
 import { supabase } from "@/lib/supabase";
+import { useAuthStore } from '@/store/useAuthStore';
 
-const getCompanyInfo = async() =>{
-    try{
-    // Get the current user from the session
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+const getCompanyInfo = async () => {
+    try {
+        // Get the current user ID from the store
+        const userId = useAuthStore.getState().userId;
 
-    if (authError || !user) {
-      logger.error("Authentication error:", authError);
-      return;
-    }
-    const userId = user.id;
+        if (!userId) {
+            logger.error("No authenticated user ID found in store in useGetCompanyInfo");
+            return;
+        }
 
-    // Check if company info already exists for this user
-    const { data: existing, error: fetchError } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-    
-    if (fetchError && fetchError.code !== "PGRST116") {
-        logger.error("Error fetching company info:", fetchError);
-        return;
+        // Check if company info already exists for this user
+        const { data: existing, error: fetchError } = await supabase
+            .from("companies")
+            .select("*")
+            .eq("user_id", userId)
+            .single();
+
+        if (fetchError && fetchError.code !== "PGRST116") {
+            logger.error("Error fetching company info:", fetchError);
+            return;
+        }
+        else {
+            return existing;
+        }
     }
-    else{
-        return existing;
-    }
-}
-    catch(e){
+    catch (e) {
         logger.error(e);
     }
 }
